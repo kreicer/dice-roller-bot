@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  deploy:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -27,7 +27,7 @@ jobs:
       - name: Kill bot
         uses: JimCronqvist/action-ssh@0.1.1
         with:
-          commands: process_number=$(ps x | grep  main.py | grep -v grep | awk '{print $1}'); kill $process_number
+          command: process_number=$(ps x | grep  main.py | grep -v grep | awk '{print $1}'); kill $process_number
           hosts: ${{ secrets.DEPLOY_SERVER_USERNAME }}@${{ secrets.DEPLOY_SERVER_HOST }}:${{ secrets.DEPLOY_SERVER_PORT }}
           privateKey: ${{ secrets.DEPLOY_SERVER_KEY }}
       - name: Upload new bot
@@ -42,6 +42,6 @@ jobs:
       - name: Start bot
         uses: JimCronqvist/action-ssh@0.1.1
         with:
-          commands: python3 ./main.py &
+          command: python3 ./main.py &
           hosts: ${{ secrets.DEPLOY_SERVER_USERNAME }}@${{ secrets.DEPLOY_SERVER_HOST }}:${{ secrets.DEPLOY_SERVER_PORT }}
           privateKey: ${{ secrets.DEPLOY_SERVER_KEY }}
