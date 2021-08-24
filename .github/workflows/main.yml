@@ -30,7 +30,7 @@ jobs:
           command: |
             process_number=$(ps x | grep  main.py | grep -v grep | awk '{print $1}')
             kill $process_number
-          hosts: ${{ secrets.DEPLOY_SERVER_USERNAME }}@${{ secrets.DEPLOY_SERVER_HOST }}:${{ secrets.DEPLOY_SERVER_PORT }}
+          hosts: '${{ secrets.DEPLOY_SERVER_USERNAME }}@${{ secrets.DEPLOY_SERVER_HOST }}:${{ secrets.DEPLOY_SERVER_PORT }}'
           privateKey: ${{ secrets.DEPLOY_SERVER_KEY }}
       - name: Upload new bot
         uses: betanzos/scp-upload@v1
@@ -45,5 +45,5 @@ jobs:
         uses: JimCronqvist/action-ssh@0.1.1
         with:
           command: python3 ./main.py &
-          hosts: ${{ secrets.DEPLOY_SERVER_USERNAME }}@${{ secrets.DEPLOY_SERVER_HOST }}:${{ secrets.DEPLOY_SERVER_PORT }}
+          hosts: '${{ secrets.DEPLOY_SERVER_USERNAME }}@${{ secrets.DEPLOY_SERVER_HOST }}:${{ secrets.DEPLOY_SERVER_PORT }}'
           privateKey: ${{ secrets.DEPLOY_SERVER_KEY }}
