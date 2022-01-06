@@ -31,9 +31,7 @@ jobs:
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOY_SERVER_KEY }}
-          script: |
-            process_number=$(ps x | grep  main.py | grep -v grep | awk '{print $1}')
-            kill $process_number
+          script: systemctl stop dice-roller
       - name: Upload new bot
         uses: betanzos/scp-upload@v1
         with:
@@ -50,4 +48,4 @@ jobs:
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOY_SERVER_KEY }}
-          script: python3 ./main.py &
+          script: systemctl start dice-roller
