@@ -1,11 +1,17 @@
 # module and files import section
 import discord
 import random
-from discord.ext import commands
-from config import settings, jokes
+import sqlite3
+from discord.ext import commands, tasks
+from config import settings, dbname
 
 # set bot commands prefix
 bot = commands.Bot(command_prefix=settings['prefix'])
+conn = sqlite3.connect(dbname)
+cursor = conn.cursor()
+sql = "SELECT COUNT(joke_id) FROM jokes;"
+cursor.execute(sql)
+number_of_jokes = cursor.fetchone()[0]
 
 
 # hello command, lets introduce our bot and functions
@@ -17,8 +23,8 @@ async def hello(ctx):
 
     author = ctx.message.author
     await ctx.send(f'Hello, {author.mention}.\n'
-                   f'My name is Dice. My last name is Roller. '
-                   f'I here to help you with rolling dices. '
+                   f'My name is Dice Roller. '
+                   f'I am here to help you with rolling dices. '
                    f'Please, ask "?help" for more info about commands.')
 
 
@@ -39,7 +45,11 @@ async def joke(ctx):
     Get a joke
     """
 
-    await ctx.send('Today joke is:\n' + random.choice(jokes))
+    random_joke_number = random.randint(1, number_of_jokes)
+    sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
+    cursor.execute(sql_joke, [random_joke_number])
+    joke_text = cursor.fetchone()[0]
+    await ctx.send('Today joke is:\n' + joke_text)
 
 
 # command for rolling dices
@@ -116,3 +126,6 @@ async def roll_error(ctx, error):
                        f'Пример: 2d20 d100 6d4')
 
 bot.run(settings['token'])
+
+# close sqlite connection
+conn.close()

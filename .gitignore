@@ -1,0 +1,5 @@
+/config.py
+/sqlite.py
+/venv
+/_*
+/.idea
