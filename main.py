@@ -1,17 +1,32 @@
 # module and files import section
+import asyncio
 import discord
 import random
 import sqlite3
-from discord.ext import commands, tasks
+from discord.ext import commands
 from config import settings, dbname
 
 # set bot commands prefix
 bot = commands.Bot(command_prefix=settings['prefix'])
+
+# select number of jokes in db
+# TODO: make this check in loop
 conn = sqlite3.connect(dbname)
 cursor = conn.cursor()
 sql = "SELECT COUNT(joke_id) FROM jokes;"
 cursor.execute(sql)
 number_of_jokes = cursor.fetchone()[0]
+
+
+# bot status and list of guilds
+@bot.event
+async def on_ready():
+    print('The bot is logged in.')
+    await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
+    print('Servers connected to:')
+    for guild in bot.guilds:
+        print(guild.name)
+    await asyncio.sleep(3)
 
 
 # hello command, lets introduce our bot and functions
@@ -33,12 +48,11 @@ async def hello(ctx):
 async def on_command_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send(f'{author.mention}, команда не найдена.\n'
-                       f'Используйте команду "?help", чтобы узнать список команд.')
+        await ctx.send(f'{author.mention}, command not found.\n'
+                       f'Please, use the "?help" command to get full list of commands.')
 
 
 # joke command, it should post random DnD or another role-play game joke
-# TODO: use sql instead of simple list
 @bot.command()
 async def joke(ctx):
     """
@@ -77,7 +91,7 @@ async def roll(ctx, *arg):
         if dice_count == '':
             dice_count = '1'
 
-        # check on number of edges is exist
+        # check if number of edges is existed
         try:
             dice_edge = numbers[1]
         except Exception:
@@ -119,11 +133,8 @@ async def roll(ctx, *arg):
 async def roll_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.BadArgument):
-        await ctx.send(f'{author.mention}, неправильный кубик.\n'
-                       f'Попробуйте задать один или несколько кубов в формате "кол-во"d"грани".\n'
-                       f'Количество указывается целым числом или не указывается для одного кубика.\n'
-                       f'Грани указываются любым целым числом больше нуля.\n'
-                       f'Пример: 2d20 d100 6d4')
+        await ctx.send(f'{author.mention}, wrong dice.\n'
+                       f'Try something like d20, 5d4, 1d100.')
 
 bot.run(settings['token'])
 
