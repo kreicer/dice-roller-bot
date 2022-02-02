@@ -1,9 +1,10 @@
 # module and files import section
 import asyncio
+import datetime
 import discord
 import random
 import sqlite3
-from discord.ext import commands
+from discord.ext import commands, tasks
 from config import settings, dbname
 
 # set bot commands prefix
@@ -11,6 +12,7 @@ bot = commands.Bot(command_prefix=settings['prefix'])
 
 # select number of jokes in db
 # TODO: make this check in loop
+# TODO: make log system more common (not just print command)
 conn = sqlite3.connect(dbname)
 cursor = conn.cursor()
 sql = "SELECT COUNT(joke_id) FROM jokes;"
@@ -18,15 +20,31 @@ cursor.execute(sql)
 number_of_jokes = cursor.fetchone()[0]
 
 
+# on connect actions
+@bot.event
+async def on_connect():
+    print(datetime.datetime.now(), 'INFO', 'Bot connected')
+
+
 # bot status and list of guilds
 @bot.event
 async def on_ready():
-    print('The bot is logged in.')
+    print(datetime.datetime.now(), 'INFO', 'Bot ready')
     await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
-    print('Servers connected to:')
+    print(datetime.datetime.now(), 'INFO', 'Servers connected to:')
+    guilds_counter = 0
     for guild in bot.guilds:
-        print(guild.name)
+        guilds_counter += 1
+        print(guilds_counter, guild.name)
     await asyncio.sleep(3)
+    # status update loop
+    update_status.start()
+
+
+@tasks.loop(hours=1)
+async def update_status():
+    print(datetime.datetime.now(), 'the bot status updated')
+    await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
 
 
 # hello command, lets introduce our bot and functions
@@ -136,6 +154,7 @@ async def roll_error(ctx, error):
         await ctx.send(f'{author.mention}, wrong dice.\n'
                        f'Try something like d20, 5d4, 1d100.')
 
+# bot start
 bot.run(settings['token'])
 
 # close sqlite connection
