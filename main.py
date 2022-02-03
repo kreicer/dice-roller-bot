@@ -23,27 +23,32 @@ number_of_jokes = cursor.fetchone()[0]
 # on connect actions
 @bot.event
 async def on_connect():
+    # log connection info
     print(datetime.datetime.now(), 'INFO', 'Bot connected')
 
 
-# bot status and list of guilds
+# on ready actions
 @bot.event
 async def on_ready():
+    # log connection info
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
+    # set status with servers numbers on start
     await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
+    # log guilds names for debug purpose
     print(datetime.datetime.now(), 'INFO', 'Servers connected to:')
     guilds_counter = 0
     for guild in bot.guilds:
         guilds_counter += 1
-        print(guilds_counter, guild.name)
+        print('\t', guilds_counter, guild.name)
     await asyncio.sleep(3)
-    # status update loop
+    # start status update loop
     update_status.start()
 
 
-@tasks.loop(hours=1)
+# status update loop
+@tasks.loop(minutes=1)
 async def update_status():
-    print(datetime.datetime.now(), 'the bot status updated')
+    print(datetime.datetime.now(), 'INFO', 'the bot status updated')
     await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
 
 
