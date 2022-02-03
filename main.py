@@ -96,6 +96,23 @@ async def joke(ctx):
     await ctx.send('Today joke is:\n' + joke_text)
 
 
+# command for display info about creator and some links
+@bot.command()
+async def creator(ctx):
+    """
+    Info about creator
+    """
+
+    embed = discord.Embed(title="My creator", url="https://www.facebook.com/lulukreicer",
+                          description="He is just a flesh bag but I was created by his will. \
+                          Also, he allows me to rest sometimes, so... few words about him.",
+                          color=0xff0000)
+    embed.add_field(name="alias", value="kreicer", inline=True)
+    embed.add_field(name="github repo", value="https://github.com/kreicer/dice-roller-bot", inline=True)
+    embed.set_footer(text="You can support him on paypal.me/kreicer")
+    await ctx.send(embed=embed)
+
+
 # command for rolling dices
 # TODO: add more checks, optimize current checks
 @bot.command()
@@ -165,6 +182,7 @@ async def roll_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
                        f'Try something like d20, 5d4, 1d100.')
+
 
 # bot start
 bot.run(settings['token'])
