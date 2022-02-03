@@ -1,4 +1,4 @@
-# module and files import section
+# IMPORTS
 import asyncio
 import datetime
 import discord
@@ -10,16 +10,15 @@ from config import settings, dbname
 # set bot commands prefix
 bot = commands.Bot(command_prefix=settings['prefix'])
 
-# select number of jokes in db
-# TODO: make this check in loop
+# db part
 # TODO: make log system more common (not just print command)
 conn = sqlite3.connect(dbname)
 cursor = conn.cursor()
 sql = "SELECT COUNT(joke_id) FROM jokes;"
-cursor.execute(sql)
-number_of_jokes = cursor.fetchone()[0]
+number_of_jokes = 1
 
 
+# EVENTS
 # on connect actions
 @bot.event
 async def on_connect():
@@ -30,28 +29,45 @@ async def on_connect():
 # on ready actions
 @bot.event
 async def on_ready():
-    # log connection info
+    # log ready info
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
-    # set status with servers numbers on start
-    await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
-    # log guilds names for debug purpose
-    print(datetime.datetime.now(), 'INFO', 'Servers connected to:')
-    guilds_counter = 0
-    for guild in bot.guilds:
-        guilds_counter += 1
-        print('\t', guilds_counter, guild.name)
+    # log connected guilds number
+    print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot.guilds))
     await asyncio.sleep(3)
     # start status update loop
     update_status.start()
+    # start number of jokes update loop
+    update_jokes.start()
 
 
+# wrong commands handler
+@bot.event
+async def on_command_error(ctx, error):
+    author = ctx.message.author
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send(f'{author.mention}, command not found.\n'
+                       f'Please, use the "?help" command to get full list of commands.')
+
+
+# LOOPS
 # status update loop
-@tasks.loop(minutes=1)
+@tasks.loop(hours=1)
 async def update_status():
-    print(datetime.datetime.now(), 'INFO', 'the bot status updated')
+    print(datetime.datetime.now(), 'INFO', 'Bot status updated, current number:', len(bot.guilds))
     await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
 
 
+# number of jokes update loop
+@tasks.loop(hours=1)
+async def update_jokes():
+    cursor.execute(sql)
+    global number_of_jokes
+    number_of_jokes = cursor.fetchone()[0]
+    print(datetime.datetime.now(), 'INFO', 'Jokes number updated, current number:', number_of_jokes)
+    return number_of_jokes
+
+
+# COMMANDS
 # hello command, lets introduce our bot and functions
 @bot.command()
 async def hello(ctx):
@@ -64,15 +80,6 @@ async def hello(ctx):
                    f'My name is Dice Roller. '
                    f'I am here to help you with rolling dices. '
                    f'Please, ask "?help" for more info about commands.')
-
-
-# wrong commands handler
-@bot.event
-async def on_command_error(ctx, error):
-    author = ctx.message.author
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send(f'{author.mention}, command not found.\n'
-                       f'Please, use the "?help" command to get full list of commands.')
 
 
 # joke command, it should post random DnD or another role-play game joke
