@@ -7,6 +7,28 @@ import sqlite3
 from discord.ext import commands, tasks
 from config import settings, dbname
 
+# VARIABLES
+# commands short description list
+commands_brief = {
+    "creator": "Info about bot author",
+    "hello": "Bot welcome message",
+    "joke": "Get a DnD joke",
+    "roll": "Roll the dice",
+    "mod": "feature: roll the dice with modifiers",
+    "d": "feature: single dice roll (qualified_name?)"
+}
+
+# commands long description list
+commands_help = {
+    "creator": "Show author nickname and facebook link, link on bot github repository \
+and paypal.me link for author support.",
+    "hello": "Dice Roller greetings you and tell a little about himself.",
+    "joke": "Bot post a random DnD joke from database (soon you will get opportunity to add yours jokes).",
+    "roll": "Roll up to 30 dice: you can roll different type of dice in one roll (example: ?roll 5d20 4d6).",
+    "mod": "feature: Roll up to 30 dice with modifiers (example: ?mod 5d20+5 4d6-2).",
+    "d": "feature: Fast single roll of single type dice."
+}
+
 # set bot commands prefix
 bot = commands.Bot(command_prefix=settings['prefix'])
 
@@ -69,12 +91,8 @@ async def update_jokes():
 
 # COMMANDS
 # hello command, lets introduce our bot and functions
-@bot.command()
+@bot.command(brief=commands_brief["hello"], help=commands_help["hello"])
 async def hello(ctx):
-    """
-    Basic information
-    """
-
     author = ctx.message.author
     await ctx.send(f'Hello, {author.mention}.\n'
                    f'My name is Dice Roller. '
@@ -83,12 +101,8 @@ async def hello(ctx):
 
 
 # joke command, it should post random DnD or another role-play game joke
-@bot.command()
+@bot.command(brief=commands_brief["joke"], help=commands_help["joke"])
 async def joke(ctx):
-    """
-    Get a joke
-    """
-
     random_joke_number = random.randint(1, number_of_jokes)
     sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
     cursor.execute(sql_joke, [random_joke_number])
@@ -97,12 +111,8 @@ async def joke(ctx):
 
 
 # command for display info about creator and some links
-@bot.command()
+@bot.command(brief=commands_brief["creator"], help=commands_help["creator"])
 async def creator(ctx):
-    """
-    Info about creator
-    """
-
     embed = discord.Embed(title="My creator", url="https://www.facebook.com/lulukreicer",
                           description="He is just a flesh bag but I was created by his will. \
                           Also, he allows me to rest sometimes, so... few words about him.",
@@ -115,12 +125,8 @@ async def creator(ctx):
 
 # command for rolling dices
 # TODO: add more checks, optimize current checks
-@bot.command()
+@bot.command(brief=commands_brief["roll"], help=commands_help["roll"])
 async def roll(ctx, *arg):
-    """
-    Roll the dices
-    """
-
     # get rolls list from text after bot command
     rolls = list(arg)
     # start our result from empty string
