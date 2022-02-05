@@ -37,7 +37,7 @@ python main.py
 
 ## Usage
 Current version of bot support next commands:
-- creator: show info about me and contain few links
+- about: show info about me and contain few links
 - hello: bot greetings you
 - help: provide short and full info about commands
 - joke: post a random DnD joke

@@ -10,7 +10,7 @@ from config import settings, dbname
 # VARIABLES
 # commands short description list
 commands_brief = {
-    "creator": "Info about bot author",
+    "about": "Info about author",
     "hello": "Bot welcome message",
     "joke": "Get a DnD joke",
     "roll": "Roll the dice",
@@ -20,7 +20,7 @@ commands_brief = {
 
 # commands long description list
 commands_help = {
-    "creator": "Show author nickname and facebook link, link on bot github repository \
+    "about": "Show author nickname and facebook link, link on bot github repository \
 and paypal.me link for author support.",
     "hello": "Dice Roller greetings you and tell a little about himself.",
     "joke": "Bot post a random DnD joke from database (soon you will get opportunity to add yours jokes).",
@@ -29,8 +29,11 @@ and paypal.me link for author support.",
     "d": "feature: Fast single roll of single type dice."
 }
 
+# Change only the no_category default string
+help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
+
 # set bot commands prefix
-bot = commands.Bot(command_prefix=settings['prefix'])
+bot = commands.Bot(command_prefix=settings['prefix'], help_command=help_command)
 
 # db part
 # TODO: make log system more common (not just print command)
@@ -55,11 +58,12 @@ async def on_ready():
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
     # log connected guilds number
     print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot.guilds))
-    await asyncio.sleep(3)
-    # start status update loop
-    update_status.start()
+    await asyncio.sleep(1)
     # start number of jokes update loop
     update_jokes.start()
+    await asyncio.sleep(5)
+    # start status update loop
+    update_status.start()
 
 
 # wrong commands handler
@@ -90,16 +94,6 @@ async def update_jokes():
 
 
 # COMMANDS
-# hello command, lets introduce our bot and functions
-@bot.command(brief=commands_brief["hello"], help=commands_help["hello"])
-async def hello(ctx):
-    author = ctx.message.author
-    await ctx.send(f'Hello, {author.mention}.\n'
-                   f'My name is Dice Roller. '
-                   f'I am here to help you with rolling dices. '
-                   f'Please, ask "?help" for more info about commands.')
-
-
 # joke command, it should post random DnD or another role-play game joke
 @bot.command(brief=commands_brief["joke"], help=commands_help["joke"])
 async def joke(ctx):
@@ -110,22 +104,9 @@ async def joke(ctx):
     await ctx.send('Today joke is:\n' + joke_text)
 
 
-# command for display info about creator and some links
-@bot.command(brief=commands_brief["creator"], help=commands_help["creator"])
-async def creator(ctx):
-    embed = discord.Embed(title="My creator", url="https://www.facebook.com/lulukreicer",
-                          description="He is just a flesh bag but I was created by his will. \
-                          Also, he allows me to rest sometimes, so... few words about him.",
-                          color=0xff0000)
-    embed.add_field(name="alias", value="kreicer", inline=True)
-    embed.add_field(name="github repo", value="https://github.com/kreicer/dice-roller-bot", inline=True)
-    embed.set_footer(text="You can support him on paypal.me/kreicer")
-    await ctx.send(embed=embed)
-
-
 # command for rolling dices
 # TODO: add more checks, optimize current checks
-@bot.command(brief=commands_brief["roll"], help=commands_help["roll"])
+@bot.command(brief=commands_brief["roll"], help=commands_help["roll"], usage="dice_1 [dice_2... dice_n]")
 async def roll(ctx, *arg):
     # get rolls list from text after bot command
     rolls = list(arg)
@@ -188,6 +169,29 @@ async def roll_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
                        f'Try something like d20, 5d4, 1d100.')
+
+
+# hello command, lets introduce our bot and functions
+@bot.command(brief=commands_brief["hello"], help=commands_help["hello"])
+async def hello(ctx):
+    author = ctx.message.author
+    await ctx.send(f'Hello, {author.mention}.\n'
+                   f'My name is Dice Roller. '
+                   f'I am here to help you with rolling dice. '
+                   f'Please, ask "?help" for more info about commands.')
+
+
+# command for display info about creator and some links
+@bot.command(brief=commands_brief["about"], help=commands_help["about"])
+async def about(ctx):
+    embed = discord.Embed(title="My creator", url="https://www.facebook.com/lulukreicer",
+                          description="He is just a flesh bag but I was created by his will. \
+                          Also, he allows me to rest sometimes, so... few words about him.",
+                          color=0xff0000)
+    embed.add_field(name="nickname", value="kreicer", inline=True)
+    embed.add_field(name="github repo", value="https://github.com/kreicer/dice-roller-bot", inline=True)
+    embed.set_footer(text="You can support him on paypal.me/kreicer")
+    await ctx.send(embed=embed)
 
 
 # bot start
