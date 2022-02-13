@@ -1,7 +1,6 @@
 ## Terms of Service
 
-```console
-Introduction
+### Introduction
 Welcome to Dice Roller's Terms of Service. This document is a legal agreement between Dice Roller ("kreicer.github.io/dice-roller-bot", “us,” “our,” or "we") and you ("you" or “your”).
 
 By accessing our services, Discord "Bot" and Website, accessible from https://kreicer.github.io/dice-roller-bot, you are agreeing to be bound by our Terms of Service and agree that you are responsible for the agreement with any applicable local laws.
@@ -12,7 +11,7 @@ If you disagree with any of these terms, you are prohibited from accessing to ou
 
 If you have any question or if you would like to report a Terms of Service violation, please email us at lulukreicer@yandex.ru. For legal requests and inquiries, please contact us at lulukreicer@yandex.ru.
 
-Privacy
+### Privacy
 Our Privacy Policy describes how we handle the information and content you provide to us when you use our services. We do not collect and keep any kind of private information.
 
 For any privacy concern, please contact our legal department at lulukreicer@yandex.ru.
@@ -20,24 +19,24 @@ For any privacy concern, please contact our legal department at lulukreicer@yand
 Use License of Content
 Permission is granted to temporarily download one copy of the materials on Dice Roller's Website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
 
-modify or copy the materials;
-use the materials for any commercial purpose or for any public display;
-attempt to reverse engineer any software contained on Dice Roller's Website;
-remove any copyright or other proprietary notations from the materials;
-transferring the materials to another person or "mirror" the materials on any other server.
+- modify or copy the materials;
+- use the materials for any commercial purpose or for any public display;
+- attempt to reverse engineer any software contained on Dice Roller's Website;
+- remove any copyright or other proprietary notations from the materials;
+- transferring the materials to another person or "mirror" the materials on any other server.
+
 This will let Dice Roller to terminate upon violations of any of these restrictions. Upon termination, your viewing right will also be terminated and you should destroy any downloaded materials in your possession whether it is printed or electronic format.
 
 If you believe that your Content has been copied in a way that constitutes copyright infringement, please report this by contacting our legal department at lulukreicer@yandex.ru.
 
-Disclaimer
+### Disclaimer
 All the materials on Dice Roller’s Website are provided "as is". Dice roller makes no warranties, may it be expressed or implied, therefore negates all other warranties. Furthermore, Dice Roller does not make any representations concerning the accuracy or reliability of the use of the materials on its Website or otherwise relating to such materials or any sites linked to this Website.
 
-Limitations
+### Limitations
 Dice Roller will not be hold accountable for any damages that will arise with the use or inability to use the materials on Dice Roller’s Website, even if Dice Roller or an authorize representative of this Website has been notified, orally or written, of the possibility of such damage. Some jurisdiction does not allow limitations on implied warranties or limitations of liability for incidental damages, these limitations may not apply to you.
 
-Revisions and Errata
+### Revisions and Errata
 The materials appearing on Dice Roller's Website may include technical, typographical, or photographic errors. Dice Roller will not promise that any of the materials in this Website are accurate, complete, or current. Dice Roller may change the materials contained on its website at any time without notice. Dice Roller does not make any commitment to update the materials.
 
-Terms of Use Modifications
+### Terms of Use Modifications
 Dice Roller communicates thorugh their official Discord server regarding changes and updates of these terms. We reserve our rights to revise these Terms of Service for our services at any time without prior notice. By using our services, you are agreeing to be bound by the current version of these Terms of Service.
-```
