@@ -2,8 +2,8 @@
 
 Dice Roller is a very small and simple bot for rolling any amount of dice easy way. Results of all dice rolls are returning in comfort format. Also, the bot can post DnD jokes.
 
-[Invite bot ot your server](https://discord.com/api/oauth2/authorize?client_id=809017610111942686&permissions=2048&scope=bot)
-[Terms of Service](https://kreicer.github.io/dice-roller-bot/termofservice.html)
+[Invite bot ot your server](https://discord.com/api/oauth2/authorize?client_id=809017610111942686&permissions=2048&scope=bot)  
+[Terms of Service](https://kreicer.github.io/dice-roller-bot/termsofservice.html)
 
 ### Usage
 
