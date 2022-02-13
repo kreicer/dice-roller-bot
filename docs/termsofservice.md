@@ -12,11 +12,11 @@ If you disagree with any of these terms, you are prohibited from accessing to ou
 If you have any question or if you would like to report a Terms of Service violation, please email us at lulukreicer@yandex.ru. For legal requests and inquiries, please contact us at lulukreicer@yandex.ru.
 
 ### Privacy
-Our Privacy Policy describes how we handle the information and content you provide to us when you use our services. We do not collect and keep any kind of private information.
+Our Privacy Policy describes how we handle the information and content you provide to us when you use our services. We do not collect and  do not keep any kind of information about you or your device and software.
 
-For any privacy concern, please contact our legal department at lulukreicer@yandex.ru.
+For any privacy concern, please contact us at lulukreicer@yandex.ru.
 
-Use License of Content
+## Use License of Content
 Permission is granted to temporarily download one copy of the materials on Dice Roller's Website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
 
 - modify or copy the materials;
@@ -27,7 +27,7 @@ Permission is granted to temporarily download one copy of the materials on Dice 
 
 This will let Dice Roller to terminate upon violations of any of these restrictions. Upon termination, your viewing right will also be terminated and you should destroy any downloaded materials in your possession whether it is printed or electronic format.
 
-If you believe that your Content has been copied in a way that constitutes copyright infringement, please report this by contacting our legal department at lulukreicer@yandex.ru.
+If you believe that your Content has been copied in a way that constitutes copyright infringement, please report this by contacting us at lulukreicer@yandex.ru.
 
 ### Disclaimer
 All the materials on Dice Roller’s Website are provided "as is". Dice roller makes no warranties, may it be expressed or implied, therefore negates all other warranties. Furthermore, Dice Roller does not make any representations concerning the accuracy or reliability of the use of the materials on its Website or otherwise relating to such materials or any sites linked to this Website.
