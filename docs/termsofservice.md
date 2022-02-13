@@ -40,3 +40,6 @@ The materials appearing on Dice Roller's Website may include technical, typograp
 
 ### Terms of Use Modifications
 Dice Roller communicates thorugh their official Discord server regarding changes and updates of these terms. We reserve our rights to revise these Terms of Service for our services at any time without prior notice. By using our services, you are agreeing to be bound by the current version of these Terms of Service.
+
+
+[Back to main page](https://kreicer.github.io/dice-roller-bot/)
