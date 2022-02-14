@@ -5,7 +5,7 @@ import discord
 import random
 import sqlite3
 from discord.ext import commands, tasks
-from config import settings, dbname
+from config import settings, dbname, dbstat
 
 # VARIABLES
 # commands short description list
@@ -38,9 +38,30 @@ bot = commands.Bot(command_prefix=settings['prefix'], help_command=help_command)
 # db part
 # TODO: make log system more common (not just print command)
 conn = sqlite3.connect(dbname)
+conn_stat = sqlite3.connect(dbstat)
 cursor = conn.cursor()
+cursor_stat = conn_stat.cursor()
 sql = "SELECT COUNT(joke_id) FROM jokes;"
+sql_stat = "INSERT INTO rolls (die, value) VALUES (:die, :value);"
 number_of_jokes = 1
+
+
+# FUNCTIONS
+# dice rolls
+def dice_roll(rolls, dice):
+    dice_result = ''
+    overall_result = 0
+    # roll each dice of current edge
+    for counts in range(1, int(rolls) + 1):
+        # get result of current roll dice and convert into string
+        current_roll_result = str(random.randint(1, int(dice)))
+        cursor_stat.execute(sql_stat, {'die': int(dice), 'value': int(current_roll_result)})
+        # add sub result with some formatting into result
+        dice_result += '  ' + current_roll_result
+        # add all rolls result to overall result
+        overall_result += int(current_roll_result)
+    conn_stat.commit()
+    return dice_result, overall_result
 
 
 # EVENTS
@@ -109,16 +130,15 @@ async def joke(ctx):
 @bot.command(brief=commands_brief["roll"], help=commands_help["roll"], usage="dice_1 [dice_2... dice_n]")
 async def roll(ctx, *arg):
     # get rolls list from text after bot command
-    rolls = list(arg)
+    all_dice = list(arg)
     # start our result from empty string
     result = ''
 
     # for each roll do some checks and preparations
-    for dice_roll in rolls:
-        # lets split our dice roll into number of dices and number of edges
+    for dice in all_dice:
+        # let split our dice roll into number of dices and number of edges
         # 2d20: 2 - number of dices, 20 - number of edges, d - separator
-        # TODO: maybe better create class for dices?
-        numbers = dice_roll.split('d')
+        numbers = dice.split('d')
 
         # convert '' into number of dices, count as 1, ex: d20 == 1d20
         dice_count = numbers[0]
@@ -149,12 +169,9 @@ async def roll(ctx, *arg):
         # if roll should be done lets add text section for it
         result += '\nD' + dice_edge + ':'
 
-        # roll each dice of current edge
-        for counts in range(1, int(dice_count) + 1):
-            # get result of current roll dice and convert into string
-            sub_result = str(random.randint(1, int(dice_edge)))
-            # add sub result with some formatting into result
-            result += '  **' + sub_result + '**'
+        # call the dice roll function
+        result_dice, overall_dice = dice_roll(dice_count, dice_edge)
+        result += result_dice + '   [' + str(overall_dice) + ']'
 
     # create embed object from result for discord chat
     embed = discord.Embed(color=0xff0000, title=result)
@@ -199,3 +216,4 @@ bot.run(settings['token'])
 
 # close sqlite connection
 conn.close()
+conn_stat.close()
