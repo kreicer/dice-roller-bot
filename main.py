@@ -5,7 +5,7 @@ import discord
 import random
 import sqlite3
 from discord.ext import commands, tasks
-from config import settings, dbname, dbstat
+from config import settings, dbname
 
 # VARIABLES
 # commands short description list
@@ -38,11 +38,8 @@ bot = commands.Bot(command_prefix=settings['prefix'], help_command=help_command)
 # db part
 # TODO: make log system more common (not just print command)
 conn = sqlite3.connect(dbname)
-conn_stat = sqlite3.connect(dbstat)
 cursor = conn.cursor()
-cursor_stat = conn_stat.cursor()
 sql = "SELECT COUNT(joke_id) FROM jokes;"
-sql_stat = "INSERT INTO rolls (die, value) VALUES (:die, :value);"
 number_of_jokes = 1
 
 
@@ -55,12 +52,10 @@ def dice_roll(rolls, dice):
     for counts in range(1, int(rolls) + 1):
         # get result of current roll dice and convert into string
         current_roll_result = str(random.randint(1, int(dice)))
-        cursor_stat.execute(sql_stat, {'die': int(dice), 'value': int(current_roll_result)})
         # add sub result with some formatting into result
         dice_result += '  ' + current_roll_result
         # add all rolls result to overall result
         overall_result += int(current_roll_result)
-    conn_stat.commit()
     return dice_result, overall_result
 
 
@@ -216,4 +211,3 @@ bot.run(settings['token'])
 
 # close sqlite connection
 conn.close()
-conn_stat.close()
