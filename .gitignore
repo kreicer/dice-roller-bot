@@ -1,6 +1,5 @@
 /config.py
 /sqlite.py
-/stat.db
 /venv
 /_*
 /.idea

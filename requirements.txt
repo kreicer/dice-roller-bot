@@ -1,1 +1,3 @@
-discord
+discord~=1.0.1
+table2ascii~=0.3.0
+topggpy

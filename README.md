@@ -20,12 +20,14 @@ pip install -r requirements.txt
 touch config.py
 ```
 4. Register and create app in [Discord developers portal](https://discord.com/developers/applications/)
-5. Add bot token, commands prefix and path to jokes database into config.py
+5. Add bot token, commands prefix, path to jokes database and top.gg integration options into config.py
 ```console
 
 settings = {
     'token': '<token_here>',
-    'prefix': '<prefix_here>'
+    'prefix': '<prefix_here>',
+    'send_stat': <True_or_False>,
+    'topgg': '<topgg_token_here>'
 }
 
 dbname = 'jokes.db'
@@ -41,14 +43,27 @@ Current version of bot support next commands:
 - hello: bot greetings you
 - help: provide short and full info about commands
 - joke: post a random DnD joke
-- roll: roll up to 30 dice with of any type (example: roll 5d20 4d7 3d13)
+- roll: roll dice of any type (example: roll 5d20 4d7 3d13)
+- mod: roll dice of any type with mods (example: mod 5d20-1 d10+1 4d4+(2))
 
-Will be available soon commands:
-- mod: same as roll but with modifiers (example: mod 5d20+4)
+Future commands:
 - d: single roll of single dice
 
 ## Future features
-- verification
-- performance improvement
-- new commands
+- verification ✓
+- performance improvement ✓
+- checks ✓
+- new d command to quick single roll 
+- change bot prefix
+- more jokes
+- secret rolls
+- localization
+- output improvements
 - video guide into full bot functionality
+- web-site for jokes uploads
+- tests
+- etc
+
+## Known issues
+- bad output for many rolls for single type dice
+- terra incognita

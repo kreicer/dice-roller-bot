@@ -4,36 +4,52 @@ import datetime
 import discord
 import random
 import sqlite3
+import re
+import topgg
+
+from table2ascii import table2ascii as t2a, Alignment
 from discord.ext import commands, tasks
 from config import settings, dbname
 
 # VARIABLES
 # commands short description list
 commands_brief = {
-    "about": "Info about author",
-    "hello": "Bot welcome message",
+    "about": "Show info about the bot",
+    "hello": "Show welcome message",
     "joke": "Get a DnD joke",
     "roll": "Roll the dice",
-    "mod": "feature: roll the dice with modifiers",
-    "d": "feature: single dice roll (qualified_name?)"
+    "mod": "Roll the dice with modifiers",
+    "d": "Roll single die"
 }
 
 # commands long description list
 commands_help = {
-    "about": "Show author nickname and facebook link, link on bot github repository \
-and paypal.me link for author support.",
+    "about": "Show bot version, link on Github, link on top.gg etc",
     "hello": "Dice Roller greetings you and tell a little about himself.",
     "joke": "Bot post a random DnD joke from database (soon you will get opportunity to add yours jokes).",
-    "roll": "Roll up to 30 dice: you can roll different type of dice in one roll (example: ?roll 5d20 4d6).",
-    "mod": "feature: Roll up to 30 dice with modifiers (example: ?mod 5d20+5 4d6-2).",
-    "d": "feature: Fast single roll of single type dice."
+    "roll": "Roll different type of dice in one roll:\n \
+            - single die, single roll: ?roll d20\n \
+            - single die, multiple rolls: ?roll 10d4\n \
+            - multiple dice, single roll: ?roll d4 d8 d20\n \
+            - multiple dice, multiple rolls: ?roll 4d8 4d4 2d20\n \
+            - co-co-combo: ?roll d20 5d10 d100 d12345",
+    "mod": "Roll different type of dice with mods in one roll:\n \
+            - single die type few rolls mod to each roll: ?mod 4d20+1\n \
+            - single die type few rolls mod to sum: ?mod 10d4-(2)\n \
+            - co-co-combo: ?mod d20+4 5d10-(2) 2d100-10 d12345+(5)",
+    "d": "Single roll of single type die: ?d20"
 }
 
 # Change only the no_category default string
 help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
 
 # set bot commands prefix
-bot = commands.Bot(command_prefix=settings['prefix'], help_command=help_command)
+bot_prefix = settings['prefix']
+bot = commands.Bot(command_prefix=bot_prefix, help_command=help_command)
+
+# top.gg integration
+if settings['send_stat']:
+    bot.topggpy = topgg.DBLClient(bot, settings['topgg'], autopost=True, post_shard_count=True)
 
 # db part
 # TODO: make log system more common (not just print command)
@@ -44,19 +60,143 @@ number_of_jokes = 1
 
 
 # FUNCTIONS
-# dice rolls
+# check int
+def check_int(possibly_int):
+    try:
+        result = int(possibly_int)
+    except ValueError:
+        result = False
+    if not result:
+        raise commands.BadArgument
+
+
+# override negative
+def check_subzero(possibly_subzero):
+    number = possibly_subzero
+    if int(number) < 0:
+        number = 0
+    return number
+
+
+# check zero and negative
+def check_one(possibly_zero_or_less):
+    if int(possibly_zero_or_less) < 1:
+        raise commands.BadArgument
+
+
+# future: check len for pretty output
+def get_len(*args):
+    string_len = 0
+    for arg in args:
+        string_len += len(arg)
+    return string_len
+
+
+# split modded dice for dice and mod parts
+def split_mod_dice(dice):
+    dice_stats_list = re.split(r'([+-])', dice)
+    if len(dice_stats_list) != 3:
+        raise commands.BadArgument
+    dice_without_mod = dice_stats_list[0]
+    mod_math = dice_stats_list[1]
+    mods = dice_stats_list[2]
+    return dice_without_mod, mod_math, mods
+
+
+# check if mod for result or for each roll
+def mod_probe(mods):
+    group_flag = False
+    group_open = '('
+    group_close = ')'
+    if group_open in mods and group_close in mods:
+        mod_amount = mods[mods.find(group_open) + 1: mods.find(group_close)]
+        group_flag = True
+    else:
+        mod_amount = mods
+    check_int(mod_amount)
+    return mod_amount, group_flag
+
+
+# split and check dice for rolls and edges
+def ident_dice(dice):
+    rolls_and_edges = dice.split('d')
+    if len(rolls_and_edges) != 2:
+        raise commands.BadArgument
+    dice_rolls = rolls_and_edges[0]
+    dice_edge = rolls_and_edges[1]
+    if dice_rolls == '':
+        dice_rolls = '1'
+    check_int(dice_rolls)
+    check_one(dice_rolls)
+    check_int(dice_edge)
+    check_one(dice_edge)
+    return dice_rolls, dice_edge
+
+
+# roll dice
 def dice_roll(rolls, dice):
-    dice_result = ''
-    overall_result = 0
-    # roll each dice of current edge
+    dice_roll_result = []
     for counts in range(1, int(rolls) + 1):
-        # get result of current roll dice and convert into string
-        current_roll_result = str(random.randint(1, int(dice)))
-        # add sub result with some formatting into result
-        dice_result += '  ' + current_roll_result
-        # add all rolls result to overall result
-        overall_result += int(current_roll_result)
-    return dice_result, overall_result
+        roll_result = random.randint(1, int(dice))
+        dice_roll_result.append(roll_result)
+    return dice_roll_result
+
+
+# summarize result
+def calc_result(dice_result):
+    total_result = sum(dice_result)
+    return total_result
+
+
+# modding rolls with mod
+def mod_roll(dice_result, mod_math, mod_amount):
+    mod_result = []
+    for dice in dice_result:
+        modded_dice = eval(str(dice) + mod_math + mod_amount)
+        modded_dice = check_subzero(modded_dice)
+        mod_result.append(modded_dice)
+    return mod_result
+
+
+# mod rolls result
+def calc_mod_result(total_result, mod_math, mod_amount):
+    total_mod_result = eval(str(total_result) + mod_math + mod_amount)
+    total_mod_result = check_subzero(total_mod_result)
+    return total_mod_result
+
+
+# create row for table output
+def create_row(*args):
+    table_row = []
+    for item in args:
+        table_row.append(item)
+    return table_row
+
+
+# create table from rows
+def create_table(table_body):
+    table_header = create_row('dice', 'rolls', 'sum')
+    columns = len(table_header) - 1
+    output = t2a(
+        header=table_header,
+        body=table_body,
+        first_col_heading=True,
+        alignments=[Alignment.LEFT] + [Alignment.CENTER] * columns
+    )
+    return output
+
+
+# add [] around sum number
+def make_pretty_sum(not_so_pretty):
+    pretty_sum = '[' + str(not_so_pretty) + ']'
+    return pretty_sum
+
+
+# make string from list for pretty rolls output
+def make_pretty_rolls(not_so_pretty):
+    delimiter = ' '
+    pretty_rolls = delimiter.join(str(x) for x in not_so_pretty)
+    return pretty_rolls
 
 
 # EVENTS
@@ -74,10 +214,10 @@ async def on_ready():
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
     # log connected guilds number
     print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot.guilds))
-    await asyncio.sleep(1)
+    await asyncio.sleep(10)
     # start number of jokes update loop
     update_jokes.start()
-    await asyncio.sleep(5)
+    await asyncio.sleep(10)
     # start status update loop
     update_status.start()
 
@@ -88,7 +228,35 @@ async def on_command_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.CommandNotFound):
         await ctx.send(f'{author.mention}, command not found.\n'
-                       f'Please, use the "?help" command to get full list of commands.')
+                       f'Please, use the "{bot_prefix}help" command to get full list of commands.')
+
+
+# top.gg successful post event
+@bot.event
+async def on_autopost_success():
+    print(datetime.datetime.now(), 'INFO', 'Posted server count on Top.gg')
+
+
+# TODO: find another way to command d
+# @bot.event
+# async def on_message(message):
+#    command_d = settings['prefix'] + 'd'
+#    if message.content.startswith(command_d):
+#        channel = message.channel
+#        result = ''
+#        numbers = message.content.split(command_d)
+#        dice_edge = numbers[1]
+#        # check on dice count and edges can be converted into integer
+#        check_int(dice_edge)
+#        result += '\nD' + dice_edge + ':'
+#        result_dice, overall_dice = dice_roll(1, dice_edge)
+#        result += result_dice
+#        # create embed object from result for discord chat
+#        embed = discord.Embed(color=0xff0000, title=result)
+#        # send it into chat
+#        await channel.send(embed=embed)
+#    else:
+#        await bot.process_commands(message)
 
 
 # LOOPS
@@ -111,7 +279,7 @@ async def update_jokes():
 
 # COMMANDS
 # joke command, it should post random DnD or another role-play game joke
-@bot.command(brief=commands_brief["joke"], help=commands_help["joke"])
+@bot.command(brief=commands_brief["joke"], help=commands_help["joke"], aliases=["j"])
 async def joke(ctx):
     random_joke_number = random.randint(1, number_of_jokes)
     sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
@@ -122,56 +290,58 @@ async def joke(ctx):
 
 # command for rolling dices
 # TODO: add more checks, optimize current checks
-@bot.command(brief=commands_brief["roll"], help=commands_help["roll"], usage="dice_1 [dice_2... dice_n]")
+@bot.command(brief=commands_brief["roll"], help=commands_help["roll"], usage="dice_1 [dice_2... dice_n]", aliases=["r"])
 async def roll(ctx, *arg):
-    # get rolls list from text after bot command
     all_dice = list(arg)
-    # start our result from empty string
-    result = ''
+    table_body = []
 
-    # for each roll do some checks and preparations
     for dice in all_dice:
         # let split our dice roll into number of dices and number of edges
         # 2d20: 2 - number of dices, 20 - number of edges, d - separator
-        numbers = dice.split('d')
+        dice_rolls, dice_edge = ident_dice(dice)
 
-        # convert '' into number of dices, count as 1, ex: d20 == 1d20
-        dice_count = numbers[0]
-        if dice_count == '':
-            dice_count = '1'
+        dice_roll_result = dice_roll(dice_rolls, dice_edge)
+        table_dice_roll_result = make_pretty_rolls(dice_roll_result)
+        result = calc_result(dice_roll_result)
+        table_result = make_pretty_sum(result)
+        table_row = create_row(dice, table_dice_roll_result, table_result)
+        table_body.append(table_row)
 
-        # check if number of edges is existed
-        try:
-            dice_edge = numbers[1]
-        except Exception:
-            raise commands.BadArgument
+    output = create_table(table_body)
 
-        # check on count of separated parts to fix constructions like 2d20d20
-        if len(numbers) != 2:
-            raise commands.BadArgument
-
-        # check on dice count and edges can be converted into integer
-        try:
-            int(dice_count)
-            int(dice_edge)
-        except Exception:
-            raise commands.BadArgument
-
-        # if dice count or edge less than 1 then ignore this roll
-        if int(dice_count) < 1 or int(dice_edge) < 1:
-            continue
-
-        # if roll should be done lets add text section for it
-        result += '\nD' + dice_edge + ':'
-
-        # call the dice roll function
-        result_dice, overall_dice = dice_roll(dice_count, dice_edge)
-        result += result_dice + '   [' + str(overall_dice) + ']'
-
-    # create embed object from result for discord chat
-    embed = discord.Embed(color=0xff0000, title=result)
     # send it into chat
-    await ctx.send(embed=embed)
+    await ctx.send(f"```{output}```")
+
+
+# command for rolling modified dice
+@bot.command(brief=commands_brief["mod"], help=commands_help["mod"], usage="dice_1 [dice_2... dice_n]", aliases=["m"])
+async def mod(ctx, *arg):
+    all_dice = list(arg)
+    table_body = []
+
+    for dice in all_dice:
+        dice_raw, mod_math, mods = split_mod_dice(dice)
+        mod_amount, group_flag = mod_probe(mods)
+        dice_rolls, dice_edge = ident_dice(dice_raw)
+        dice_roll_result = dice_roll(dice_rolls, dice_edge)
+
+        if not group_flag:
+            dice_roll_result_mod = mod_roll(dice_roll_result, mod_math, mod_amount)
+            result = calc_result(dice_roll_result_mod)
+        else:
+            dice_roll_result_mod = dice_roll_result
+            result = calc_result(dice_roll_result_mod)
+            result = calc_mod_result(result, mod_math, mod_amount)
+
+        table_dice_roll_result = make_pretty_rolls(dice_roll_result_mod)
+        table_result = make_pretty_sum(result)
+        table_row = create_row(dice, table_dice_roll_result, table_result)
+        table_body.append(table_row)
+
+    output = create_table(table_body)
+
+    # send it into chat
+    await ctx.send(f"```{output}```")
 
 
 # bad argument exception
@@ -180,30 +350,28 @@ async def roll_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
-                       f'Try something like d20, 5d4, 1d100.')
+                       f'Try something like:\n'
+                       f' - for {bot_prefix}roll: d20 5d4 3d10\n'
+                       f' - for {bot_prefix}mod: d10-1 3d8+1 d100-(1)')
 
 
 # hello command, lets introduce our bot and functions
-@bot.command(brief=commands_brief["hello"], help=commands_help["hello"])
+@bot.command(brief=commands_brief["hello"], help=commands_help["hello"], aliases=["greetings", "hi"])
 async def hello(ctx):
     author = ctx.message.author
     await ctx.send(f'Hello, {author.mention}.\n'
                    f'My name is Dice Roller. '
                    f'I am here to help you with rolling dice. '
-                   f'Please, ask "?help" for more info about commands.')
+                   f'Please, ask "{bot_prefix}help" for more info about commands.')
 
 
 # command for display info about creator and some links
-@bot.command(brief=commands_brief["about"], help=commands_help["about"])
+@bot.command(brief=commands_brief["about"], help=commands_help["about"], aliases=["a", "bot", "version"])
 async def about(ctx):
-    embed = discord.Embed(title="My creator", url="https://www.facebook.com/lulukreicer",
-                          description="He is just a flesh bag but I was created by his will. \
-                          Also, he allows me to rest sometimes, so... few words about him.",
-                          color=0xff0000)
-    embed.add_field(name="nickname", value="kreicer", inline=True)
-    embed.add_field(name="github repo", value="https://github.com/kreicer/dice-roller-bot", inline=True)
-    embed.set_footer(text="You can support him on paypal.me/kreicer")
-    await ctx.send(embed=embed)
+    await ctx.send(f'```Version: 1.0.0\n'
+                   f'Author: kreicer\n'
+                   f'Github: https://github.com/kreicer/dice-roller-bot\n'
+                   f'Top.gg: https://top.gg/bot/809017610111942686```')
 
 
 # bot start
