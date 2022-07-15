@@ -12,8 +12,14 @@ from discord.ext import commands, tasks
 from config import settings, dbname
 
 # VARIABLES
+# Change only the no_category default string
+help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
+# set bot commands prefix
+bot_prefix = settings['prefix']
+bot = commands.Bot(command_prefix=bot_prefix, help_command=help_command)
+
 # commands short description list
-commands_brief = {
+cmd_brief = {
     "about": "Show info about the bot",
     "hello": "Show welcome message",
     "joke": "Get a DnD joke",
@@ -23,29 +29,37 @@ commands_brief = {
 }
 
 # commands long description list
-commands_help = {
+cmd_help = {
     "about": "Show bot version, link on Github, link on top.gg etc",
     "hello": "Dice Roller greetings you and tell a little about himself.",
     "joke": "Bot post a random DnD joke from database (soon you will get opportunity to add yours jokes).",
-    "roll": "Roll different type of dice in one roll:\n \
-            - single die, single roll: ?roll d20\n \
-            - single die, multiple rolls: ?roll 10d4\n \
-            - multiple dice, single roll: ?roll d4 d8 d20\n \
-            - multiple dice, multiple rolls: ?roll 4d8 4d4 2d20\n \
-            - co-co-combo: ?roll d20 5d10 d100 d12345",
-    "mod": "Roll different type of dice with mods in one roll:\n \
-            - single die type few rolls mod to each roll: ?mod 4d20+1\n \
-            - single die type few rolls mod to sum: ?mod 10d4-(2)\n \
-            - co-co-combo: ?mod d20+4 5d10-(2) 2d100-10 d12345+(5)",
-    "d": "Single roll of single type die: ?d20"
+    "roll": f"Roll different type of dice in one roll:\n \
+            - single die, single roll: {bot_prefix}roll d20\n \
+            - single die, multiple rolls: {bot_prefix}roll 10d4\n \
+            - multiple dice, single roll: {bot_prefix}roll d4 d8 d20\n \
+            - multiple dice, multiple rolls: {bot_prefix}roll 4d8 4d4 2d20\n \
+            - co-co-combo: {bot_prefix}roll d20 5d10 d100 d12345",
+    "mod": f"Roll different type of dice with mods in one roll:\n \
+            - single die type few rolls mod to each roll: {bot_prefix}mod 4d20+1\n \
+            - single die type few rolls mod to sum: {bot_prefix}mod 10d4-(2)\n \
+            - co-co-combo: {bot_prefix}mod d20+4 5d10-(2) 2d100-10 d12345+(5)",
+    "d": f"Single roll of single type die: {bot_prefix}d20"
 }
 
-# Change only the no_category default string
-help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
+# commands usage list
+cmd_usage = {
+    "roll": "dice_1 [dice_2 ... dice_n]",
+    "mod": "dice_1 [dice_2 ... dice_n]"
+}
 
-# set bot commands prefix
-bot_prefix = settings['prefix']
-bot = commands.Bot(command_prefix=bot_prefix, help_command=help_command)
+cmd_alias = {
+    "about": ["bot", "version"],
+    "hello": ["sup", "hi", "Hello"],
+    "joke": ["j", "J", "Joke"],
+    "roll": ["r", "R", "Roll"],
+    "mod": ["m", "M", "Mod"],
+    "d": ["D"]
+}
 
 # top.gg integration
 if settings['send_stat']:
@@ -96,7 +110,7 @@ def get_len(*args):
 def split_mod_dice(dice):
     dice_stats_list = re.split(r'([+-])', dice)
     if len(dice_stats_list) != 3:
-        raise commands.BadArgument
+        raise commands.ArgumentParsingError
     dice_without_mod = dice_stats_list[0]
     mod_math = dice_stats_list[1]
     mods = dice_stats_list[2]
@@ -109,7 +123,10 @@ def mod_probe(mods):
     group_open = '('
     group_close = ')'
     if group_open in mods and group_close in mods:
-        mod_amount = mods[mods.find(group_open) + 1: mods.find(group_close)]
+        try:
+            mod_amount = mods[mods.find(group_open) + 1: mods.find(group_close)]
+        except ValueError:
+            raise commands.BadArgument
         group_flag = True
     else:
         mod_amount = mods
@@ -279,7 +296,7 @@ async def update_jokes():
 
 # COMMANDS
 # joke command, it should post random DnD or another role-play game joke
-@bot.command(brief=commands_brief["joke"], help=commands_help["joke"], aliases=["j"])
+@bot.command(brief=cmd_brief["joke"], help=cmd_help["joke"], aliases=cmd_alias["joke"])
 async def joke(ctx):
     random_joke_number = random.randint(1, number_of_jokes)
     sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
@@ -289,8 +306,7 @@ async def joke(ctx):
 
 
 # command for rolling dices
-# TODO: add more checks, optimize current checks
-@bot.command(brief=commands_brief["roll"], help=commands_help["roll"], usage="dice_1 [dice_2... dice_n]", aliases=["r"])
+@bot.command(brief=cmd_brief["roll"], help=cmd_help["roll"], usage=cmd_usage["roll"], aliases=cmd_alias["roll"])
 async def roll(ctx, *arg):
     all_dice = list(arg)
     table_body = []
@@ -314,7 +330,7 @@ async def roll(ctx, *arg):
 
 
 # command for rolling modified dice
-@bot.command(brief=commands_brief["mod"], help=commands_help["mod"], usage="dice_1 [dice_2... dice_n]", aliases=["m"])
+@bot.command(brief=cmd_brief["mod"], help=cmd_help["mod"], usage=cmd_usage["mod"], aliases=cmd_alias["mod"])
 async def mod(ctx, *arg):
     all_dice = list(arg)
     table_body = []
@@ -355,8 +371,21 @@ async def roll_error(ctx, error):
                        f' - for {bot_prefix}mod: d10-1 3d8+1 d100-(1)')
 
 
+@mod.error
+async def arg_error(ctx, error):
+    author = ctx.message.author
+    if isinstance(error, commands.ArgumentParsingError):
+        await ctx.send(f'{author.mention}, wrong dice type.\n'
+                       f'You should use modifiers when using "{bot_prefix}mod" command')
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f'{author.mention}, wrong dice.\n'
+                       f'Try something like:\n'
+                       f' - for {bot_prefix}roll: d20 5d4 3d10\n'
+                       f' - for {bot_prefix}mod: d10-1 3d8+1 d100-(1)')
+
+
 # hello command, lets introduce our bot and functions
-@bot.command(brief=commands_brief["hello"], help=commands_help["hello"], aliases=["greetings", "hi"])
+@bot.command(brief=cmd_brief["hello"], help=cmd_help["hello"], aliases=cmd_alias["hello"])
 async def hello(ctx):
     author = ctx.message.author
     await ctx.send(f'Hello, {author.mention}.\n'
@@ -366,7 +395,7 @@ async def hello(ctx):
 
 
 # command for display info about creator and some links
-@bot.command(brief=commands_brief["about"], help=commands_help["about"], aliases=["a", "bot", "version"])
+@bot.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
     await ctx.send(f'```Version: 1.0.0\n'
                    f'Author: kreicer\n'
