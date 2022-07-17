@@ -366,22 +366,18 @@ async def roll_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
-                       f'Try something like:\n'
-                       f' - for {bot_prefix}roll: d20 5d4 3d10\n'
-                       f' - for {bot_prefix}mod: d10-1 3d8+1 d100-(1)')
+                       f'Try something like: d20 5d4 3d10')
 
 
 @mod.error
-async def arg_error(ctx, error):
+async def mod_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.ArgumentParsingError):
         await ctx.send(f'{author.mention}, wrong dice type.\n'
                        f'You should use modifiers when using "{bot_prefix}mod" command')
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
-                       f'Try something like:\n'
-                       f' - for {bot_prefix}roll: d20 5d4 3d10\n'
-                       f' - for {bot_prefix}mod: d10-1 3d8+1 d100-(1)')
+                       f'Try something like: d10-1 3d8+1 d100-(1)')
 
 
 # hello command, lets introduce our bot and functions
