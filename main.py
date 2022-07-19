@@ -77,9 +77,11 @@ number_of_jokes = 1
 # check int
 def check_int(possibly_int):
     try:
-        result = int(possibly_int)
+        int(possibly_int)
     except ValueError:
         result = False
+    else:
+        result = True
     if not result:
         raise commands.BadArgument
 
@@ -99,11 +101,23 @@ def check_one(possibly_zero_or_less):
 
 
 # future: check len for pretty output
-def get_len(*args):
-    string_len = 0
-    for arg in args:
-        string_len += len(arg)
-    return string_len
+# def space_bar(symbol):
+#     check = False
+#     if symbol == ' ':
+#         check = True
+#     return check
+
+
+# def prettytizer(string):
+#     string_len = len(string)
+#     fixed_len = 25
+#     multiplier_len = string_len / fixed_len
+#     border = 1
+#     while border < multiplier_len:
+#         check = space_bar(string[border * fixed_len])
+#         if check:
+#             continue
+#     return string
 
 
 # split modded dice for dice and mod parts
