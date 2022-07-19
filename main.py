@@ -100,6 +100,12 @@ def check_one(possibly_zero_or_less):
         raise commands.BadArgument
 
 
+# delete left zeros from string
+def kill_zeros(string):
+    modded_string = string.lstrip('0')
+    return modded_string
+
+
 # future: check len for pretty output
 # def space_bar(symbol):
 #     check = False
@@ -182,6 +188,7 @@ def calc_result(dice_result):
 # modding rolls with mod
 def mod_roll(dice_result, mod_math, mod_amount):
     mod_result = []
+    mod_amount = kill_zeros(mod_amount)
     for dice in dice_result:
         modded_dice = eval(str(dice) + mod_math + mod_amount)
         modded_dice = check_subzero(modded_dice)
@@ -191,6 +198,7 @@ def mod_roll(dice_result, mod_math, mod_amount):
 
 # mod rolls result
 def calc_mod_result(total_result, mod_math, mod_amount):
+    mod_amount = kill_zeros(mod_amount)
     total_mod_result = eval(str(total_result) + mod_math + mod_amount)
     total_mod_result = check_subzero(total_mod_result)
     return total_mod_result
