@@ -102,28 +102,33 @@ def check_one(possibly_zero_or_less):
 
 # delete left zeros from string
 def kill_zeros(string):
-    modded_string = string.lstrip('0')
+    modded_string = str(int(string))
     return modded_string
 
 
-# future: check len for pretty output
-# def space_bar(symbol):
-#     check = False
-#     if symbol == ' ':
-#         check = True
-#     return check
+# sad but we need limits
+def rolls_limit(number):
+    limit = 50
+    if number > limit:
+        raise commands.TooManyArguments
 
 
-# def prettytizer(string):
-#     string_len = len(string)
-#     fixed_len = 25
-#     multiplier_len = string_len / fixed_len
-#     border = 1
-#     while border < multiplier_len:
-#         check = space_bar(string[border * fixed_len])
-#         if check:
-#             continue
-#     return string
+def edges_limit(number):
+    limit = 1000000000
+    if number > limit:
+        raise commands.TooManyArguments
+
+
+def dice_limit(number):
+    limit = 20
+    if number > limit:
+        raise commands.TooManyArguments
+
+
+def mods_limit(number):
+    limit = 1000000000
+    if number > limit:
+        raise commands.TooManyArguments
 
 
 # split modded dice for dice and mod parts
@@ -151,6 +156,7 @@ def mod_probe(mods):
     else:
         mod_amount = mods
     check_int(mod_amount)
+    mods_limit(int(mod_amount))
     return mod_amount, group_flag
 
 
@@ -165,8 +171,10 @@ def ident_dice(dice):
         dice_rolls = '1'
     check_int(dice_rolls)
     check_one(dice_rolls)
+    rolls_limit(int(dice_rolls))
     check_int(dice_edge)
     check_one(dice_edge)
+    edges_limit(int(dice_edge))
     return dice_rolls, dice_edge
 
 
@@ -234,8 +242,23 @@ def make_pretty_sum(not_so_pretty):
 # make string from list for pretty rolls output
 def make_pretty_rolls(not_so_pretty):
     delimiter = ' '
-    pretty_rolls = delimiter.join(str(x) for x in not_so_pretty)
+    size = 10
+    pretty_rolls = ''
+    if len(not_so_pretty) > 10:
+        batch_rolls = make_batch(not_so_pretty, size)
+        for batch in batch_rolls:
+            pretty_rolls += delimiter.join(str(r) for r in batch)
+            pretty_rolls += '\n'
+    else:
+        pretty_rolls = delimiter.join(str(x) for x in not_so_pretty)
     return pretty_rolls
+
+
+def make_batch(origin_list, size):
+    new_list = []
+    for i in range(0, len(origin_list), size):
+        new_list.append(origin_list[i:i+size])
+    return new_list
 
 
 # EVENTS
@@ -331,6 +354,7 @@ async def joke(ctx):
 @bot.command(brief=cmd_brief["roll"], help=cmd_help["roll"], usage=cmd_usage["roll"], aliases=cmd_alias["roll"])
 async def roll(ctx, *arg):
     all_dice = list(arg)
+    dice_limit(len(all_dice))
     table_body = []
 
     for dice in all_dice:
@@ -355,6 +379,7 @@ async def roll(ctx, *arg):
 @bot.command(brief=cmd_brief["mod"], help=cmd_help["mod"], usage=cmd_usage["mod"], aliases=cmd_alias["mod"])
 async def mod(ctx, *arg):
     all_dice = list(arg)
+    dice_limit(len(all_dice))
     table_body = []
 
     for dice in all_dice:
@@ -389,6 +414,10 @@ async def roll_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
                        f'Try something like: d20 5d4 3d10')
+    if isinstance(error, commands.TooManyArguments):
+        await ctx.send(f'{author.mention}, wow!\n'
+                       f'I am not a math machine.\n'
+                       f'Please, reduce your appetite.')
 
 
 @mod.error
@@ -400,6 +429,10 @@ async def mod_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
                        f'Try something like: d10-1 3d8+1 d100-(1)')
+    if isinstance(error, commands.TooManyArguments):
+        await ctx.send(f'{author.mention}, wow!\n'
+                       f'I am not a math machine.\n'
+                       f'Please, reduce your appetite.')
 
 
 # hello command, lets introduce our bot and functions
