@@ -14,10 +14,14 @@ from config import settings, dbname
 # VARIABLES
 # Change only the no_category default string
 help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
+
 # set bot commands prefix
 bot_prefix = settings['prefix']
-bot = commands.Bot(command_prefix=bot_prefix, help_command=help_command)
 
+# customize bot with prefix and custom help
+bot = commands.Bot(command_prefix=bot_prefix, help_command=help_command)
+# global var
+guilds_number = 0
 # commands short description list
 cmd_brief = {
     "about": "Show info about the bot",
@@ -30,7 +34,7 @@ cmd_brief = {
 
 # commands long description list
 cmd_help = {
-    "about": "Show bot version, link on Github, link on top.gg etc",
+    "about": "Show bot version, number of servers using it, link on Github, link on top.gg etc",
     "hello": "Dice Roller greetings you and tell a little about himself.",
     "joke": "Bot post a random DnD joke from database (soon you will get opportunity to add yours jokes).",
     "roll": f"Roll different type of dice in one roll:\n \
@@ -75,6 +79,7 @@ number_of_jokes = 1
 
 # FUNCTIONS
 # check int
+# TODO: use commands.checks for this
 def check_int(possibly_int):
     try:
         int(possibly_int)
@@ -242,9 +247,9 @@ def make_pretty_sum(not_so_pretty):
 # make string from list for pretty rolls output
 def make_pretty_rolls(not_so_pretty):
     delimiter = ' '
-    size = 10
+    size = 9
     pretty_rolls = ''
-    if len(not_so_pretty) > 10:
+    if len(not_so_pretty) > size:
         batch_rolls = make_batch(not_so_pretty, size)
         for batch in batch_rolls:
             pretty_rolls += delimiter.join(str(r) for r in batch)
@@ -276,12 +281,13 @@ async def on_ready():
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
     # log connected guilds number
     print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot.guilds))
+    await bot.change_presence(activity=discord.Activity(name='dice rolling!', type=5))
     await asyncio.sleep(10)
     # start number of jokes update loop
     update_jokes.start()
     await asyncio.sleep(10)
     # start status update loop
-    update_status.start()
+    update_guild_number.start()
 
 
 # wrong commands handler
@@ -324,9 +330,10 @@ async def on_autopost_success():
 # LOOPS
 # status update loop
 @tasks.loop(hours=1)
-async def update_status():
+async def update_guild_number():
     print(datetime.datetime.now(), 'INFO', 'Bot status updated, current number:', len(bot.guilds))
-    await bot.change_presence(activity=discord.Game(name=f"{len(bot.guilds)} servers"))
+    global guilds_number
+    guilds_number = len(bot.guilds)
 
 
 # number of jokes update loop
@@ -361,12 +368,15 @@ async def roll(ctx, *arg):
         # let split our dice roll into number of dices and number of edges
         # 2d20: 2 - number of dices, 20 - number of edges, d - separator
         dice_rolls, dice_edge = ident_dice(dice)
+        table_rolls = kill_zeros(dice_rolls)
+        table_edge = kill_zeros(dice_edge)
+        table_dice = table_rolls + 'd' + table_edge
 
         dice_roll_result = dice_roll(dice_rolls, dice_edge)
         table_dice_roll_result = make_pretty_rolls(dice_roll_result)
         result = calc_result(dice_roll_result)
         table_result = make_pretty_sum(result)
-        table_row = create_row(dice, table_dice_roll_result, table_result)
+        table_row = create_row(table_dice, table_dice_roll_result, table_result)
         table_body.append(table_row)
 
     output = create_table(table_body)
@@ -391,14 +401,20 @@ async def mod(ctx, *arg):
         if not group_flag:
             dice_roll_result_mod = mod_roll(dice_roll_result, mod_math, mod_amount)
             result = calc_result(dice_roll_result_mod)
+            table_amount = kill_zeros(mod_amount)
         else:
             dice_roll_result_mod = dice_roll_result
             result = calc_result(dice_roll_result_mod)
             result = calc_mod_result(result, mod_math, mod_amount)
+            table_amount = '(' + kill_zeros(mod_amount) + ')'
 
+        table_rolls = kill_zeros(dice_rolls)
+        table_edge = kill_zeros(dice_edge)
+
+        table_dice = table_rolls + 'd' + table_edge + mod_math + table_amount
         table_dice_roll_result = make_pretty_rolls(dice_roll_result_mod)
         table_result = make_pretty_sum(result)
-        table_row = create_row(dice, table_dice_roll_result, table_result)
+        table_row = create_row(table_dice, table_dice_roll_result, table_result)
         table_body.append(table_row)
 
     output = create_table(table_body)
@@ -442,16 +458,19 @@ async def hello(ctx):
     await ctx.send(f'Hello, {author.mention}.\n'
                    f'My name is Dice Roller. '
                    f'I am here to help you with rolling dice. '
-                   f'Please, ask "{bot_prefix}help" for more info about commands.')
+                   f'Please, ask "{bot_prefix}help" to list commands with short description. '
+                   f'Also, ask "{bot_prefix}help <command_name>" for more info about each command and examples.')
 
 
 # command for display info about creator and some links
 @bot.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
-    await ctx.send(f'```Version: 1.0.0\n'
+    await ctx.send(f'```Version: 1.0.1\n'
                    f'Author: kreicer\n'
+                   f'On Servers: {guilds_number}\n'
                    f'Github: https://github.com/kreicer/dice-roller-bot\n'
-                   f'Top.gg: https://top.gg/bot/809017610111942686```')
+                   f'Top.gg: https://top.gg/bot/809017610111942686\n'
+                   f'Support Us: https://pay.cloudtips.ru/p/b205b48b```')
 
 
 # bot start
