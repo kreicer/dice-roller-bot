@@ -53,17 +53,17 @@ Future commands:
 - verification ✓
 - performance improvement ✓
 - checks ✓
+- output improvements ✓
 - new d command to quick single roll 
 - change bot prefix
 - more jokes
 - secret rolls
 - localization
-- output improvements
 - video guide into full bot functionality
 - web-site for jokes uploads
 - tests
 - etc
 
 ## Known issues
-- bad output for many rolls for single type dice
+- bad output for many rolls for single type dice with big edge
 - terra incognita

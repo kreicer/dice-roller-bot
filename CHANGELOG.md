@@ -1,3 +1,23 @@
+## Version 1.0.1
+
+###Improved
+- better rolls results output
+- rework "about" command
+- change bot status and description
+- more validation checks added
+- improve errors output
+- add limits for rolls, edges and modifiers
+- few cosmetic improve
+
+###Fixed
+- fix issue with no error on wrong "mod" command arguments
+- fix issue with prefix in help command
+- fix "zero mod" issue
+
+###Known issues
+- table with output can be deformed if your discord window too low on width
+
+-----
 ## Version 1.0.0
 
 ###New
