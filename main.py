@@ -42,7 +42,8 @@ cmd_help = {
             - single die, multiple rolls: {bot_prefix}roll 10d4\n \
             - multiple dice, single roll: {bot_prefix}roll d4 d8 d20\n \
             - multiple dice, multiple rolls: {bot_prefix}roll 4d8 4d4 2d20\n \
-            - co-co-combo: {bot_prefix}roll d20 5d10 d100 d12345",
+            - co-co-combo: {bot_prefix}roll d20 5d10 d100 d12345\n \
+            - FATE: {bot_prefix}roll fate",
     "mod": f"Roll different type of dice with mods in one roll:\n \
             - single die type few rolls mod to each roll: {bot_prefix}mod 4d20+1\n \
             - single die type few rolls mod to sum: {bot_prefix}mod 10d4-(2)\n \
@@ -191,6 +192,11 @@ def dice_roll(rolls, dice):
         dice_roll_result.append(roll_result)
     return dice_roll_result
 
+def fate_roll(rolls=4):
+    """
+    Roll typical fate dice, six sided, sides can have " ", "+" or "-". Typical number of fate dice being rolled is 4
+    """
+    return "".join(random.choices(["+"," ","-"],k=rolls))
 
 # summarize result
 def calc_result(dice_result):
@@ -365,19 +371,24 @@ async def roll(ctx, *arg):
     table_body = []
 
     for dice in all_dice:
-        # let split our dice roll into number of dices and number of edges
-        # 2d20: 2 - number of dices, 20 - number of edges, d - separator
-        dice_rolls, dice_edge = ident_dice(dice)
-        table_rolls = kill_zeros(dice_rolls)
-        table_edge = kill_zeros(dice_edge)
-        table_dice = table_rolls + 'd' + table_edge
+        if "fate" in dice.lower():
+            throw = fate_roll()
+            table_row = create_row("FATE", throw, throw.count("+")-throw.count("-"))
+            table_body.append(table_row)
+        else:
+            # let split our dice roll into number of dices and number of edges
+            # 2d20: 2 - number of dices, 20 - number of edges, d - separator
+            dice_rolls, dice_edge = ident_dice(dice)
+            table_rolls = kill_zeros(dice_rolls)
+            table_edge = kill_zeros(dice_edge)
+            table_dice = table_rolls + 'd' + table_edge
 
-        dice_roll_result = dice_roll(dice_rolls, dice_edge)
-        table_dice_roll_result = make_pretty_rolls(dice_roll_result)
-        result = calc_result(dice_roll_result)
-        table_result = make_pretty_sum(result)
-        table_row = create_row(table_dice, table_dice_roll_result, table_result)
-        table_body.append(table_row)
+            dice_roll_result = dice_roll(dice_rolls, dice_edge)
+            table_dice_roll_result = make_pretty_rolls(dice_roll_result)
+            result = calc_result(dice_roll_result)
+            table_result = make_pretty_sum(result)
+            table_row = create_row(table_dice, table_dice_roll_result, table_result)
+            table_body.append(table_row)
 
     output = create_table(table_body)
 
