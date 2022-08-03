@@ -44,9 +44,11 @@ cmd_help = {
             - multiple dice, multiple rolls: {bot_prefix}roll 4d8 4d4 2d20\n \
             - co-co-combo: {bot_prefix}roll d20 5d10 d100 d12345",
     "mod": f"Roll different type of dice with mods in one roll:\n \
-            - single die type few rolls mod to each roll: {bot_prefix}mod 4d20+1\n \
-            - single die type few rolls mod to sum: {bot_prefix}mod 10d4-(2)\n \
-            - co-co-combo: {bot_prefix}mod d20+4 5d10-(2) 2d100-10 d12345+(5)",
+            - single die, single roll: {bot_prefix}mod d20+1\n \
+            - single die, multiple rolls: {bot_prefix}mod 10d4-2\n \
+            - multiple dice, single roll: {bot_prefix}mod d4-1 d20+2 d100-10\n \
+            - multiple dice, multiple roll: {bot_prefix}mod 5d4+1 2d20-2 4d6-1\n \
+            - co-co-combo: {bot_prefix}mod d20+4 5d10-2 2d100-10 d12345+5",
     "d": f"Single roll of single type die: {bot_prefix}d20"
 }
 
@@ -64,6 +66,9 @@ cmd_alias = {
     "mod": ["m", "M", "Mod"],
     "d": ["D"]
 }
+
+suffix_verbs = ['pass']
+mod_types = ['pass', 'd+', 'd-']
 
 # top.gg integration
 if settings['send_stat']:
@@ -143,26 +148,10 @@ def split_mod_dice(dice):
         raise commands.ArgumentParsingError
     dice_without_mod = dice_stats_list[0]
     mod_math = dice_stats_list[1]
-    mods = dice_stats_list[2]
-    return dice_without_mod, mod_math, mods
-
-
-# check if mod for result or for each roll
-def mod_probe(mods):
-    group_flag = False
-    group_open = '('
-    group_close = ')'
-    if group_open in mods and group_close in mods:
-        try:
-            mod_amount = mods[mods.find(group_open) + 1: mods.find(group_close)]
-        except ValueError:
-            raise commands.BadArgument
-        group_flag = True
-    else:
-        mod_amount = mods
+    mod_amount = dice_stats_list[2]
     check_int(mod_amount)
     mods_limit(int(mod_amount))
-    return mod_amount, group_flag
+    return dice_without_mod, mod_math, mod_amount
 
 
 # split and check dice for rolls and edges
@@ -196,17 +185,6 @@ def dice_roll(rolls, dice):
 def calc_result(dice_result):
     total_result = sum(dice_result)
     return total_result
-
-
-# modding rolls with mod
-def mod_roll(dice_result, mod_math, mod_amount):
-    mod_result = []
-    mod_amount = kill_zeros(mod_amount)
-    for dice in dice_result:
-        modded_dice = eval(str(dice) + mod_math + mod_amount)
-        modded_dice = check_subzero(modded_dice)
-        mod_result.append(modded_dice)
-    return mod_result
 
 
 # mod rolls result
@@ -266,6 +244,13 @@ def make_batch(origin_list, size):
     return new_list
 
 
+def is_fate_dice(edge):
+    check_value = edge.upper()
+    if check_value == 'F':
+        fate_dice = True
+        return fate_dice
+
+
 # EVENTS
 # on connect actions
 @bot.event
@@ -281,7 +266,7 @@ async def on_ready():
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
     # log connected guilds number
     print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot.guilds))
-    await bot.change_presence(activity=discord.Activity(name='dice rolling!', type=5))
+    await bot.change_presence(activity=discord.Activity(name='dice rolling!', type=discord.ActivityType.competing))
     await asyncio.sleep(10)
     # start number of jokes update loop
     update_jokes.start()
@@ -393,20 +378,14 @@ async def mod(ctx, *arg):
     table_body = []
 
     for dice in all_dice:
-        dice_raw, mod_math, mods = split_mod_dice(dice)
-        mod_amount, group_flag = mod_probe(mods)
+        dice_raw, mod_math, mod_amount = split_mod_dice(dice)
         dice_rolls, dice_edge = ident_dice(dice_raw)
         dice_roll_result = dice_roll(dice_rolls, dice_edge)
 
-        if not group_flag:
-            dice_roll_result_mod = mod_roll(dice_roll_result, mod_math, mod_amount)
-            result = calc_result(dice_roll_result_mod)
-            table_amount = kill_zeros(mod_amount)
-        else:
-            dice_roll_result_mod = dice_roll_result
-            result = calc_result(dice_roll_result_mod)
-            result = calc_mod_result(result, mod_math, mod_amount)
-            table_amount = '(' + kill_zeros(mod_amount) + ')'
+        dice_roll_result_mod = dice_roll_result
+        result = calc_result(dice_roll_result_mod)
+        result = calc_mod_result(result, mod_math, mod_amount)
+        table_amount = kill_zeros(mod_amount)
 
         table_rolls = kill_zeros(dice_rolls)
         table_edge = kill_zeros(dice_edge)
@@ -444,7 +423,7 @@ async def mod_error(ctx, error):
                        f'You should use modifiers when using "{bot_prefix}mod" command')
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
-                       f'Try something like: d10-1 3d8+1 d100-(1)')
+                       f'Try something like: d10-1 3d8+1 d100-10')
     if isinstance(error, commands.TooManyArguments):
         await ctx.send(f'{author.mention}, wow!\n'
                        f'I am not a math machine.\n'
