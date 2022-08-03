@@ -271,10 +271,9 @@ def is_fate_dice(edge):
     check_value = edge.upper()
     if check_value == 'F':
         fate_dice = True
-        return fate_dice
     else:
         fate_dice = False
-        return fate_dice
+    return fate_dice
 
 
 def add_or_sub(symbol):
