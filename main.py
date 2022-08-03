@@ -69,7 +69,12 @@ cmd_alias = {
 }
 
 suffix_verbs = ['pass']
-mod_types = ['pass', 'd+', 'd-']
+mod_types = ['pass', 'add', 'sub']
+spec_dice = [
+    {"name": "fate", "scheme": "4dF"},
+    {"name": "burst", "scheme": "Bd6"}
+]
+
 
 # top.gg integration
 if settings['send_stat']:
@@ -88,11 +93,11 @@ number_of_jokes = 1
 # TODO: use commands.checks for this
 def check_int(possibly_int):
     try:
-        int(possibly_int)
+        exactly_int = int(possibly_int)
     except ValueError:
         result = False
     else:
-        result = True
+        return exactly_int
     if not result:
         raise commands.BadArgument
 
@@ -107,14 +112,8 @@ def check_subzero(possibly_subzero):
 
 # check zero and negative
 def check_one(possibly_zero_or_less):
-    if int(possibly_zero_or_less) < 1:
+    if possibly_zero_or_less < 1:
         raise commands.BadArgument
-
-
-# delete left zeros from string
-def kill_zeros(string):
-    modded_string = str(int(string))
-    return modded_string
 
 
 # sad but we need limits
@@ -145,13 +144,19 @@ def mods_limit(number):
 # split modded dice for dice and mod parts
 def split_mod_dice(dice):
     dice_stats_list = re.split(r'([+-])', dice)
-    if len(dice_stats_list) != 3:
+    list_len = len(dice_stats_list)
+    if list_len == 3:
+        dice_without_mod = dice_stats_list[0]
+        mod_math = dice_stats_list[1]
+        mod_amount = dice_stats_list[2]
+        mod_amount = check_int(mod_amount)
+        mods_limit(mod_amount)
+    elif list_len == 1:
+        dice_without_mod = dice_stats_list[0]
+        mod_math = ''
+        mod_amount = ''
+    else:
         raise commands.ArgumentParsingError
-    dice_without_mod = dice_stats_list[0]
-    mod_math = dice_stats_list[1]
-    mod_amount = dice_stats_list[2]
-    check_int(mod_amount)
-    mods_limit(int(mod_amount))
     return dice_without_mod, mod_math, mod_amount
 
 
@@ -163,29 +168,31 @@ def ident_dice(dice):
     dice_rolls = rolls_and_edges[0]
     dice_edge = rolls_and_edges[1]
     if dice_rolls == '':
-        dice_rolls = '1'
-    check_int(dice_rolls)
+        dice_rolls = 1
+    dice_rolls = check_int(dice_rolls)
     check_one(dice_rolls)
-    rolls_limit(int(dice_rolls))
-    check_int(dice_edge)
-    check_one(dice_edge)
-    edges_limit(int(dice_edge))
-    return dice_rolls, dice_edge
+    rolls_limit(dice_rolls)
+    is_fate = is_fate_dice(dice_edge)
+    if is_fate:
+        dice_edge = -3
+    else:
+        dice_edge = check_int(dice_edge)
+        check_one(dice_edge)
+        edges_limit(dice_edge)
+    return dice_rolls, dice_edge, is_fate
 
 
 # roll dice
-def dice_roll(rolls, dice):
+def dice_roll(rolls, edge):
     dice_roll_result = []
-    for counts in range(1, int(rolls) + 1):
-        roll_result = random.randint(1, int(dice))
+    step = 1
+    if edge == -3:
+        step = -1
+    for counts in range(1, rolls + 1):
+        roll_result = random.randrange(1, edge + 1, step)
         dice_roll_result.append(roll_result)
     return dice_roll_result
 
-def fate_roll(rolls=4):
-    """
-    Roll typical fate dice, six sided, sides can have " ", "+" or "-". Typical number of fate dice being rolled is 4
-    """
-    return "".join(random.choices(["+"," ","-"],k=rolls))
 
 # summarize result
 def calc_result(dice_result):
@@ -194,10 +201,15 @@ def calc_result(dice_result):
 
 
 # mod rolls result
-def calc_mod_result(total_result, mod_math, mod_amount):
-    mod_amount = kill_zeros(mod_amount)
-    total_mod_result = eval(str(total_result) + mod_math + mod_amount)
-    total_mod_result = check_subzero(total_mod_result)
+def add_mod_result(total_result, mod_amount):
+    total_mod_result = total_result + mod_amount
+    return total_mod_result
+
+
+def sub_mod_result(total_result, mod_amount, is_fate):
+    total_mod_result = total_result - mod_amount
+    if not is_fate:
+        total_mod_result = check_subzero(total_mod_result)
     return total_mod_result
 
 
@@ -243,6 +255,11 @@ def make_pretty_rolls(not_so_pretty):
     return pretty_rolls
 
 
+def make_fate_rolls(pretty_but_not_fate):
+    fate_rolls = pretty_but_not_fate.replace('-1', '-').replace('1', '+').replace('0', '.')
+    return fate_rolls
+
+
 def make_batch(origin_list, size):
     new_list = []
     for i in range(0, len(origin_list), size):
@@ -255,6 +272,29 @@ def is_fate_dice(edge):
     if check_value == 'F':
         fate_dice = True
         return fate_dice
+    else:
+        fate_dice = False
+        return fate_dice
+
+
+def add_or_sub(symbol):
+    x = symbol
+    if x == '+':
+        mod_type = 'add'
+        return mod_type
+    elif x == '-':
+        mod_type = 'sub'
+        return mod_type
+    else:
+        mod_type = 'pass'
+        return mod_type
+
+
+def dice_maker(*args):
+    result = ''
+    for arg in args:
+        result += str(arg)
+    return result
 
 
 # EVENTS
@@ -356,24 +396,27 @@ async def roll(ctx, *arg):
     table_body = []
 
     for dice in all_dice:
-        if "fate" in dice.lower():
-            throw = fate_roll()
-            table_row = create_row("FATE", throw, throw.count("+")-throw.count("-"))
-            table_body.append(table_row)
-        else:
-            # let split our dice roll into number of dices and number of edges
-            # 2d20: 2 - number of dices, 20 - number of edges, d - separator
-            dice_rolls, dice_edge = ident_dice(dice)
-            table_rolls = kill_zeros(dice_rolls)
-            table_edge = kill_zeros(dice_edge)
-            table_dice = table_rolls + 'd' + table_edge
+        for spec_die in spec_dice:
+            if dice == spec_die["name"]:
+                dice = spec_die["scheme"]
 
-            dice_roll_result = dice_roll(dice_rolls, dice_edge)
-            table_dice_roll_result = make_pretty_rolls(dice_roll_result)
-            result = calc_result(dice_roll_result)
-            table_result = make_pretty_sum(result)
-            table_row = create_row(table_dice, table_dice_roll_result, table_result)
-            table_body.append(table_row)
+        # let split our dice roll into number of dices and number of edges
+        # 2d20: 2 - number of dices, 20 - number of edges, d - separator
+        dice_rolls, dice_edge, is_fate = ident_dice(dice)
+
+        dice_roll_result = dice_roll(dice_rolls, dice_edge)
+        result = calc_result(dice_roll_result)
+
+        table_dice = dice_maker(dice_rolls, 'd', dice_edge)
+        table_dice_roll_result = make_pretty_rolls(dice_roll_result)
+        table_result = make_pretty_sum(result)
+
+        if is_fate:
+            table_dice = dice_maker(dice_rolls, 'd', 'F')
+            table_dice_roll_result = make_fate_rolls(table_dice_roll_result)
+
+        table_row = create_row(table_dice, table_dice_roll_result, table_result)
+        table_body.append(table_row)
 
     output = create_table(table_body)
 
@@ -389,21 +432,29 @@ async def mod(ctx, *arg):
     table_body = []
 
     for dice in all_dice:
+        for spec_die in spec_dice:
+            if dice == spec_die["name"]:
+                dice = spec_die["scheme"]
+
         dice_raw, mod_math, mod_amount = split_mod_dice(dice)
-        dice_rolls, dice_edge = ident_dice(dice_raw)
+        dice_rolls, dice_edge, is_fate = ident_dice(dice_raw)
         dice_roll_result = dice_roll(dice_rolls, dice_edge)
 
-        dice_roll_result_mod = dice_roll_result
-        result = calc_result(dice_roll_result_mod)
-        result = calc_mod_result(result, mod_math, mod_amount)
-        table_amount = kill_zeros(mod_amount)
+        mod_type = add_or_sub(mod_math)
 
-        table_rolls = kill_zeros(dice_rolls)
-        table_edge = kill_zeros(dice_edge)
+        result = calc_result(dice_roll_result)
+        if mod_type == 'add':
+            result = add_mod_result(result, mod_amount)
+        elif mod_type == 'sub':
+            result = sub_mod_result(result, mod_amount, is_fate)
 
-        table_dice = table_rolls + 'd' + table_edge + mod_math + table_amount
-        table_dice_roll_result = make_pretty_rolls(dice_roll_result_mod)
+        table_dice = dice_maker(dice_rolls, 'd', dice_edge, mod_math, mod_amount)
+        table_dice_roll_result = make_pretty_rolls(dice_roll_result)
         table_result = make_pretty_sum(result)
+
+        if is_fate:
+            table_dice = dice_maker(dice_rolls, 'd', 'F', mod_math, mod_amount)
+            table_dice_roll_result = make_fate_rolls(table_dice_roll_result)
         table_row = create_row(table_dice, table_dice_roll_result, table_result)
         table_body.append(table_row)
 
