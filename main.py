@@ -42,14 +42,15 @@ cmd_help = {
             - single die, multiple rolls: {bot_prefix}roll 10d4\n \
             - multiple dice, single roll: {bot_prefix}roll d4 d8 d20\n \
             - multiple dice, multiple rolls: {bot_prefix}roll 4d8 4d4 2d20\n \
-            - co-co-combo: {bot_prefix}roll d20 5d10 d100 d12345\n \
-            - FATE: {bot_prefix}roll fate",
+            - FATE dice: {bot_prefix}roll fate dF 6dF\n \
+            - co-co-combo: {bot_prefix}roll d20 5d10 fate d123 20dF",
     "mod": f"Roll different type of dice with mods in one roll:\n \
             - single die, single roll: {bot_prefix}mod d20+1\n \
             - single die, multiple rolls: {bot_prefix}mod 10d4-2\n \
             - multiple dice, single roll: {bot_prefix}mod d4-1 d20+2 d100-10\n \
             - multiple dice, multiple roll: {bot_prefix}mod 5d4+1 2d20-2 4d6-1\n \
-            - co-co-combo: {bot_prefix}mod d20+4 5d10-2 2d100-10 d12345+5",
+            - FATE dice: {bot_prefix}mod fate 4dF+1 10dF-2\n \
+            - co-co-combo: {bot_prefix}mod d20 5d10-2 2d100 fate d123+5 6dF-2",
     "d": f"Single roll of single type die: {bot_prefix}d20"
 }
 
@@ -255,11 +256,13 @@ def make_pretty_rolls(not_so_pretty):
     return pretty_rolls
 
 
+# replace numbers by symbols for pretty output
 def make_fate_rolls(pretty_but_not_fate):
     fate_rolls = pretty_but_not_fate.replace('-1', '-').replace('1', '+').replace('0', '.')
     return fate_rolls
 
 
+# lets split longs for shorts
 def make_batch(origin_list, size):
     new_list = []
     for i in range(0, len(origin_list), size):
@@ -267,6 +270,7 @@ def make_batch(origin_list, size):
     return new_list
 
 
+# check if fate dice
 def is_fate_dice(edge):
     check_value = edge.upper()
     if check_value == 'F':
@@ -276,6 +280,7 @@ def is_fate_dice(edge):
     return fate_dice
 
 
+# return mod type for mod math actions
 def add_or_sub(symbol):
     x = symbol
     if x == '+':
@@ -289,6 +294,7 @@ def add_or_sub(symbol):
         return mod_type
 
 
+# make dice label for table from args
 def dice_maker(*args):
     result = ''
     for arg in args:
