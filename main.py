@@ -19,7 +19,9 @@ help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
 bot_prefix = settings['prefix']
 
 # customize bot with prefix and custom help
-bot = commands.Bot(command_prefix=bot_prefix, help_command=help_command)
+bot = commands.AutoShardedBot(command_prefix=commands.when_mentioned_or(bot_prefix),
+                              help_command=help_command,
+                              shard_count=1)
 # global var
 guilds_number = 0
 # commands short description list
@@ -42,15 +44,17 @@ cmd_help = {
             - single die, multiple rolls: {bot_prefix}roll 10d4\n \
             - multiple dice, single roll: {bot_prefix}roll d4 d8 d20\n \
             - multiple dice, multiple rolls: {bot_prefix}roll 4d8 4d4 2d20\n \
-            - FATE dice: {bot_prefix}roll fate dF 6dF\n \
-            - co-co-combo: {bot_prefix}roll d20 5d10 fate d123 20dF",
+            - fate dice: {bot_prefix}roll fate dF 6dF\n \
+            - exploding dice: {bot_prefix}roll explode Ed20\n \
+            - co-co-combo: {bot_prefix}roll d20 5d10 fate d123 Ed8",
     "mod": f"Roll different type of dice with mods in one roll:\n \
             - single die, single roll: {bot_prefix}mod d20+1\n \
             - single die, multiple rolls: {bot_prefix}mod 10d4-2\n \
             - multiple dice, single roll: {bot_prefix}mod d4-1 d20+2 d100-10\n \
             - multiple dice, multiple roll: {bot_prefix}mod 5d4+1 2d20-2 4d6-1\n \
-            - FATE dice: {bot_prefix}mod fate 4dF+1 10dF-2\n \
-            - co-co-combo: {bot_prefix}mod d20 5d10-2 2d100 fate d123+5 6dF-2",
+            - fate dice: {bot_prefix}mod fate 4dF+1 10dF-2\n \
+            - exploding dice: {bot_prefix}roll explode Ed20-4 Ed6+1\n \
+            - co-co-combo: {bot_prefix}mod d20 5d10-2 2d100 fate d123+5 Ed10-2",
     "d": f"Single roll of single type die: {bot_prefix}d20"
 }
 
@@ -71,10 +75,10 @@ cmd_alias = {
 
 suffix_verbs = ['pass']
 mod_types = ['pass', 'add', 'sub']
-spec_dice = [
-    {"name": "fate", "scheme": "4dF"},
-    {"name": "burst", "scheme": "Bd6"}
-]
+spec_dice = {
+    "fate": "4dF",
+    "explode": "Ed6"
+}
 
 
 # top.gg integration
@@ -163,35 +167,62 @@ def split_mod_dice(dice):
 
 # split and check dice for rolls and edges
 def ident_dice(dice):
+    dice_type = 'simple'
     rolls_and_edges = dice.split('d')
     if len(rolls_and_edges) != 2:
         raise commands.BadArgument
     dice_rolls = rolls_and_edges[0]
     dice_edge = rolls_and_edges[1]
-    if dice_rolls == '':
-        dice_rolls = 1
-    dice_rolls = check_int(dice_rolls)
-    check_one(dice_rolls)
-    rolls_limit(dice_rolls)
-    is_fate = is_fate_dice(dice_edge)
-    if is_fate:
-        dice_edge = -3
+    if dice_rolls.lower() == 'e':
+        dice_type = 'explode'
+        dice_rolls = dice_rolls.upper()
+    else:
+        if dice_rolls == '':
+            dice_rolls = 1
+        dice_rolls = check_int(dice_rolls)
+        check_one(dice_rolls)
+        rolls_limit(dice_rolls)
+    if dice_edge.lower() == 'f':
+        dice_type = 'fate'
+        dice_edge = dice_edge.upper()
     else:
         dice_edge = check_int(dice_edge)
         check_one(dice_edge)
         edges_limit(dice_edge)
-    return dice_rolls, dice_edge, is_fate
+    return dice_rolls, dice_edge, dice_type
 
 
 # roll dice
 def dice_roll(rolls, edge):
     dice_roll_result = []
-    step = 1
-    if edge == -3:
-        step = -1
     for counts in range(1, rolls + 1):
-        roll_result = random.randrange(1, edge + 1, step)
+        roll_result = random.randint(1, edge)
         dice_roll_result.append(roll_result)
+    return dice_roll_result
+
+
+# fate roll
+def fate_roll(rolls):
+    dice_roll_result = []
+    for counts in range(1, rolls + 1):
+        roll_result = random.choices(["+", ".", "-"])
+        dice_roll_result += roll_result
+    return dice_roll_result
+
+
+def fate_result(dice_result):
+    total_result = dice_result.count('+') - dice_result.count('-')
+    return total_result
+
+
+# explode roll
+def explode_roll(edge):
+    dice_roll_result = []
+    check = edge
+    while check == edge:
+        roll_result = random.randint(1, edge)
+        dice_roll_result.append(roll_result)
+        check = roll_result
     return dice_roll_result
 
 
@@ -207,10 +238,9 @@ def add_mod_result(total_result, mod_amount):
     return total_mod_result
 
 
-def sub_mod_result(total_result, mod_amount, is_fate):
+def sub_mod_result(total_result, mod_amount):
     total_mod_result = total_result - mod_amount
-    if not is_fate:
-        total_mod_result = check_subzero(total_mod_result)
+    total_mod_result = check_subzero(total_mod_result)
     return total_mod_result
 
 
@@ -256,28 +286,12 @@ def make_pretty_rolls(not_so_pretty):
     return pretty_rolls
 
 
-# replace numbers by symbols for pretty output
-def make_fate_rolls(pretty_but_not_fate):
-    fate_rolls = pretty_but_not_fate.replace('-1', '-').replace('1', '+').replace('0', '.')
-    return fate_rolls
-
-
-# lets split longs for shorts
+# let split longs for shorts
 def make_batch(origin_list, size):
     new_list = []
     for i in range(0, len(origin_list), size):
         new_list.append(origin_list[i:i+size])
     return new_list
-
-
-# check if fate dice
-def is_fate_dice(edge):
-    check_value = edge.upper()
-    if check_value == 'F':
-        fate_dice = True
-    else:
-        fate_dice = False
-    return fate_dice
 
 
 # return mod type for mod math actions
@@ -401,24 +415,25 @@ async def roll(ctx, *arg):
     table_body = []
 
     for dice in all_dice:
-        for spec_die in spec_dice:
-            if dice == spec_die["name"]:
-                dice = spec_die["scheme"]
+        if dice in spec_dice:
+            dice = spec_dice[dice]
 
         # let split our dice roll into number of dices and number of edges
         # 2d20: 2 - number of dices, 20 - number of edges, d - separator
-        dice_rolls, dice_edge, is_fate = ident_dice(dice)
-
-        dice_roll_result = dice_roll(dice_rolls, dice_edge)
-        result = calc_result(dice_roll_result)
+        dice_rolls, dice_edge, dice_type = ident_dice(dice)
+        if dice_type == 'simple':
+            dice_roll_result = dice_roll(dice_rolls, dice_edge)
+            result = calc_result(dice_roll_result)
+        elif dice_type == 'fate':
+            dice_roll_result = fate_roll(dice_rolls)
+            result = fate_result(dice_roll_result)
+        else:
+            dice_roll_result = explode_roll(dice_edge)
+            result = calc_result(dice_roll_result)
 
         table_dice = dice_maker(dice_rolls, 'd', dice_edge)
         table_dice_roll_result = make_pretty_rolls(dice_roll_result)
         table_result = make_pretty_sum(result)
-
-        if is_fate:
-            table_dice = dice_maker(dice_rolls, 'd', 'F')
-            table_dice_roll_result = make_fate_rolls(table_dice_roll_result)
 
         table_row = create_row(table_dice, table_dice_roll_result, table_result)
         table_body.append(table_row)
@@ -437,29 +452,33 @@ async def mod(ctx, *arg):
     table_body = []
 
     for dice in all_dice:
-        for spec_die in spec_dice:
-            if dice == spec_die["name"]:
-                dice = spec_die["scheme"]
+        if dice in spec_dice:
+            dice = spec_dice[dice]
 
         dice_raw, mod_math, mod_amount = split_mod_dice(dice)
-        dice_rolls, dice_edge, is_fate = ident_dice(dice_raw)
-        dice_roll_result = dice_roll(dice_rolls, dice_edge)
+        dice_rolls, dice_edge, dice_type = ident_dice(dice_raw)
+
+        if dice_type == 'simple':
+            dice_roll_result = dice_roll(dice_rolls, dice_edge)
+            result = calc_result(dice_roll_result)
+        elif dice_type == 'fate':
+            dice_roll_result = fate_roll(dice_rolls)
+            result = fate_result(dice_roll_result)
+        else:
+            dice_roll_result = explode_roll(dice_edge)
+            result = calc_result(dice_roll_result)
 
         mod_type = add_or_sub(mod_math)
 
-        result = calc_result(dice_roll_result)
         if mod_type == 'add':
             result = add_mod_result(result, mod_amount)
         elif mod_type == 'sub':
-            result = sub_mod_result(result, mod_amount, is_fate)
+            result = sub_mod_result(result, mod_amount)
 
         table_dice = dice_maker(dice_rolls, 'd', dice_edge, mod_math, mod_amount)
         table_dice_roll_result = make_pretty_rolls(dice_roll_result)
         table_result = make_pretty_sum(result)
 
-        if is_fate:
-            table_dice = dice_maker(dice_rolls, 'd', 'F', mod_math, mod_amount)
-            table_dice_roll_result = make_fate_rolls(table_dice_roll_result)
         table_row = create_row(table_dice, table_dice_roll_result, table_result)
         table_body.append(table_row)
 
@@ -511,7 +530,7 @@ async def hello(ctx):
 # command for display info about creator and some links
 @bot.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
-    await ctx.send(f'```Version: 1.0.1\n'
+    await ctx.send(f'```Version: 1.0.5\n'
                    f'Author: kreicer\n'
                    f'On Servers: {guilds_number}\n'
                    f'Github: https://github.com/kreicer/dice-roller-bot\n'
