@@ -55,7 +55,10 @@ cmd_help = {
             - fate dice: {bot_prefix}mod fate 4dF+1 10dF-2\n \
             - exploding dice: {bot_prefix}roll explode Ed20-4 Ed6+1\n \
             - co-co-combo: {bot_prefix}mod d20 5d10-2 2d100 fate d123+5 Ed10-2",
-    "d": f"Single roll of single type die: {bot_prefix}d20"
+    "d": f"Single roll of single type die: \n \
+            - {bot_prefix}d 20\n \
+            - {bot_prefix}d 8\n \
+            - {bot_prefix}d 100"
 }
 
 # commands usage list
@@ -254,7 +257,10 @@ def create_row(*args):
 
 # create table from rows
 def create_table(table_body):
-    table_header = create_row('dice', 'rolls', 'sum')
+    if len(table_body[0]) == 3:
+        table_header = create_row('dice', 'rolls', 'sum')
+    else:
+        table_header = create_row('dice', 'result')
     columns = len(table_header) - 1
     output = t2a(
         header=table_header,
@@ -355,28 +361,6 @@ async def on_autopost_success():
     print(datetime.datetime.now(), 'INFO', 'Posted server count on Top.gg')
 
 
-# TODO: find another way to command d
-# @bot.event
-# async def on_message(message):
-#    command_d = settings['prefix'] + 'd'
-#    if message.content.startswith(command_d):
-#        channel = message.channel
-#        result = ''
-#        numbers = message.content.split(command_d)
-#        dice_edge = numbers[1]
-#        # check on dice count and edges can be converted into integer
-#        check_int(dice_edge)
-#        result += '\nD' + dice_edge + ':'
-#        result_dice, overall_dice = dice_roll(1, dice_edge)
-#        result += result_dice
-#        # create embed object from result for discord chat
-#        embed = discord.Embed(color=0xff0000, title=result)
-#        # send it into chat
-#        await channel.send(embed=embed)
-#    else:
-#        await bot.process_commands(message)
-
-
 # LOOPS
 # status update loop
 @tasks.loop(hours=1)
@@ -405,6 +389,31 @@ async def joke(ctx):
     cursor.execute(sql_joke, [random_joke_number])
     joke_text = cursor.fetchone()[0]
     await ctx.send('Today joke is:\n' + joke_text)
+
+
+# command for rolling dices
+@bot.command(brief=cmd_brief["d"], help=cmd_help["d"], aliases=cmd_alias["d"])
+async def d(ctx, edge):
+    table_body = []
+
+    # let split our dice roll into number of dices and number of edges
+    # 2d20: 2 - number of dices, 20 - number of edges, d - separator
+    dice_rolls = 1
+    dice_edge = check_int(edge)
+    check_one(dice_edge)
+    edges_limit(dice_edge)
+    dice_roll_result = dice_roll(dice_rolls, dice_edge)
+
+    table_dice = dice_maker(dice_rolls, 'd', dice_edge)
+    table_dice_roll_result = make_pretty_rolls(dice_roll_result)
+
+    table_row = create_row(table_dice, table_dice_roll_result)
+    table_body.append(table_row)
+
+    output = create_table(table_body)
+
+    # send it into chat
+    await ctx.send(f"```{output}```")
 
 
 # command for rolling dices
@@ -488,6 +497,18 @@ async def mod(ctx, *arg):
     await ctx.send(f"```{output}```")
 
 
+@d.error
+async def d_error(ctx, error):
+    author = ctx.message.author
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f'{author.mention}, wrong dice edge.\n'
+                       f'Try something like: 8 20 100 6')
+    if isinstance(error, commands.TooManyArguments):
+        await ctx.send(f'{author.mention}, wow!\n'
+                       f'I am not a math machine.\n'
+                       f'Please, reduce your appetite.')
+
+
 # bad argument exception
 @roll.error
 async def roll_error(ctx, error):
@@ -530,7 +551,7 @@ async def hello(ctx):
 # command for display info about creator and some links
 @bot.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
-    await ctx.send(f'```Version: 1.0.5\n'
+    await ctx.send(f'```Version: 1.0.6\n'
                    f'Author: kreicer\n'
                    f'On Servers: {guilds_number}\n'
                    f'Github: https://github.com/kreicer/dice-roller-bot\n'
