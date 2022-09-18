@@ -1,5 +1,4 @@
 # dice-roller-bot
-![GitHub](https://img.shields.io/github/license/kreicer/dice-roller-bot?style=for-the-badge)
 
 ## Installation and run
 Few simple steps for bot installation:
@@ -26,11 +25,13 @@ touch config.py
 settings = {
     'token': '<token_here>',
     'prefix': '<prefix_here>',
+    'shards': '<number_of_shards_here>',
     'send_stat': <True_or_False>,
     'topgg': '<topgg_token_here>'
 }
 
-dbname = 'jokes.db'
+jokes_db = 'jokes.db'
+admin_db = 'admin.db'
 ```
 6. Run bot
 ```console
@@ -38,24 +39,32 @@ python main.py
 ```
 
 ## Usage
-Current version of bot support next commands:
-- about: show info about me and contain few links
+Current version of bot support next user commands:
+- about: show info bot and contain few links
+- stat: show statistics
 - hello: bot greetings you
 - help: provide short and full info about commands
 - joke: post a random DnD joke
-- roll: roll dice of any type (example: roll 5d20 4d7 3d13)
-- mod: roll dice of any type with mods (example: mod 5d20-1 d10+1 4d4+(2))
-
-Future commands:
 - d: single roll of single dice
+- roll: roll dice of any type (example: roll 5d20 4d7 3d13)
+- mod: roll dice of any type with mods (example: mod 5d20-1 d10+1 4d4+2)
+
+Admin commands:
+- prefix: manage prefix for the bot commands
+  - set: set new prefix (example: prefix set !)
+  - restore: restore the original prefix
 
 ## Future features
 - verification ✓
 - performance improvement ✓
 - checks ✓
 - output improvements ✓
-- new d command to quick single roll 
-- change bot prefix
+- new d command to quick single roll ✓
+- change bot prefix ✓
+- non-classic dice types ✓
+- suffix mechanism
+- errors improvements
+- help improvement
 - more jokes
 - secret rolls
 - localization
@@ -65,5 +74,5 @@ Future commands:
 - etc
 
 ## Known issues
-- bad output for many rolls for single type dice with big edge
+- using both special dice in 1 roll cause nothing
 - terra incognita

@@ -9,56 +9,84 @@ import topgg
 
 from table2ascii import table2ascii as t2a, Alignment
 from discord.ext import commands, tasks
-from config import settings, dbname
+from config import settings, jokes_db, admin_db
 
 # VARIABLES
 # Change only the no_category default string
 help_command = commands.DefaultHelpCommand(no_category='Commands', indent=3)
 
-# set bot commands prefix
+# set bot commands prefix and number of shards
 bot_prefix = settings['prefix']
+bot_shards = settings['shards']
+
+
+async def get_prefix(bot, message):
+    # TODO: mb allow few prefixes for each guild
+    prefix_list = []
+    db = sqlite3.connect(admin_db)
+    cur = db.cursor()
+    guild_id = str(message.guild.id)
+    prefix_sql = "SELECT guild_prefix FROM guild_prefixes WHERE guild_id = ?;"
+    cur.execute(prefix_sql, [guild_id])
+    guild_prefix = cur.fetchone()
+    if guild_prefix is not None:
+        guild_prefix = guild_prefix[0]
+    else:
+        guild_prefix = bot_prefix
+    db.close()
+    prefix_list.append(guild_prefix)
+    return commands.when_mentioned_or(*prefix_list)(bot, message)
+
 
 # customize bot with prefix and custom help
-bot = commands.AutoShardedBot(command_prefix=commands.when_mentioned_or(bot_prefix),
-                              help_command=help_command,
-                              shard_count=1)
+bot_client = commands.AutoShardedBot(command_prefix=get_prefix,
+                                     help_command=help_command,
+                                     shard_count=bot_shards)
 # global var
 guilds_number = 0
 # commands short description list
 cmd_brief = {
     "about": "Show info about the bot",
+    "stat": "Show bot statistics",
     "hello": "Show welcome message",
     "joke": "Get a DnD joke",
     "roll": "Roll the dice",
     "mod": "Roll the dice with modifiers",
-    "d": "Roll single die"
+    "d": "Roll single die",
+    "prefix": "Manage bot prefix (admin only)",
+    "prefix_set": "Set new prefix for the bot commands",
+    "prefix_restore": "Restore default prefix"
 }
 
 # commands long description list
 cmd_help = {
-    "about": "Show bot version, number of servers using it, link on Github, link on top.gg etc",
+    "about": "Show bot version, Privacy Policy, link on Github, link on top.gg etc",
+    "stat": "Show number of shards, number of servers using it etc",
     "hello": "Dice Roller greetings you and tell a little about himself.",
     "joke": "Bot post a random DnD joke from database (soon you will get opportunity to add yours jokes).",
     "roll": f"Roll different type of dice in one roll:\n \
-            - single die, single roll: {bot_prefix}roll d20\n \
-            - single die, multiple rolls: {bot_prefix}roll 10d4\n \
-            - multiple dice, single roll: {bot_prefix}roll d4 d8 d20\n \
-            - multiple dice, multiple rolls: {bot_prefix}roll 4d8 4d4 2d20\n \
-            - fate dice: {bot_prefix}roll fate dF 6dF\n \
-            - exploding dice: {bot_prefix}roll explode Ed20\n \
-            - co-co-combo: {bot_prefix}roll d20 5d10 fate d123 Ed8",
+            - single die, single roll: d20\n \
+            - single die, multiple rolls: 10d4\n \
+            - multiple dice, single roll: d4 d8 d20\n \
+            - multiple dice, multiple rolls: 4d8 4d4 2d20\n \
+            - fate dice: fate dF 6dF\n \
+            - exploding dice: explode Ed20\n \
+            - co-co-combo: d20 5d10 fate d123 Ed8",
     "mod": f"Roll different type of dice with mods in one roll:\n \
-            - single die, single roll: {bot_prefix}mod d20+1\n \
-            - single die, multiple rolls: {bot_prefix}mod 10d4-2\n \
-            - multiple dice, single roll: {bot_prefix}mod d4-1 d20+2 d100-10\n \
-            - multiple dice, multiple roll: {bot_prefix}mod 5d4+1 2d20-2 4d6-1\n \
-            - fate dice: {bot_prefix}mod fate 4dF+1 10dF-2\n \
-            - exploding dice: {bot_prefix}roll explode Ed20-4 Ed6+1\n \
-            - co-co-combo: {bot_prefix}mod d20 5d10-2 2d100 fate d123+5 Ed10-2",
+            - single die, single roll: d20+1\n \
+            - single die, multiple rolls: 10d4-2\n \
+            - multiple dice, single roll: d4-1 d20+2 d100-10\n \
+            - multiple dice, multiple roll: 5d4+1 2d20-2 4d6-1\n \
+            - fate dice: fate 4dF+1 10dF-2\n \
+            - exploding dice: explode Ed20-4 Ed6+1\n \
+            - co-co-combo: d20 5d10-2 2d100 fate d123+5 Ed10-2",
     "d": f"Single roll of single type die: \n \
-            - {bot_prefix}d 20\n \
-            - {bot_prefix}d 8\n \
-            - {bot_prefix}d 100"
+            - 20\n \
+            - 8\n \
+            - 100",
+    "prefix": "Manage prefix for the bot commands",
+    "prefix_set": "Set new prefix",
+    "prefix_restore": "Restore default prefix"
 }
 
 # commands usage list
@@ -69,11 +97,15 @@ cmd_usage = {
 
 cmd_alias = {
     "about": ["bot", "version"],
+    "stat": ["s"],
     "hello": ["sup", "hi", "Hello"],
     "joke": ["j", "J", "Joke"],
     "roll": ["r", "R", "Roll"],
     "mod": ["m", "M", "Mod"],
-    "d": ["D"]
+    "d": ["D"],
+    "prefix": ["p", "P"],
+    "prefix_set": ["s"],
+    "prefix_restore": ["r"]
 }
 
 suffix_verbs = ['pass']
@@ -83,14 +115,13 @@ spec_dice = {
     "explode": "Ed6"
 }
 
-
 # top.gg integration
 if settings['send_stat']:
-    bot.topggpy = topgg.DBLClient(bot, settings['topgg'], autopost=True, post_shard_count=True)
+    bot_client.topggpy = topgg.DBLClient(bot_client, settings['topgg'], autopost=True, post_shard_count=True)
 
 # db part
 # TODO: make log system more common (not just print command)
-conn = sqlite3.connect(dbname)
+conn = sqlite3.connect(jokes_db)
 cursor = conn.cursor()
 sql = "SELECT COUNT(joke_id) FROM jokes;"
 number_of_jokes = 1
@@ -98,7 +129,6 @@ number_of_jokes = 1
 
 # FUNCTIONS
 # check int
-# TODO: use commands.checks for this
 def check_int(possibly_int):
     try:
         exactly_int = int(possibly_int)
@@ -134,7 +164,7 @@ def rolls_limit(number):
 def edges_limit(number):
     limit = 1000000000
     if number > limit:
-        raise commands.TooManyArguments
+        raise commands.TooManyArguments(message="Sorry, mate.\n But I can't roll dice with edge more than 1 billion")
 
 
 def dice_limit(number):
@@ -147,6 +177,12 @@ def mods_limit(number):
     limit = 1000000000
     if number > limit:
         raise commands.TooManyArguments
+
+
+def prefix_len(prefix_for_check):
+    limit = 3
+    if len(prefix_for_check) > limit:
+        raise commands.ArgumentParsingError(message="Sorry, mate.\n Try shorter prefix.")
 
 
 # split modded dice for dice and mod parts
@@ -296,7 +332,7 @@ def make_pretty_rolls(not_so_pretty):
 def make_batch(origin_list, size):
     new_list = []
     for i in range(0, len(origin_list), size):
-        new_list.append(origin_list[i:i+size])
+        new_list.append(origin_list[i:i + size])
     return new_list
 
 
@@ -322,22 +358,39 @@ def dice_maker(*args):
     return result
 
 
+# get prefix
+def prefix_for_help(message):
+    guild_id = str(message.guild.id)
+    db = sqlite3.connect(admin_db)
+    cur = db.cursor()
+    prefix_sql = "SELECT guild_prefix FROM guild_prefixes WHERE guild_id = ?;"
+    cur.execute(prefix_sql, [guild_id])
+    guild_prefix = cur.fetchone()
+    if guild_prefix is not None:
+        guild_prefix = guild_prefix[0]
+    else:
+        guild_prefix = bot_prefix
+    db.close()
+    return guild_prefix
+
+
 # EVENTS
 # on connect actions
-@bot.event
+@bot_client.event
 async def on_connect():
     # log connection info
     print(datetime.datetime.now(), 'INFO', 'Bot connected')
 
 
 # on ready actions
-@bot.event
+@bot_client.event
 async def on_ready():
     # log ready info
     print(datetime.datetime.now(), 'INFO', 'Bot ready')
     # log connected guilds number
-    print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot.guilds))
-    await bot.change_presence(activity=discord.Activity(name='dice rolling!', type=discord.ActivityType.competing))
+    print(datetime.datetime.now(), 'INFO', 'Number of servers connected to:', len(bot_client.guilds))
+    await bot_client.change_presence(activity=discord.Activity(name='dice rolling!',
+                                                               type=discord.ActivityType.competing))
     await asyncio.sleep(10)
     # start number of jokes update loop
     update_jokes.start()
@@ -347,7 +400,7 @@ async def on_ready():
 
 
 # wrong commands handler
-@bot.event
+@bot_client.event
 async def on_command_error(ctx, error):
     author = ctx.message.author
     if isinstance(error, commands.CommandNotFound):
@@ -356,18 +409,32 @@ async def on_command_error(ctx, error):
 
 
 # top.gg successful post event
-@bot.event
+@bot_client.event
 async def on_autopost_success():
     print(datetime.datetime.now(), 'INFO', 'Posted server count on Top.gg')
+
+
+# remove prefix from Admin DB when bot was kicked from server
+@bot_client.event
+async def on_guild_remove(guild):
+    guild_id = guild.id
+    secure_guild_id = (guild_id,)
+    prefix_sql = "DELETE FROM guild_prefixes WHERE guild_id=?;"
+    db = sqlite3.connect(admin_db)
+    cur = db.cursor()
+    cur.execute(prefix_sql, secure_guild_id)
+    db.commit()
+    db.close()
+    print(datetime.datetime.now(), 'INFO', 'Dice Roller was kicked from guild with id:', guild_id)
 
 
 # LOOPS
 # status update loop
 @tasks.loop(hours=1)
 async def update_guild_number():
-    print(datetime.datetime.now(), 'INFO', 'Bot status updated, current number:', len(bot.guilds))
+    print(datetime.datetime.now(), 'INFO', 'Bot status updated, current number:', len(bot_client.guilds))
     global guilds_number
-    guilds_number = len(bot.guilds)
+    guilds_number = len(bot_client.guilds)
 
 
 # number of jokes update loop
@@ -380,9 +447,52 @@ async def update_jokes():
     return number_of_jokes
 
 
+# ADMIN COMMANDS
+# command and subcommands to manage prefix
+@bot_client.group(brief=cmd_brief["prefix"], help=cmd_help["prefix"], aliases=cmd_alias["prefix"],
+                  invoke_without_command=True)
+@commands.has_permissions(administrator=True)
+async def prefix(ctx):
+    if ctx.invoked_subcommand is None:
+        await ctx.send(f'```Invalid subcommand passed. Use:\n'
+                       f'- set: to set new prefix\n'
+                       f'- restore: to restore default prefix```')
+
+
+@prefix.command(name='set', brief=cmd_brief["prefix_set"], help=cmd_help["prefix_set"], aliases=cmd_alias["prefix_set"])
+@commands.cooldown(1, 1, commands.BucketType.user)
+@commands.has_permissions(administrator=True)
+async def set_prefix(ctx, new_prefix):
+    prefix_len(new_prefix)
+    guild_id = str(ctx.guild.id)
+    secure_prefix = tuple((guild_id, str(new_prefix)))
+    prefix_sql = "INSERT OR REPLACE INTO guild_prefixes (guild_id, guild_prefix) VALUES (?,?);"
+    db = sqlite3.connect(admin_db)
+    cur = db.cursor()
+    cur.execute(prefix_sql, secure_prefix)
+    db.commit()
+    db.close()
+    await ctx.send(f'```New prefix is: {new_prefix}```')
+
+
+@prefix.command(name='restore', brief=cmd_brief["prefix_restore"], help=cmd_help["prefix_restore"],
+                aliases=cmd_alias["prefix_restore"])
+@commands.has_permissions(administrator=True)
+async def restore_prefix(ctx):
+    guild_id = str(ctx.guild.id)
+    secure_prefix = tuple((guild_id, "!"))
+    prefix_sql = "INSERT OR REPLACE INTO guild_prefixes (guild_id, guild_prefix) VALUES (?,?);"
+    db = sqlite3.connect(admin_db)
+    cur = db.cursor()
+    cur.execute(prefix_sql, secure_prefix)
+    db.commit()
+    db.close()
+    await ctx.send(f'```Prefix was restored to default value: {bot_prefix}```')
+
+
 # COMMANDS
 # joke command, it should post random DnD or another role-play game joke
-@bot.command(brief=cmd_brief["joke"], help=cmd_help["joke"], aliases=cmd_alias["joke"])
+@bot_client.command(brief=cmd_brief["joke"], help=cmd_help["joke"], aliases=cmd_alias["joke"])
 async def joke(ctx):
     random_joke_number = random.randint(1, number_of_jokes)
     sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
@@ -392,7 +502,7 @@ async def joke(ctx):
 
 
 # command for rolling dices
-@bot.command(brief=cmd_brief["d"], help=cmd_help["d"], aliases=cmd_alias["d"])
+@bot_client.command(brief=cmd_brief["d"], help=cmd_help["d"], aliases=cmd_alias["d"])
 async def d(ctx, edge):
     table_body = []
 
@@ -404,7 +514,7 @@ async def d(ctx, edge):
     edges_limit(dice_edge)
     dice_roll_result = dice_roll(dice_rolls, dice_edge)
 
-    table_dice = dice_maker(dice_rolls, 'd', dice_edge)
+    table_dice = dice_maker('d', dice_edge)
     table_dice_roll_result = make_pretty_rolls(dice_roll_result)
 
     table_row = create_row(table_dice, table_dice_roll_result)
@@ -417,7 +527,7 @@ async def d(ctx, edge):
 
 
 # command for rolling dices
-@bot.command(brief=cmd_brief["roll"], help=cmd_help["roll"], usage=cmd_usage["roll"], aliases=cmd_alias["roll"])
+@bot_client.command(brief=cmd_brief["roll"], help=cmd_help["roll"], usage=cmd_usage["roll"], aliases=cmd_alias["roll"])
 async def roll(ctx, *arg):
     all_dice = list(arg)
     dice_limit(len(all_dice))
@@ -454,7 +564,7 @@ async def roll(ctx, *arg):
 
 
 # command for rolling modified dice
-@bot.command(brief=cmd_brief["mod"], help=cmd_help["mod"], usage=cmd_usage["mod"], aliases=cmd_alias["mod"])
+@bot_client.command(brief=cmd_brief["mod"], help=cmd_help["mod"], usage=cmd_usage["mod"], aliases=cmd_alias["mod"])
 async def mod(ctx, *arg):
     all_dice = list(arg)
     dice_limit(len(all_dice))
@@ -497,16 +607,44 @@ async def mod(ctx, *arg):
     await ctx.send(f"```{output}```")
 
 
+@prefix.error
+async def prefix_error(ctx, error):
+    author = ctx.message.author
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f'{author.mention}, bad prefix')
+
+
+@set_prefix.error
+async def prefix_error(ctx, error):
+    author = ctx.message.author
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f'{author.mention}, bad prefix.')
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(f'{author.mention}, sorry, but you need administrator permissions to change the bot prefix.')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f'{author.mention}, specify valid prefix, please.\n'
+                       'Empty prefix specified.')
+    if isinstance(error, commands.ArgumentParsingError):
+        await ctx.send(f'{author.mention}, specify valid prefix, please.\n'
+                       f'Specified prefix longer than 3 symbols.')
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f'{author.mention}, this command is on cooldown.\n'
+                       f'You can use it in {round(error.retry_after, 2)} sec.')
+
+
 @d.error
 async def d_error(ctx, error):
     author = ctx.message.author
+    help_prefix = prefix_for_help(ctx.message)
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice edge.\n'
                        f'Try something like: 8 20 100 6')
     if isinstance(error, commands.TooManyArguments):
-        await ctx.send(f'{author.mention}, wow!\n'
-                       f'I am not a math machine.\n'
-                       f'Please, reduce your appetite.')
+        await ctx.send(f'{author.mention}, specify valid dice edge, please.\n'
+                       f'Try something less than 1 billion')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f'{author.mention}, specify valid dice edge, please.\n'
+                       f'Try something like {help_prefix}d 20')
 
 
 # bad argument exception
@@ -525,9 +663,6 @@ async def roll_error(ctx, error):
 @mod.error
 async def mod_error(ctx, error):
     author = ctx.message.author
-    if isinstance(error, commands.ArgumentParsingError):
-        await ctx.send(f'{author.mention}, wrong dice type.\n'
-                       f'You should use modifiers when using "{bot_prefix}mod" command')
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
                        f'Try something like: d10-1 3d8+1 d100-10')
@@ -538,29 +673,38 @@ async def mod_error(ctx, error):
 
 
 # hello command, lets introduce our bot and functions
-@bot.command(brief=cmd_brief["hello"], help=cmd_help["hello"], aliases=cmd_alias["hello"])
+@bot_client.command(brief=cmd_brief["hello"], help=cmd_help["hello"], aliases=cmd_alias["hello"])
 async def hello(ctx):
     author = ctx.message.author
+    help_prefix = prefix_for_help(ctx.message)
     await ctx.send(f'Hello, {author.mention}.\n'
                    f'My name is Dice Roller. '
                    f'I am here to help you with rolling dice. '
-                   f'Please, ask "{bot_prefix}help" to list commands with short description. '
-                   f'Also, ask "{bot_prefix}help <command_name>" for more info about each command and examples.')
+                   f'Please, ask "{help_prefix}help" to list commands with short description. '
+                   f'Also, ask "{help_prefix}help <command_name>" for more info about each command and examples.')
 
 
 # command for display info about creator and some links
-@bot.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
+@bot_client.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
-    await ctx.send(f'```Version: 1.0.6\n'
+    await ctx.send(f'```Version: 1.1.0\n'
                    f'Author: kreicer\n'
-                   f'On Servers: {guilds_number}\n'
-                   f'Github: https://github.com/kreicer/dice-roller-bot\n'
-                   f'Top.gg: https://top.gg/bot/809017610111942686\n'
-                   f'Support Us: https://pay.cloudtips.ru/p/b205b48b```')
+                   f'Github: https://bit.ly/dice_roller_github\n'
+                   f'Top.gg: https://bit.ly/dice_roller_vote\n'
+                   f'Support Us: https://bit.ly/dice_roller_support\n'
+                   f'Privacy Policy: https://bit.ly/dice_roller_privacy```')
+
+
+# command for funny statistics
+@bot_client.command(brief=cmd_brief["stat"], help=cmd_help["stat"], aliases=cmd_alias["stat"])
+async def stat(ctx):
+    await ctx.send(f'```Statistics:\n'
+                   f'Shards: {bot_shards}\n'
+                   f'Servers: {guilds_number}```')
 
 
 # bot start
-bot.run(settings['token'])
+bot_client.run(settings['token'])
 
 # close sqlite connection
 conn.close()

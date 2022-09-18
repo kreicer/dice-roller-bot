@@ -41,10 +41,19 @@ jobs:
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOY_SERVER_KEY }}
           remote_dir: /home/dice-roller/scripts/dice-roller-bot/
-      - name: Upload new db
+      - name: Upload new jokes db
         uses: betanzos/scp-upload@v1
         with:
           source: jokes.db
+          host: ${{ secrets.DEPLOY_SERVER_HOST }}
+          port: ${{ secrets.DEPLOY_SERVER_PORT }}
+          username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
+          key: ${{ secrets.DEPLOY_SERVER_KEY }}
+          remote_dir: /home/dice-roller/scripts/dice-roller-bot/
+      - name: Upload new admin db
+        uses: betanzos/scp-upload@v1
+        with:
+          source: admin.db
           host: ${{ secrets.DEPLOY_SERVER_HOST }}
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
