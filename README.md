@@ -1,5 +1,7 @@
 # dice-roller-bot
 
+[![Discord Bots](https://top.gg/api/widget/servers/809017610111942686.svg)](https://top.gg/bot/809017610111942686)
+
 ## Installation and run
 Few simple steps for bot installation:
 1. Clone this repository
