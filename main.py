@@ -480,11 +480,11 @@ async def set_prefix(ctx, new_prefix):
 @commands.has_permissions(administrator=True)
 async def restore_prefix(ctx):
     guild_id = str(ctx.guild.id)
-    secure_prefix = tuple((guild_id, "!"))
-    prefix_sql = "INSERT OR REPLACE INTO guild_prefixes (guild_id, guild_prefix) VALUES (?,?);"
+    secure_guild_id = (guild_id,)
+    prefix_sql = "DELETE FROM guild_prefixes WHERE guild_id=?;"
     db = sqlite3.connect(admin_db)
     cur = db.cursor()
-    cur.execute(prefix_sql, secure_prefix)
+    cur.execute(prefix_sql, secure_guild_id)
     db.commit()
     db.close()
     await ctx.send(f'```Prefix was restored to default value: {bot_prefix}```')
