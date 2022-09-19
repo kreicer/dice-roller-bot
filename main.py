@@ -20,6 +20,7 @@ bot_prefix = settings['prefix']
 bot_shards = settings['shards']
 
 
+# define prefix or mention
 async def get_prefix(bot, message):
     # TODO: mb allow few prefixes for each guild
     prefix_list = []
@@ -115,6 +116,14 @@ spec_dice = {
     "explode": "Ed6"
 }
 
+limits = {
+    "dice": 20,
+    "edge": 1000000000,
+    "mod": 1000000000,
+    "prefix": 3,
+    "roll": 50
+}
+
 # top.gg integration
 if settings['send_stat']:
     bot_client.topggpy = topgg.DBLClient(bot_client, settings['topgg'], autopost=True, post_shard_count=True)
@@ -155,34 +164,9 @@ def check_one(possibly_zero_or_less):
 
 
 # sad but we need limits
-def rolls_limit(number):
-    limit = 50
+def check_limit(number, limit):
     if number > limit:
-        raise commands.TooManyArguments
-
-
-def edges_limit(number):
-    limit = 1000000000
-    if number > limit:
-        raise commands.TooManyArguments(message="Sorry, mate.\n But I can't roll dice with edge more than 1 billion")
-
-
-def dice_limit(number):
-    limit = 20
-    if number > limit:
-        raise commands.TooManyArguments
-
-
-def mods_limit(number):
-    limit = 1000000000
-    if number > limit:
-        raise commands.TooManyArguments
-
-
-def prefix_len(prefix_for_check):
-    limit = 3
-    if len(prefix_for_check) > limit:
-        raise commands.ArgumentParsingError(message="Sorry, mate.\n Try shorter prefix.")
+        raise commands.ArgumentParsingError
 
 
 # split modded dice for dice and mod parts
@@ -194,7 +178,7 @@ def split_mod_dice(dice):
         mod_math = dice_stats_list[1]
         mod_amount = dice_stats_list[2]
         mod_amount = check_int(mod_amount)
-        mods_limit(mod_amount)
+        check_limit(mod_amount, limits["mod"])
     elif list_len == 1:
         dice_without_mod = dice_stats_list[0]
         mod_math = ''
@@ -220,14 +204,14 @@ def ident_dice(dice):
             dice_rolls = 1
         dice_rolls = check_int(dice_rolls)
         check_one(dice_rolls)
-        rolls_limit(dice_rolls)
+        check_limit(dice_rolls, limits["roll"])
     if dice_edge.lower() == 'f':
         dice_type = 'fate'
         dice_edge = dice_edge.upper()
     else:
         dice_edge = check_int(dice_edge)
         check_one(dice_edge)
-        edges_limit(dice_edge)
+        check_limit(dice_edge, limits["edge"])
     return dice_rolls, dice_edge, dice_type
 
 
@@ -447,8 +431,8 @@ async def update_jokes():
     return number_of_jokes
 
 
-# ADMIN COMMANDS
-# command and subcommands to manage prefix
+# ADMIN COMMANDS AND ERRORS HANDLERS
+# PREFIX GROUP
 @bot_client.group(brief=cmd_brief["prefix"], help=cmd_help["prefix"], aliases=cmd_alias["prefix"],
                   invoke_without_command=True)
 @commands.has_permissions(administrator=True)
@@ -459,11 +443,12 @@ async def prefix(ctx):
                        f'- restore: to restore default prefix```')
 
 
+# PREFIX SET COMMAND
 @prefix.command(name='set', brief=cmd_brief["prefix_set"], help=cmd_help["prefix_set"], aliases=cmd_alias["prefix_set"])
 @commands.cooldown(1, 1, commands.BucketType.user)
 @commands.has_permissions(administrator=True)
 async def set_prefix(ctx, new_prefix):
-    prefix_len(new_prefix)
+    check_limit(len(new_prefix), limits["prefix"])
     guild_id = str(ctx.guild.id)
     secure_prefix = tuple((guild_id, str(new_prefix)))
     prefix_sql = "INSERT OR REPLACE INTO guild_prefixes (guild_id, guild_prefix) VALUES (?,?);"
@@ -475,6 +460,7 @@ async def set_prefix(ctx, new_prefix):
     await ctx.send(f'```New prefix is: {new_prefix}```')
 
 
+# PREFIX RESTORE COMMAND
 @prefix.command(name='restore', brief=cmd_brief["prefix_restore"], help=cmd_help["prefix_restore"],
                 aliases=cmd_alias["prefix_restore"])
 @commands.has_permissions(administrator=True)
@@ -490,8 +476,25 @@ async def restore_prefix(ctx):
     await ctx.send(f'```Prefix was restored to default value: {bot_prefix}```')
 
 
-# COMMANDS
-# joke command, it should post random DnD or another role-play game joke
+# PREFIX SET ERRORS HANDLER
+@set_prefix.error
+async def prefix_error(ctx, error):
+    author = ctx.message.author
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send(f'{author.mention}, sorry, but you need administrator permissions to change the bot prefix.')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f'{author.mention}, specify valid prefix, please.\n'
+                       'Empty prefix specified.')
+    if isinstance(error, commands.ArgumentParsingError):
+        await ctx.send(f'{author.mention}, specify valid prefix, please.\n'
+                       f'Specified prefix is longer than {limits["prefix"]} symbols.')
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f'{author.mention}, this command is on cooldown.\n'
+                       f'You can use it in {round(error.retry_after, 2)} sec.')
+
+
+# USER COMMANDS AND ERRORS HANDLERS
+# JOKE COMMAND
 @bot_client.command(brief=cmd_brief["joke"], help=cmd_help["joke"], aliases=cmd_alias["joke"])
 async def joke(ctx):
     random_joke_number = random.randint(1, number_of_jokes)
@@ -501,36 +504,54 @@ async def joke(ctx):
     await ctx.send('Today joke is:\n' + joke_text)
 
 
-# command for rolling dices
+# D COMMAND
 @bot_client.command(brief=cmd_brief["d"], help=cmd_help["d"], aliases=cmd_alias["d"])
-async def d(ctx, edge):
-    table_body = []
-
-    # let split our dice roll into number of dices and number of edges
-    # 2d20: 2 - number of dices, 20 - number of edges, d - separator
-    dice_rolls = 1
-    dice_edge = check_int(edge)
-    check_one(dice_edge)
-    edges_limit(dice_edge)
-    dice_roll_result = dice_roll(dice_rolls, dice_edge)
-
-    table_dice = dice_maker('d', dice_edge)
-    table_dice_roll_result = make_pretty_rolls(dice_roll_result)
-
-    table_row = create_row(table_dice, table_dice_roll_result)
-    table_body.append(table_row)
-
-    output = create_table(table_body)
-
+async def d(ctx, dice_edge):
+    # prepare empty list for future output lines storing
+    output_body = []
+    # always single roll for d command
+    rolls = 1
+    # necessary checks: should be int, 1 or more and less than limit for edges
+    edge = check_int(dice_edge)
+    check_one(edge)
+    check_limit(edge, limits["edge"])
+    # roll
+    roll_result = dice_roll(rolls, edge)
+    # prepare dice for output
+    output_dice = dice_maker('d', edge)
+    # convert roll into list
+    output_roll_result = make_pretty_rolls(roll_result)
+    # create row for output
+    table_row = create_row(output_dice, output_roll_result)
+    # append rows
+    output_body.append(table_row)
+    # create table
+    output = create_table(output_body)
     # send it into chat
     await ctx.send(f"```{output}```")
 
 
-# command for rolling dices
+# D ERRORS HANDLER
+@d.error
+async def d_error(ctx, error):
+    author = ctx.message.author
+    help_prefix = prefix_for_help(ctx.message)
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f'{author.mention}, wrong dice edge.\n'
+                       f'Try something like: ```{help_prefix}d 100```')
+    if isinstance(error, commands.ArgumentParsingError):
+        await ctx.send(f'{author.mention}, specify valid dice edge, please.\n'
+                       f'Try something less than {limits["edge"]}.')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f'{author.mention}, specify valid dice edge, please.\n'
+                       f'Try something like: ```{help_prefix}d 20```')
+
+
+# ROLL COMMAND
 @bot_client.command(brief=cmd_brief["roll"], help=cmd_help["roll"], usage=cmd_usage["roll"], aliases=cmd_alias["roll"])
 async def roll(ctx, *arg):
     all_dice = list(arg)
-    dice_limit(len(all_dice))
+    check_limit(len(all_dice), limits["dice"])
     table_body = []
 
     for dice in all_dice:
@@ -558,16 +579,34 @@ async def roll(ctx, *arg):
         table_body.append(table_row)
 
     output = create_table(table_body)
-
     # send it into chat
     await ctx.send(f"```{output}```")
 
 
-# command for rolling modified dice
+# ROLL ERRORS HANDLER
+@roll.error
+async def roll_error(ctx, error):
+    author = ctx.message.author
+    help_prefix = prefix_for_help(ctx.message)
+    if isinstance(error, commands.BadArgument):
+        await ctx.send(f'{author.mention}, wrong dice.\n'
+                       f'Try something like: ```{help_prefix}roll d20 5d4 3d10```')
+    if isinstance(error, commands.ArgumentParsingError):
+        await ctx.send(f'{author.mention}, specify valid dice parameters, please.\n'
+                       f'```Current limits:\n'
+                       f'- max dice number is {limits["dice"]}\n'
+                       f'- max rolls per dice is {limits["roll"]}\n'
+                       f'- max dice edge is {limits["edge"]}```')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f'{author.mention}, specify valid dice, please.\n'
+                       f'Try something like: ```{help_prefix}roll 4d20```')
+
+
+# MOD COMMAND
 @bot_client.command(brief=cmd_brief["mod"], help=cmd_help["mod"], usage=cmd_usage["mod"], aliases=cmd_alias["mod"])
 async def mod(ctx, *arg):
     all_dice = list(arg)
-    dice_limit(len(all_dice))
+    check_limit(len(all_dice), limits["dice"])
     table_body = []
 
     for dice in all_dice:
@@ -602,77 +641,31 @@ async def mod(ctx, *arg):
         table_body.append(table_row)
 
     output = create_table(table_body)
-
     # send it into chat
     await ctx.send(f"```{output}```")
 
 
-@prefix.error
-async def prefix_error(ctx, error):
-    author = ctx.message.author
-    if isinstance(error, commands.BadArgument):
-        await ctx.send(f'{author.mention}, bad prefix')
-
-
-@set_prefix.error
-async def prefix_error(ctx, error):
-    author = ctx.message.author
-    if isinstance(error, commands.BadArgument):
-        await ctx.send(f'{author.mention}, bad prefix.')
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send(f'{author.mention}, sorry, but you need administrator permissions to change the bot prefix.')
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f'{author.mention}, specify valid prefix, please.\n'
-                       'Empty prefix specified.')
-    if isinstance(error, commands.ArgumentParsingError):
-        await ctx.send(f'{author.mention}, specify valid prefix, please.\n'
-                       f'Specified prefix longer than 3 symbols.')
-    if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f'{author.mention}, this command is on cooldown.\n'
-                       f'You can use it in {round(error.retry_after, 2)} sec.')
-
-
-@d.error
-async def d_error(ctx, error):
-    author = ctx.message.author
-    help_prefix = prefix_for_help(ctx.message)
-    if isinstance(error, commands.BadArgument):
-        await ctx.send(f'{author.mention}, wrong dice edge.\n'
-                       f'Try something like: 8 20 100 6')
-    if isinstance(error, commands.TooManyArguments):
-        await ctx.send(f'{author.mention}, specify valid dice edge, please.\n'
-                       f'Try something less than 1 billion')
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f'{author.mention}, specify valid dice edge, please.\n'
-                       f'Try something like {help_prefix}d 20')
-
-
-# bad argument exception
-@roll.error
-async def roll_error(ctx, error):
-    author = ctx.message.author
-    if isinstance(error, commands.BadArgument):
-        await ctx.send(f'{author.mention}, wrong dice.\n'
-                       f'Try something like: d20 5d4 3d10')
-    if isinstance(error, commands.TooManyArguments):
-        await ctx.send(f'{author.mention}, wow!\n'
-                       f'I am not a math machine.\n'
-                       f'Please, reduce your appetite.')
-
-
+# ROLL ERRORS HANDLER
 @mod.error
 async def mod_error(ctx, error):
     author = ctx.message.author
+    help_prefix = prefix_for_help(ctx.message)
     if isinstance(error, commands.BadArgument):
         await ctx.send(f'{author.mention}, wrong dice.\n'
-                       f'Try something like: d10-1 3d8+1 d100-10')
-    if isinstance(error, commands.TooManyArguments):
-        await ctx.send(f'{author.mention}, wow!\n'
-                       f'I am not a math machine.\n'
-                       f'Please, reduce your appetite.')
+                       f'Try something like: ```{help_prefix}mod 3d10 d10-1 3d8+1 d100-10```')
+    if isinstance(error, commands.ArgumentParsingError):
+        await ctx.send(f'{author.mention}, specify valid dice parameters, please.\n'
+                       f'```Current limits:\n'
+                       f'- max dice number is {limits["dice"]}\n'
+                       f'- max rolls per dice is {limits["roll"]}\n'
+                       f'- max dice edge is {limits["edge"]}\n'
+                       f'- max modifier is {limits["mod"]}```')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f'{author.mention}, specify valid dice, please.\n'
+                       f'Try something like: ```{help_prefix}mod 2d8+1```')
 
 
-# hello command, lets introduce our bot and functions
+# HELLO COMMAND
 @bot_client.command(brief=cmd_brief["hello"], help=cmd_help["hello"], aliases=cmd_alias["hello"])
 async def hello(ctx):
     author = ctx.message.author
@@ -684,7 +677,7 @@ async def hello(ctx):
                    f'Also, ask "{help_prefix}help <command_name>" for more info about each command and examples.')
 
 
-# command for display info about creator and some links
+# ABOUT COMMAND
 @bot_client.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
     await ctx.send(f'```Version: 1.1.0\n'
@@ -695,7 +688,7 @@ async def about(ctx):
                    f'Privacy Policy: https://bit.ly/dice_roller_privacy```')
 
 
-# command for funny statistics
+# STAT COMMAND
 @bot_client.command(brief=cmd_brief["stat"], help=cmd_help["stat"], aliases=cmd_alias["stat"])
 async def stat(ctx):
     await ctx.send(f'```Statistics:\n'
