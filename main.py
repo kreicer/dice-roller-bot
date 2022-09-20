@@ -551,7 +551,13 @@ async def d_error(ctx, error):
 @bot_client.command(brief=cmd_brief["roll"], help=cmd_help["roll"], usage=cmd_usage["roll"], aliases=cmd_alias["roll"])
 async def roll(ctx, *arg):
     all_dice = list(arg)
-    check_limit(len(all_dice), limits["dice"])
+    dice_number = len(all_dice)
+    if dice_number == 0:
+        author = ctx.message.author
+        help_prefix = prefix_for_help(ctx.message)
+        await ctx.send(f'{author.mention}, specify valid dice, please.\n'
+                       f'Try something like: ```{help_prefix}roll 4d20```')
+    check_limit(dice_number, limits["dice"])
     table_body = []
 
     for dice in all_dice:
@@ -606,7 +612,13 @@ async def roll_error(ctx, error):
 @bot_client.command(brief=cmd_brief["mod"], help=cmd_help["mod"], usage=cmd_usage["mod"], aliases=cmd_alias["mod"])
 async def mod(ctx, *arg):
     all_dice = list(arg)
-    check_limit(len(all_dice), limits["dice"])
+    dice_number = len(all_dice)
+    if dice_number == 0:
+        author = ctx.message.author
+        help_prefix = prefix_for_help(ctx.message)
+        await ctx.send(f'{author.mention}, specify valid dice, please.\n'
+                       f'Try something like: ```{help_prefix}mod 2d8+1```')
+    check_limit(dice_number, limits["dice"])
     table_body = []
 
     for dice in all_dice:
