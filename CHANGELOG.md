@@ -1,3 +1,28 @@
+## Version 1.1.0
+
+###New
+- special dice "fate" and "explode"
+- new commands "d" and "stat"
+- new command type "admin commands"
+- new admin command "prefix", subcommands "set" and "restore"
+
+###Improved
+- better rolls results output
+- rework "mod" command
+- more validation checks added
+- improve errors output
+- improve help output
+- few cosmetic improve
+- code refactor
+
+###Fixed
+- fixed explode fate dice error
+- fixed infinite explode roll with edge = 1
+
+###Known issues
+- table with output can be deformed if your discord window too low on width
+
+-----
 ## Version 1.0.1
 
 ###Improved

@@ -76,5 +76,4 @@ Admin commands:
 - etc
 
 ## Known issues
-- using both special dice in 1 roll cause nothing
 - terra incognita
