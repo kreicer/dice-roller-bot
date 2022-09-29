@@ -120,6 +120,7 @@ limits = {
     "dice": 20,
     "edge": 1000000000,
     "mod": 1000000000,
+    "adds": 3,
     "prefix": 3,
     "roll": 50
 }
@@ -142,11 +143,9 @@ def check_int(possibly_int):
     try:
         exactly_int = int(possibly_int)
     except ValueError:
-        result = False
+        raise commands.BadArgument
     else:
         return exactly_int
-    if not result:
-        raise commands.BadArgument
 
 
 # override negative
@@ -169,35 +168,33 @@ def check_limit(number, limit):
         raise commands.ArgumentParsingError
 
 
-# split modded dice for dice and mod parts
-def split_mod_dice(dice):
-    dice_stats_list = re.split(r'([+-])', dice)
-    list_len = len(dice_stats_list)
-    if list_len == 3:
-        dice_without_mod = dice_stats_list[0]
-        mod_math = dice_stats_list[1]
-        mod_amount = dice_stats_list[2]
-        mod_amount = check_int(mod_amount)
-        check_limit(mod_amount, limits["mod"])
-    elif list_len == 1:
-        dice_without_mod = dice_stats_list[0]
-        mod_math = ''
-        mod_amount = ''
-    else:
-        raise commands.ArgumentParsingError
-    return dice_without_mod, mod_math, mod_amount
+def split_dice_with_mod(dice):
+    dice_split_args = re.split(r'([+-])', dice)
+    adds = []
+    dice_args_len = len(dice_split_args)
+    dice_without_adds = dice_split_args[0]
+    if dice_args_len > 1:
+        adds_list = dice_split_args[1:]
+        raw_adds = make_batch(adds_list, 2)
+        for add in raw_adds:
+            if len(add) != 2:
+                raise commands.ArgumentParsingError
+            if add[1] != '':
+                adds.append(add)
+        check_limit(len(adds), limits["adds"])
+    return dice_without_adds, adds
 
 
 # split and check dice for rolls and edges
 def ident_dice(dice):
-    dice_type = 'simple'
+    dice_type = []
     rolls_and_edges = dice.split('d')
     if len(rolls_and_edges) != 2:
         raise commands.BadArgument
     dice_rolls = rolls_and_edges[0]
     dice_edge = rolls_and_edges[1]
     if dice_rolls.lower() == 'e':
-        dice_type = 'explode'
+        dice_type.append('explode')
         dice_rolls = dice_rolls.upper()
     else:
         if dice_rolls == '':
@@ -206,7 +203,7 @@ def ident_dice(dice):
         check_one(dice_rolls)
         check_limit(dice_rolls, limits["roll"])
     if dice_edge.lower() == 'f':
-        dice_type = 'fate'
+        dice_type.append('fate')
         dice_edge = dice_edge.upper()
     else:
         dice_edge = check_int(dice_edge)
@@ -240,6 +237,8 @@ def fate_result(dice_result):
 
 # explode roll
 def explode_roll(edge):
+    if edge < 2:
+        raise commands.BadArgument
     dice_roll_result = []
     check = edge
     while check == edge:
@@ -267,6 +266,11 @@ def sub_mod_result(total_result, mod_amount):
     return total_mod_result
 
 
+def sub_mod_fate(total_result, mod_amount):
+    total_mod_result = total_result - mod_amount
+    return total_mod_result
+
+
 # create row for table output
 def create_row(*args):
     table_row = []
@@ -279,6 +283,8 @@ def create_row(*args):
 def create_table(table_body):
     if len(table_body[0]) == 3:
         table_header = create_row('dice', 'rolls', 'sum')
+    elif len(table_body[0]) == 4:
+        table_header = create_row('dice', 'rolls', 'mods', 'sum')
     else:
         table_header = create_row('dice', 'result')
     columns = len(table_header) - 1
@@ -300,7 +306,7 @@ def make_pretty_sum(not_so_pretty):
 # make string from list for pretty rolls output
 def make_pretty_rolls(not_so_pretty):
     delimiter = ' '
-    size = 9
+    size = 8
     pretty_rolls = ''
     if len(not_so_pretty) > size:
         batch_rolls = make_batch(not_so_pretty, size)
@@ -320,24 +326,21 @@ def make_batch(origin_list, size):
     return new_list
 
 
-# return mod type for mod math actions
-def add_or_sub(symbol):
-    x = symbol
-    if x == '+':
-        mod_type = 'add'
-        return mod_type
-    elif x == '-':
-        mod_type = 'sub'
-        return mod_type
-    else:
-        mod_type = 'pass'
-        return mod_type
+# make things shorter
+def make_short(original_string, size=5):
+    new_string = str(original_string)
+    if len(new_string) > size:
+        new_string = new_string[:2] + '..' + new_string[-1:]
+    return new_string
 
 
 # make dice label for table from args
 def dice_maker(*args):
+    args_list = list(args)
     result = ''
-    for arg in args:
+    if args_list[0] == 1:
+        args_list = args_list[1:]
+    for arg in args_list:
         result += str(arg)
     return result
 
@@ -567,17 +570,20 @@ async def roll(ctx, *arg):
         # let split our dice roll into number of dices and number of edges
         # 2d20: 2 - number of dices, 20 - number of edges, d - separator
         dice_rolls, dice_edge, dice_type = ident_dice(dice)
-        if dice_type == 'simple':
+        dice_type_len = len(dice_type)
+
+        if dice_type_len == 0:
             dice_roll_result = dice_roll(dice_rolls, dice_edge)
             result = calc_result(dice_roll_result)
-        elif dice_type == 'fate':
+        elif dice_type_len == 1 and 'fate' in dice_type:
             dice_roll_result = fate_roll(dice_rolls)
             result = fate_result(dice_roll_result)
-        else:
+        elif dice_type_len == 1 and 'explode' in dice_type:
             dice_roll_result = explode_roll(dice_edge)
             result = calc_result(dice_roll_result)
-
-        table_dice = dice_maker(dice_rolls, 'd', dice_edge)
+        else:
+            raise commands.BadArgument
+        table_dice = dice_maker(dice_rolls, 'd', make_short(dice_edge))
         table_dice_roll_result = make_pretty_rolls(dice_roll_result)
         table_result = make_pretty_sum(result)
 
@@ -625,31 +631,48 @@ async def mod(ctx, *arg):
         if dice in spec_dice:
             dice = spec_dice[dice]
 
-        dice_raw, mod_math, mod_amount = split_mod_dice(dice)
+        dice_raw, adds = split_dice_with_mod(dice)
         dice_rolls, dice_edge, dice_type = ident_dice(dice_raw)
+        dice_type_len = len(dice_type)
 
-        if dice_type == 'simple':
+        if dice_type_len == 0:
             dice_roll_result = dice_roll(dice_rolls, dice_edge)
             result = calc_result(dice_roll_result)
-        elif dice_type == 'fate':
+        elif dice_type_len == 1 and 'fate' in dice_type:
             dice_roll_result = fate_roll(dice_rolls)
             result = fate_result(dice_roll_result)
-        else:
+        elif dice_type_len == 1 and 'explode' in dice_type:
             dice_roll_result = explode_roll(dice_edge)
             result = calc_result(dice_roll_result)
+        else:
+            raise commands.BadArgument
 
-        mod_type = add_or_sub(mod_math)
+        mod_mod = []
+        for add in adds:
+            try:
+                amount = check_int(add[1])
+            except Exception:
+                rolls, edge, d_type = ident_dice(add[1])
+                if len(d_type) != 0:
+                    raise commands.BadArgument
+                d_result = dice_roll(rolls, edge)
+                amount = calc_result(d_result)
+            if add[0] == '+':
+                result = add_mod_result(result, amount)
+            if add[0] == '-':
+                if 'fate' in dice_type:
+                    result = sub_mod_fate(result, amount)
+                else:
+                    result = sub_mod_result(result, amount)
+            amount_for_table = add[0] + make_short(amount)
+            mod_mod.append(amount_for_table)
 
-        if mod_type == 'add':
-            result = add_mod_result(result, mod_amount)
-        elif mod_type == 'sub':
-            result = sub_mod_result(result, mod_amount)
-
-        table_dice = dice_maker(dice_rolls, 'd', dice_edge, mod_math, mod_amount)
+        table_dice = dice_maker(dice_rolls, 'd', make_short(dice_edge))
         table_dice_roll_result = make_pretty_rolls(dice_roll_result)
+        table_mod_list = make_pretty_rolls(mod_mod)
         table_result = make_pretty_sum(result)
 
-        table_row = create_row(table_dice, table_dice_roll_result, table_result)
+        table_row = create_row(table_dice, table_dice_roll_result, table_mod_list, table_result)
         table_body.append(table_row)
 
     output = create_table(table_body)
@@ -671,7 +694,8 @@ async def mod_error(ctx, error):
                        f'- max dice number is {limits["dice"]}\n'
                        f'- max rolls per dice is {limits["roll"]}\n'
                        f'- max dice edge is {limits["edge"]}\n'
-                       f'- max modifier is {limits["mod"]}```')
+                       f'- max number of modifiers is {limits["adds"]}\n'
+                       f'- max modifier is {limits["mod"]}\n```')
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f'{author.mention}, specify valid dice, please.\n'
                        f'Try something like: ```{help_prefix}mod 2d8+1```')
@@ -696,7 +720,6 @@ async def about(ctx):
                    f'Author: kreicer\n'
                    f'Github: https://bit.ly/dice_roller_github\n'
                    f'Top.gg: https://bit.ly/dice_roller_vote\n'
-                   f'Support Us: https://bit.ly/dice_roller_support\n'
                    f'Privacy Policy: https://bit.ly/dice_roller_privacy```')
 
 
