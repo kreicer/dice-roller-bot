@@ -1,3 +1,8 @@
+## Version 1.1.1
+
+Improved
+- exploding dice can be rolls multiple times now
+
 ## Version 1.1.0
 
 New

@@ -71,7 +71,7 @@ cmd_help = {
             - multiple dice, single roll: d4 d8 d20\n \
             - multiple dice, multiple rolls: 4d8 4d4 2d20\n \
             - fate dice: fate dF 6dF\n \
-            - exploding dice: explode Ed20\n \
+            - exploding dice: explode Ed20 E4d10\n \
             - co-co-combo: d20 5d10 fate d123 Ed8",
     "mod": f"Roll different type of dice with mods in one roll:\n \
             - single die, single roll: d20+1\n \
@@ -185,6 +185,19 @@ def split_dice_with_mod(dice):
     return dice_without_adds, adds
 
 
+# ident explode rolls
+def ident_explode(rolls):
+    rolls = rolls.lower()
+    explode_rolls = rolls.split('e')
+    if len(explode_rolls) != 2:
+        raise commands.BadArgument
+    number_of_rolls = explode_rolls[1]
+    if number_of_rolls == '':
+        number_of_rolls = 1
+    number_of_rolls = check_int(number_of_rolls)
+    return number_of_rolls
+
+
 # split and check dice for rolls and edges
 def ident_dice(dice):
     dice_type = []
@@ -193,9 +206,11 @@ def ident_dice(dice):
         raise commands.BadArgument
     dice_rolls = rolls_and_edges[0]
     dice_edge = rolls_and_edges[1]
-    if dice_rolls.lower() == 'e':
+    if dice_rolls[0].lower() == 'e':
+        explode_rolls = ident_explode(dice_rolls)
         dice_type.append('explode')
-        dice_rolls = dice_rolls.upper()
+        dice_rolls = explode_rolls
+        check_limit(dice_rolls, limits["roll"])
     else:
         if dice_rolls == '':
             dice_rolls = 1
@@ -236,15 +251,16 @@ def fate_result(dice_result):
 
 
 # explode roll
-def explode_roll(edge):
+def explode_roll(rolls, edge):
     if edge < 2:
         raise commands.BadArgument
     dice_roll_result = []
-    check = edge
-    while check == edge:
-        roll_result = random.randint(1, edge)
-        dice_roll_result.append(roll_result)
-        check = roll_result
+    for counts in range(1, rolls + 1):
+        check = edge
+        while check == edge:
+            roll_result = random.randint(1, edge)
+            dice_roll_result.append(roll_result)
+            check = roll_result
     return dice_roll_result
 
 
@@ -579,7 +595,8 @@ async def roll(ctx, *arg):
             dice_roll_result = fate_roll(dice_rolls)
             result = fate_result(dice_roll_result)
         elif dice_type_len == 1 and 'explode' in dice_type:
-            dice_roll_result = explode_roll(dice_edge)
+            dice_roll_result = explode_roll(dice_rolls, dice_edge)
+            dice_rolls = 'E' + str(dice_rolls)
             result = calc_result(dice_roll_result)
         else:
             raise commands.BadArgument
@@ -642,7 +659,8 @@ async def mod(ctx, *arg):
             dice_roll_result = fate_roll(dice_rolls)
             result = fate_result(dice_roll_result)
         elif dice_type_len == 1 and 'explode' in dice_type:
-            dice_roll_result = explode_roll(dice_edge)
+            dice_roll_result = explode_roll(dice_rolls, dice_edge)
+            dice_rolls = 'E' + str(dice_rolls)
             result = calc_result(dice_roll_result)
         else:
             raise commands.BadArgument
@@ -716,7 +734,7 @@ async def hello(ctx):
 # ABOUT COMMAND
 @bot_client.command(brief=cmd_brief["about"], help=cmd_help["about"], aliases=cmd_alias["about"])
 async def about(ctx):
-    await ctx.send(f'```Version: 1.1.0\n'
+    await ctx.send(f'```Version: 1.1.1\n'
                    f'Author: kreicer\n'
                    f'Github: https://bit.ly/dice_roller_github\n'
                    f'Top.gg: https://bit.ly/dice_roller_vote\n'
