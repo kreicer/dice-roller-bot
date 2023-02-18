@@ -1,0 +1,44 @@
+# list of suffixes for roll modifications
+postfixes = {
+    "exp": {
+        "name": "Explode",
+        "aliases": ["explode", "e", "exp"],
+        "default_value": 1,
+        "description": "Modifying dice to become exploding dice: roll again on maximum.",
+        "example": "roll 2d20/exp",
+        "enabled": False
+    },
+    "sts": {
+        "name": "Stress",
+        "aliases": ["stress", "s", "sts"],
+        "default_value": 1,
+        "description": "Roll additional part of dice if no maximum on first roll.",
+        "example": "roll 4d6/s",
+        "enabled": False
+    },
+    "dl": {
+        "name": "Drop Lowest",
+        "aliases": ["droplowest", "dl", "dlow"],
+        "default_value": 1,
+        "description": "Drop specified number of dice with lowest number",
+        "example": "roll 10d20/dl:3",
+        "enabled": True
+    },
+    "dh": {
+        "name": "Drop Highest",
+        "aliases": ["drophighest", "dh", "dhigh"],
+        "default_value": 1,
+        "description": "Drop specified number of dice with highest number",
+        "example": "roll 5d10/dh:2",
+        "enabled": True
+    }
+}
+
+aliases = {
+    "dl": "dl",
+    "dlow": "dl",
+    "droplowest": "dl",
+    "dh": "dh",
+    "dhigh": "dh",
+    "drophighest": "dh"
+}

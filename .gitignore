@@ -1,6 +1,10 @@
-/config.py
-/sqlite.py
-/venv
-/_*
-/.idea
+config
 .DS_Store
+current.log
+databases/*
+jokes/*
+feedback/*
+
+venv
+_*
+.idea

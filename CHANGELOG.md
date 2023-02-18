@@ -1,3 +1,29 @@
+## Version 2.0.0
+New
+- Hybrid Commands: prefix of slash - you decide
+- postfix system (Power Words)
+- split code on modules (cogs)
+- new regexp dice split system
+- feedback command
+- powerwords command
+- root commands group
+
+Improved
+- core changes in roll mechanism
+- one command to roll them all
+- code quality improvement
+- errors output improvement
+- joke command split on 2: hear and tell
+- more stable visual output for rolls
+
+Fixed
+- fixed impossibility use bot in threads and private messages
+- fixed empty output for some errors
+
+Known issues
+- temporary remove fate and explosion dice
+- temporary remove info commands group
+
 ## Version 1.1.1
 
 Improved

@@ -16,45 +16,38 @@ cd dice-roller-bot
 ```console
 pip install -r requirements.txt
 ```
-3. Create config.py file in repository directory
+4. Create config file in repository directory
 ```console
-touch config.py
+touch config
 ```
-4. Register and create app in [Discord developers portal](https://discord.com/developers/applications/)
-5. Add bot token, commands prefix, path to jokes database and top.gg integration options into config.py
+5. Register and create app in [Discord developers portal](https://discord.com/developers/applications/)
+6. Add bot token, commands prefix, path to jokes database and top.gg integration options into config.py
 ```console
+[bot]
+token = <token_here>
+shards = <number_of_shards_here>
+default_prefix = <prefix_here>
+dev_link = https://discordapp.com/users/<your_discord_user_id>
 
-settings = {
-    'token': '<token_here>',
-    'prefix': '<prefix_here>',
-    'shards': '<number_of_shards_here>',
-    'send_stat': <True_or_False>,
-    'topgg': '<topgg_token_here>'
-}
+[topgg]
+send_stat = <True_or_False>
+token = <topgg_token_here>
 
-jokes_db = 'jokes.db'
-admin_db = 'admin.db'
+[db]
+jokes_db = databases/<jokes_db_name>.db
+admin_db = databases/<admin_db_name>.db
+
+[logs]
+log_file = <log_file_name>.log
 ```
-6. Run bot
+7. Run bot
 ```console
-python main.py
+python bot.py
 ```
 
 ## Usage
-Current version of bot support next user commands:
-- about: show info bot and contain few links
-- stat: show statistics
-- hello: bot greetings you
-- help: provide short and full info about commands
-- joke: post a random DnD joke
-- d: single roll of single dice
-- roll: roll dice of any type (example: roll 5d20 4d7 3d13)
-- mod: roll dice of any type with mods (example: mod 5d20-1 d10+1 4d4+2)
+Use help command or tag bot to list all available commands and it's description.
 
-Admin commands:
-- prefix: manage prefix for the bot commands
-  - set: set new prefix (example: prefix set !)
-  - restore: restore the original prefix
 
 ## Future features
 - verification ✓
@@ -64,10 +57,10 @@ Admin commands:
 - new d command to quick single roll ✓
 - change bot prefix ✓
 - non-classic dice types ✓
-- suffix mechanism
-- errors improvements
+- postfix mechanism ✓
+- errors improvements ✓
 - help improvement
-- more jokes
+- more jokes ✓
 - secret rolls
 - localization
 - video guide into full bot functionality

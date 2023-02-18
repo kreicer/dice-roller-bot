@@ -32,33 +32,22 @@ jobs:
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOY_SERVER_KEY }}
           script: systemctl stop dice-roller
-      - name: Upload new bot
-        uses: betanzos/scp-upload@v1
+      - name: Clone bot
+        uses: appleboy/ssh-action@v0.1.4
         with:
-          source: main.py
           host: ${{ secrets.DEPLOY_SERVER_HOST }}
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOY_SERVER_KEY }}
-          remote_dir: /home/dice-roller/scripts/dice-roller-bot/
-      - name: Upload new jokes db
-        uses: betanzos/scp-upload@v1
+          script: cd /home/dice-roller/dice-roller-bot && git pull
+      - name: Install requirements
+        uses: appleboy/ssh-action@v0.1.4
         with:
-          source: jokes.db
           host: ${{ secrets.DEPLOY_SERVER_HOST }}
           port: ${{ secrets.DEPLOY_SERVER_PORT }}
           username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOY_SERVER_KEY }}
-          remote_dir: /home/dice-roller/scripts/dice-roller-bot/
-      - name: Upload new admin db
-        uses: betanzos/scp-upload@v1
-        with:
-          source: admin.db
-          host: ${{ secrets.DEPLOY_SERVER_HOST }}
-          port: ${{ secrets.DEPLOY_SERVER_PORT }}
-          username: ${{ secrets.DEPLOY_SERVER_USERNAME }}
-          key: ${{ secrets.DEPLOY_SERVER_KEY }}
-          remote_dir: /home/dice-roller/scripts/dice-roller-bot/
+          script: cd /home/dice-roller/dice-roller-bot && pip3 install -r requirements.txt
       - name: Start bot
         uses: appleboy/ssh-action@v0.1.4
         with:
