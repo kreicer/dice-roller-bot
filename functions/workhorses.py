@@ -26,7 +26,7 @@ def json_writer(new_data, filename):
 def text_writer(text, directory):
     file_id = str(uuid.uuid4())
     filename = file_id + ".txt"
-    filepath = "./" + directory + "/" + filename
+    filepath = directory + "/" + filename
     check_file_exist(filepath)
     with open(filepath, "w") as file:
         file.write(text)

@@ -13,6 +13,7 @@ config = configparser.ConfigParser()
 config.read_file(open("config"))
 jokes_db = config.get("db", "jokes_db")
 log_file = config.get("logs", "log_file")
+jokes_dir = config.get("dirs", "jokes_dir")
 
 # global
 number_of_jokes = 1
@@ -105,9 +106,8 @@ class Jokes(commands.Cog):
         check_lang(language, for_error)
         check_limit(joke_len, joke_limit, for_error)
         author = ctx.message.author
-        directory = "jokes"
         joke = "\"" + joke + "\""
-        text_writer(joke, directory)
+        text_writer(joke, jokes_dir)
         # Logger
         log_txt = "New joke was posted by " + str(author)
         logger(log_file, "INFO", log_txt)

@@ -9,6 +9,7 @@ from models.commands import feedback as fdk
 config = configparser.ConfigParser()
 config.read_file(open("config"))
 log_file = config.get("logs", "log_file")
+feedback_dir = config.get("dirs", "feedback_dir")
 
 # for future version
 # class MyHelp(commands.HelpCommand):
@@ -55,9 +56,8 @@ class Community(commands.Cog):
     async def _send_feedback(self, ctx: commands.Context, *, feedback: str) -> None:
         author = ctx.message.author
         # TODO: migrate directory name to config, add check on exist, if not - create
-        directory = "feedback"
         feedback = "\"" + feedback + "\""
-        text_writer(feedback, directory)
+        text_writer(feedback, feedback_dir)
 
         log_txt = "New feedback was posted by " + str(author)
         logger(log_file, "INFO", log_txt)
