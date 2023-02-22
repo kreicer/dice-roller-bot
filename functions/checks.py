@@ -106,3 +106,15 @@ def check_value_vs_throws(throws, value):
     if value >= throws:
         error_text = "Value can not be higher or equal to number of throws in this Power Word."
         raise commands.BadArgument(None, error_text)
+
+
+def check_edge_vs_two(edge):
+    if edge < 2:
+        error_text = "Can not explode dice with edge equal to 1."
+        raise commands.BadArgument(None, error_text)
+
+
+def check_value_for_explode(value):
+    if value == 1:
+        error_text = "Can not explode dice on result equal 1."
+        raise commands.BadArgument(None, error_text)

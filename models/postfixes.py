@@ -2,15 +2,15 @@
 postfixes = {
     "exp": {
         "name": "Explode",
-        "aliases": ["explode", "e", "exp"],
-        "default_value": 1,
-        "description": "Modifying dice to become exploding dice: roll again on maximum.",
+        "aliases": ["explode", "exp"],
+        "default_value": "max",
+        "description": "Modifying dice to become exploding dice: roll again when equal or higher than value.",
         "example": "roll 2d20/exp",
-        "enabled": False
+        "enabled": True
     },
     "sts": {
         "name": "Stress",
-        "aliases": ["stress", "s", "sts"],
+        "aliases": ["stress", "sts"],
         "default_value": 1,
         "description": "Roll additional part of dice if no maximum on first roll.",
         "example": "roll 4d6/s",
@@ -40,5 +40,7 @@ aliases = {
     "droplowest": "dl",
     "dh": "dh",
     "dhigh": "dh",
-    "drophighest": "dh"
+    "drophighest": "dh",
+    "exp": "exp",
+    "explode": "exp"
 }
