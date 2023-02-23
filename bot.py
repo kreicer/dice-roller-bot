@@ -1,7 +1,7 @@
 import sqlite3
 import discord
 from discord.ext import commands
-from functions.config import bot_token, default_prefix, default_shards, admin_db, log_file
+from functions.config import bot_version, bot_token, default_prefix, default_shards, admin_db, log_file
 from functions.workhorses import logger
 
 # Change only the no_category default string
@@ -51,6 +51,7 @@ class RollerBot(commands.AutoShardedBot):
         await roller.load_extension("cogs.jokes")
         await roller.load_extension("cogs.community")
         await roller.load_extension("cogs.integrations")
+        await roller.load_extension("cogs.info")
         await self.tree.sync()
 
 
@@ -72,7 +73,7 @@ async def on_ready():
     # log ready info and connected guilds number
     log_txt = "Bot ready and connected to " + str(len(roller.guilds)) + " servers"
     logger(log_file, "INFO", log_txt)
-    await roller.change_presence(activity=discord.Activity(name='testing v2.0.0!',
+    await roller.change_presence(activity=discord.Activity(name=f'testing v{bot_version}!',
                                                            type=discord.ActivityType.competing))
 
 

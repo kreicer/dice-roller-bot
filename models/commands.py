@@ -14,7 +14,7 @@ stat = {
     "usage": "",
     "aliases": ["st"],
     "brief": "Show bot statistics",
-    "help": "Show number of shards, number of servers using it etc"
+    "help": "Show number of shards, servers usage etc"
 }
 # info for command hello
 hello = {
