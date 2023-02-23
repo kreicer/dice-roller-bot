@@ -8,6 +8,15 @@ postfixes = {
         "example": "roll 2d20/exp",
         "enabled": True
     },
+    "pen": {
+        "name": "Penetrate",
+        "aliases": ["penetrate", "pen"],
+        "default_value": "max",
+        "description": "Modifying dice to become penetrating dice: roll again when equal or higher than value. "
+                       "But 1 will be subtracted from the result of that additional roll.",
+        "example": "roll 2d20/pen",
+        "enabled": True
+    },
     "sts": {
         "name": "Stress",
         "aliases": ["stress", "sts"],
@@ -42,5 +51,7 @@ aliases = {
     "dhigh": "dh",
     "drophighest": "dh",
     "exp": "exp",
-    "explode": "exp"
+    "explode": "exp",
+    "pen": "pen",
+    "penetrate": "pen"
 }

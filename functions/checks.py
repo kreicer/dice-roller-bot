@@ -110,11 +110,17 @@ def check_value_vs_throws(throws, value):
 
 def check_edge_vs_two(edge):
     if edge < 2:
-        error_text = "Can not explode dice with edge equal to 1."
+        error_text = "Can not use this Power Word with dice edge equal to 1."
         raise commands.BadArgument(None, error_text)
 
 
 def check_value_for_explode(value):
     if value == 1:
-        error_text = "Can not explode dice on result equal 1."
+        error_text = "Exploding dice can not be rolled with value equal to 1 - protection from infinity loop"
+        raise commands.BadArgument(None, error_text)
+
+
+def check_value_for_penetrate(value):
+    if value == 1:
+        error_text = "Penetrating dice can not be rolled with value equal to 1 - protection from infinity loop"
         raise commands.BadArgument(None, error_text)
