@@ -99,7 +99,7 @@ class Jokes(commands.Cog):
         check_lang(language, for_error)
         check_limit(joke_len, joke_limit, for_error)
         author = ctx.message.author
-        joke = "\"" + joke + "\""
+        joke = language + ":\" " + joke + "\""
         text_writer(joke, jokes_dir)
         # Logger
         log_txt = "New joke was posted by " + str(author)
