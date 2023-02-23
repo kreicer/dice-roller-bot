@@ -112,8 +112,8 @@ async def on_command_error(ctx, error):
     prefix = ctx.prefix
     if isinstance(error, commands.CommandNotFound):
         await ctx.defer(ephemeral=True)
-        await ctx.send(f'Command not found.\n'
-                       f'Please, use the "{prefix}help" command to get full list of commands.')
+        await ctx.send(f'**Command Not Found**\n'
+                       f'Use the "{prefix}help" command to get full list of commands')
 
 
 roller.run(bot_token)
