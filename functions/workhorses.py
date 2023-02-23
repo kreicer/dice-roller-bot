@@ -3,18 +3,12 @@ import re
 import uuid
 import datetime
 import random
-import configparser
 from functions.checks import check_match, check_dice_dict, check_file_exist, check_limit
 from functions.checks import (check_value_vs_throws as check_v_v_t,
                               check_edge_vs_two as check_e_v_t,
                               check_value_for_explode as check_v_exp)
 from models.limits import dice_limit
 from models.postfixes import postfixes
-
-# get params from config
-config = configparser.ConfigParser()
-config.read_file(open("config"))
-log_file = config.get("logs", "log_file")
 
 
 def json_writer(new_data, filename):
