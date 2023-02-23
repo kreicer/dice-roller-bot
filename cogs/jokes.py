@@ -57,6 +57,10 @@ class Jokes(commands.Cog):
             logger(log_file, "ERROR", log_txt)
         return number_of_jokes
 
+    @_update_jokes.before_loop
+    async def before_printer(self):
+        await self.bot.wait_until_ready()
+
     @commands.hybrid_group(name=j["name"], brief=j["brief"], help=j["help"], aliases=j["aliases"],
                            invoke_without_command=True, with_app_command=True)
     async def _joke(self, ctx: commands.Context) -> None:
