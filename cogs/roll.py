@@ -5,9 +5,16 @@ from models.commands import roll as roll, postfix as pw
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
 # from functions.workhorses import generate_dicts as gen_dicts
-from functions.workhorses import split_on_dice, split_on_parts, \
-    dice_roll, calc_result, add_mod_result, sub_mod_result, \
-    postfix_magick, make_pw_list
+from functions.workhorses import (
+    split_on_dice,
+    split_on_parts,
+    dice_roll,
+    calc_result,
+    add_mod_result,
+    sub_mod_result,
+    make_pw_list
+)
+from functions.postfixes import postfix_magick
 from functions.checks import check_limit
 from functions.visualizers import make_subzero, dice_maker, convert_dice_for_output, body_for_output, create_table
 
