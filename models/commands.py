@@ -56,12 +56,13 @@ roll = {
     "usage": "dice_1 [dice_2 ... dice_n]",
     "aliases": ["r", "mod", "m"],
     "brief": "Roll the dice",
-    "help": f"Roll different type of dice in one roll:\n \
-            - single die, single roll: d20\n \
-            - single die, multiple rolls: 10d4\n \
-            - multiple dice, single roll: d4 d8 d20\n \
-            - multiple dice, multiple rolls: 4d8 4d4 2d20\n \
-            - co-co-combo: d20 5d10 fate d123"
+    "help": f"Roll different type of dice in one roll. Dice examples:\n \
+            - single dice: 4d20\n \
+            - single dice with modifiers: 3d8+d4-1\n \
+            - multiple dice with (or without) modifiers: 2d4-1 d8 3d20-3d2\n \
+            - single dice with PowerWord(PW): 3d20/dl:1\n \
+            - single dice with PW and modifiers: 2d8/dh+2\n \
+            - multiple dice with PW and modifiers: 3d6/exp+2 2d20/dl-1"
 }
 # info for command prefix
 prefix = {

@@ -25,7 +25,8 @@ class Roll(commands.Cog):
 
     @commands.hybrid_command(name=roll["name"], brief=roll["brief"], help=roll["help"], aliases=roll["aliases"],
                              with_app_command=True)
-    async def _roll(self, ctx: commands.Context, *, rolls: str) -> None:
+    async def _roll(self, ctx: commands.Context, *,
+                    rolls: str = commands.parameter(description="Place dice here, split with whitespace")) -> None:
         overall = ""
         args = rolls.split()
         args_len = len(args)
