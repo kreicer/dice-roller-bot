@@ -40,7 +40,7 @@ joke_tell = {
     "brief": "Tell a roleplay joke",
     "help": f"Submit a joke for bot.\n"
             f"Select LANG for joke from list:\n{lang_list}\n"
-            f"Enclose joke text in quotation marks."
+            f"Add joke text in quotation marks."
 }
 # info for subcommand hear command joke
 joke_hear = {

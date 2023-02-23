@@ -129,7 +129,7 @@ class Jokes(commands.Cog):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'
                            f'Specify valid arguments: language of joke and joke text, please. '
-                           f'Example: ```{prefix}submit EN \"Joke text...\"```')
+                           f'Example: ```{prefix}joke tell EN \"Joke text...\"```')
         if isinstance(error, commands.ArgumentParsingError):
             error_dict = error.args[0]
             joke_text = error_dict["joke"]
@@ -139,7 +139,7 @@ class Jokes(commands.Cog):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Argument Parsing Error**\n'
                            f'Make your joke shorter, please.\n'
-                           f'The submitted joke has length {joke_len} which is greater than the limit '
+                           f'The submitted joke has length {joke_len}. It is greater than the limit '
                            f'in {joke_limit} symbols. Example:'
                            f'```{prefix}joke tell {lang} \"{shorter_joke}\"```')
         if isinstance(error, commands.BadArgument):
@@ -150,7 +150,7 @@ class Jokes(commands.Cog):
                            f'Chosen language not in list of available languages.\n'
                            f'Please, ensure you choose one of this languages {lang_list}. '
                            f'Or contact support server with add language request. Example:'
-                           f'```{prefix}submit EN \"{joke_text}\"```')
+                           f'```{prefix}joke tell EN \"{joke_text}\"```')
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Command On Cooldown**\n'
