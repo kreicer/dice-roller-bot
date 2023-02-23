@@ -1,14 +1,7 @@
-import configparser
 import topgg
 from discord.ext import commands
 from functions.workhorses import logger
-
-# get params from config
-config = configparser.ConfigParser()
-config.read_file(open("config"))
-send_stat = config.getboolean("topgg", "send_stat")
-topgg_token = config.get("topgg", "token")
-log_file = config.get("logs", "log_file")
+from functions.config import send_stat, topgg_token, log_file
 
 
 # top.gg integration cog

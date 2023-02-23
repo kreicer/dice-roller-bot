@@ -1,19 +1,12 @@
 import sqlite3
-import configparser
 import random
 from discord.ext import commands, tasks
 from models.commands import joke as j, joke_hear as j_hear, joke_tell as j_tell
 from models.limits import joke_limit
 from functions.checks import check_limit, check_lang
 from functions.workhorses import text_writer, logger
+from functions.config import jokes_db, jokes_dir, log_file
 from lang.list import available_languages as lang_list
-
-# get params from config
-config = configparser.ConfigParser()
-config.read_file(open("config"))
-jokes_db = config.get("db", "jokes_db")
-log_file = config.get("logs", "log_file")
-jokes_dir = config.get("dirs", "jokes_dir")
 
 # global
 number_of_jokes = 1

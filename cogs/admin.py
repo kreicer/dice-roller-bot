@@ -1,18 +1,10 @@
 import sqlite3
-import configparser
 from discord.ext import commands
 from models.commands import prefix as pfx, prefix_set as spfx, prefix_restore as rpfx
 from models.limits import prefix_limit
 from functions.checks import check_limit
 from functions.workhorses import logger
-
-# get params from config
-config = configparser.ConfigParser()
-config.read_file(open("config"))
-admin_db = config.get("db", "admin_db")
-bot_prefix = config.get("bot", "default_prefix")
-dev_link = config.get("bot", "dev_link")
-log_file = config.get("logs", "log_file")
+from functions.config import admin_db, dev_link, log_file
 
 
 # admin cog
@@ -70,7 +62,7 @@ class Admin(commands.Cog):
             db.commit()
             db.close()
             await ctx.defer(ephemeral=True)
-            await ctx.send(f'Prefix was restored to default value: {bot_prefix}')
+            await ctx.send(f'Prefix was restored to default value')
         except sqlite3.OperationalError:
             log_txt = f"Failed to load database file - {admin_db}"
             logger(log_file, "ERROR", log_txt)

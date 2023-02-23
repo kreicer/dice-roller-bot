@@ -1,15 +1,8 @@
-import configparser
-
 from discord.ext import commands
-
 from functions.workhorses import text_writer, logger
+from functions.config import feedback_dir, log_file
 from models.commands import feedback as fdk
 
-# get params from config
-config = configparser.ConfigParser()
-config.read_file(open("config"))
-log_file = config.get("logs", "log_file")
-feedback_dir = config.get("dirs", "feedback_dir")
 
 # for future version
 # class MyHelp(commands.HelpCommand):

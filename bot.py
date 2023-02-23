@@ -1,19 +1,8 @@
-import configparser
 import sqlite3
 import discord
 from discord.ext import commands
+from functions.config import bot_token, default_prefix, default_shards, admin_db, log_file
 from functions.workhorses import logger
-
-# get params from config
-config = configparser.ConfigParser()
-config.read_file(open("config"))
-send_stat = config.get("topgg", "send_stat")
-topgg_token = config.get("topgg", "token")
-bot_token = config.get("bot", "token")
-default_prefix = config.get("bot", "default_prefix")
-default_shards = int(config.get("bot", "shards"))
-admin_db = config.get("db", "admin_db")
-log_file = config.get("logs", "log_file")
 
 # Change only the no_category default string
 help_command = commands.DefaultHelpCommand(no_category='Help', indent=3)
