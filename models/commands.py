@@ -21,8 +21,8 @@ hello = {
     "name": "hello",
     "usage": "",
     "aliases": ["sup", "hi"],
-    "brief": "Show welcome message",
-    "help": "Dice Roller greetings you and tell a little about himself"
+    "brief": "Show extended quick start message",
+    "help": "Dice Roller tell you about base dice model and provide roll examples"
 }
 # info for command joke
 joke = {
