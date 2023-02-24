@@ -1,3 +1,18 @@
+## Version 2.0.1
+New
+- return "stat" and "about" commands, was moved into "Info" cog
+- new reworked "hello" command, "Community" cog
+- add new postfixes (pw): penetrate, explode, reroll
+
+Improved
+- now tasks waiting bot ready status
+- code improvements
+- improve error text for some errors
+- improve help text and answers for some commands
+
+Fixed
+- fix "joke tell" command issue, now lang going to file with joke text
+
 ## Version 2.0.0
 New
 - Hybrid Commands: prefix of slash - you decide
