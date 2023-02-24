@@ -40,6 +40,14 @@ postfixes = {
         "description": "Drop specified number of dice with highest number",
         "example": "roll 5d10/dh:2",
         "enabled": True
+    },
+    "rr": {
+        "name": "ReRoll",
+        "aliases": ["reroll", "rr"],
+        "default_value": 1,
+        "description": "Reroll dice with result on value or lower",
+        "example": "roll 2d20/rr:2",
+        "enabled": True
     }
 }
 
@@ -53,5 +61,7 @@ aliases = {
     "exp": "exp",
     "explode": "exp",
     "pen": "pen",
-    "penetrate": "pen"
+    "penetrate": "pen",
+    "rr": "rr",
+    "reroll": "rr"
 }

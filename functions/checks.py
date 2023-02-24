@@ -108,6 +108,12 @@ def check_value_vs_throws(throws, value):
         raise commands.BadArgument(None, error_text)
 
 
+def check_value_vs_edge(edge, value):
+    if value > edge:
+        error_text = "Value can not be higher than dice edge in this Power Word."
+        raise commands.BadArgument(None, error_text)
+
+
 def check_edge_vs_two(edge):
     if edge < 2:
         error_text = "Can not use this Power Word with dice edge equal to 1."

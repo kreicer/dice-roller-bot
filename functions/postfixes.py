@@ -2,7 +2,8 @@ from functions.workhorses import dice_roll
 from functions.checks import (check_value_vs_throws as check_v_v_t,
                               check_edge_vs_two as check_e_v_t,
                               check_value_for_explode as check_v_exp,
-                              check_value_for_penetrate as check_v_pen)
+                              check_value_for_penetrate as check_v_pen,
+                              check_value_vs_edge as check_v_v_e)
 
 
 def postfix_magick(throws_result_list, dice_parts):
@@ -28,6 +29,18 @@ def postfix_magick(throws_result_list, dice_parts):
                 throws_result_list.remove(max(throws_result_list))
                 counter += 1
             return throws_result_list
+
+        # reroll
+        case "rr":
+            check_v_v_e(edge, value)
+            new_throws_result_list = []
+            for throws_result in throws_result_list:
+                if throws_result <= value:
+                    additional_roll = dice_roll(1, edge)
+                    new_throws_result_list += additional_roll
+                else:
+                    new_throws_result_list.append(throws_result)
+            return new_throws_result_list
 
         # exploding dice
         case "exp":
