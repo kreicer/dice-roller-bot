@@ -45,7 +45,7 @@ def postfix_magick(throws_result_list, dice_parts):
         # exploding dice
         case "exp":
             check_e_v_t(edge)
-            if value == "max" or value > edge:
+            if value == "" or value > edge:
                 value = edge
             else:
                 check_v_exp(value)
@@ -63,7 +63,7 @@ def postfix_magick(throws_result_list, dice_parts):
         # penetrating dice
         case "pen":
             check_e_v_t(edge)
-            if value == "max" or value > edge:
+            if value == "" or value > edge:
                 value = edge
             else:
                 check_v_pen(value)

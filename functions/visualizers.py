@@ -44,6 +44,26 @@ def create_table(table_header, rolls_string, sum_string, rolls_column, result_co
     return output
 
 
+def create_row(dice_id, dice_rolls, dice_sum):
+    dice_id = "(" + str(dice_id) + ")"
+    dice_sum = "[" + str(dice_sum) + "]"
+    row = [dice_id, dice_rolls, dice_sum]
+    return row
+
+
+def new_create_table(rolls_string, sum_string, rolls_column, result_column):
+    table_header = ["dice", "rolls", "sum"]
+    table_body = [rolls_string, sum_string]
+    output = t2a(
+        header=[table_header, Merge.LEFT],
+        body=[table_body],
+        alignments=[Alignment.CENTER, Alignment.CENTER],
+        column_widths=[rolls_column, result_column],
+        style=PresetStyle.double_thin_box
+    )
+    return output
+
+
 def make_subzero(not_subzero):
     subzero = []
     for list_object in not_subzero:
@@ -62,4 +82,6 @@ def dice_maker(*args):
         result = result[:-3]
     if result.endswith("/:"):
         result = result[:-2]
+    if result.endswith(":"):
+        result = result[:-1]
     return result
