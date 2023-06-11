@@ -15,7 +15,10 @@ async def get_prefix(bot, message):
     try:
         db = sqlite3.connect(admin_db)
         cur = db.cursor()
-        guild_id = str(message.guild.id)
+        try:
+            guild_id = str(message.guild.id)
+        except AttributeError:
+            guild_id = str(message.channel.id)
         prefix_sql = "SELECT guild_prefix FROM guild_prefixes WHERE guild_id = ?;"
         cur.execute(prefix_sql, [guild_id])
         guild_prefix = cur.fetchone()
