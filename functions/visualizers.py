@@ -27,7 +27,13 @@ def body_for_output(rolls_list, result):
             output_count = roll_len + 1
     result_output = '[' + str(result) + ']'
     result_column = result_len + 4
-    rolls_column = rolls_len + 2
+    rolls_output_len = len(rolls_output)
+    if rolls_output_len < 8:
+        rolls_output_len = 8
+    if rolls_output_len < rolls_len:
+        rolls_column = rolls_output_len + 2
+    else:
+        rolls_column = rolls_len + 2
     return rolls_output, result_output, rolls_column, result_column
 
 
