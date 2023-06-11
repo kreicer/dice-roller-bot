@@ -2,6 +2,7 @@ import sqlite3
 from discord.ext import commands
 from models.commands import prefix as pfx, prefix_set as spfx, prefix_restore as rpfx
 from models.limits import prefix_limit
+from models.metrics import commands_used_prefix_set, commands_used_prefix_restore
 from functions.checks import check_limit
 from functions.workhorses import logger
 from functions.config import admin_db, dev_link, log_file
@@ -48,6 +49,8 @@ class Admin(commands.Cog):
                            f'Looks like Admin Database currently unavailable.\n'
                            f'Please, report to [developer]({dev_link}).')
 
+        commands_used_prefix_set.inc()
+
     # PREFIX RESTORE COMMAND
     @_prefix.command(name=rpfx["name"], brief=rpfx["brief"], help=rpfx["help"], aliases=rpfx["aliases"])
     @commands.has_permissions(administrator=True)
@@ -70,6 +73,8 @@ class Admin(commands.Cog):
             await ctx.send(f'**SQL Operational Error**\n'
                            f'Looks like Admin Database currently unavailable.\n'
                            f'Please, report to [developer]({dev_link}).')
+
+        commands_used_prefix_restore.inc()
 
     # PREFIX SET ERRORS HANDLER
     @_set_prefix.error

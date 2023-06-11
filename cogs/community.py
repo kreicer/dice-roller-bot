@@ -2,6 +2,7 @@ from discord.ext import commands
 from functions.workhorses import text_writer, logger
 from functions.config import feedback_dir, log_file
 from models.commands import feedback as fdk, hello as hl
+from models.metrics import commands_used_feedback, commands_used_hello
 
 
 # for future version
@@ -56,6 +57,8 @@ class Community(commands.Cog):
         log_txt = "New feedback was posted by " + str(author)
         logger(log_file, "INFO", log_txt)
 
+        commands_used_feedback.inc()
+
         await ctx.defer(ephemeral=True)
         await ctx.send("Thank you for the feedback!")
 
@@ -78,6 +81,9 @@ class Community(commands.Cog):
                       "Now i show you best part. You can combine any dice and roll more than one dice per command."
                       "```/roll 3d6+d4 3d20/dh 2d20+2d4/dl:1-1```\n"
                       "Few words about Power Words... You can get full available list with command.```/powerwords```")
+
+        commands_used_hello.inc()
+
         await ctx.defer(ephemeral=True)
         await ctx.send(hello_text)
 
