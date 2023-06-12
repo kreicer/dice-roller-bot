@@ -72,8 +72,8 @@ def dice_roll(throws, edge):
     for counts in range(1, throws + 1):
         roll_result = random.randint(1, edge)
         dice_roll_result.append(roll_result)
-    dice_edge_counter.labels("d" + edge)
-    dice_edge_counter.labels("d" + edge).inc(throws)
+    dice_edge_counter.labels(edge)
+    dice_edge_counter.labels(edge).inc(throws)
     return dice_roll_result
 
 
