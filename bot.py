@@ -1,6 +1,7 @@
 import sqlite3
 import discord
 from discord.ext import commands
+from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, default_prefix, default_shards, admin_db, log_file
 from functions.workhorses import logger
 
@@ -98,6 +99,14 @@ async def on_guild_remove(guild):
     except sqlite3.OperationalError:
         log_txt = f"Failed to load database file - {admin_db}"
         logger(log_file, "ERROR", log_txt)
+    guilds_counter.labels("kicked")
+    guilds_counter.labels("kicked").inc()
+
+
+@roller.event
+async def on_guild_join(guild):
+    guilds_counter.labels("joined")
+    guilds_counter.labels("joined").inc()
 
 
 # wrong commands handler

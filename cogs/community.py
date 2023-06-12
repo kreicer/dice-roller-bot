@@ -2,7 +2,7 @@ from discord.ext import commands
 from functions.workhorses import text_writer, logger
 from functions.config import feedback_dir, log_file
 from models.commands import feedback as fdk, hello as hl
-from models.metrics import commands_used_feedback, commands_used_hello
+from models.metrics import commands_counter
 
 
 # for future version
@@ -57,7 +57,8 @@ class Community(commands.Cog):
         log_txt = "New feedback was posted by " + str(author)
         logger(log_file, "INFO", log_txt)
 
-        commands_used_feedback.inc()
+        commands_counter.labels("feedback")
+        commands_counter.labels("feedback").inc()
 
         await ctx.defer(ephemeral=True)
         await ctx.send("Thank you for the feedback!")
@@ -82,7 +83,8 @@ class Community(commands.Cog):
                       "```/roll 3d6+d4 3d20/dh 2d20+2d4/dl:1-1```\n"
                       "Few words about Power Words... You can get full available list with command.```/powerwords```")
 
-        commands_used_hello.inc()
+        commands_counter.labels("hello")
+        commands_counter.labels("hello").inc()
 
         await ctx.defer(ephemeral=True)
         await ctx.send(hello_text)

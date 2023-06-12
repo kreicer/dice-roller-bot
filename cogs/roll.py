@@ -4,7 +4,7 @@ from discord.ext import commands  # , tasks
 from models.commands import roll as roll, postfix as pw
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
-from models.metrics import commands_used_roll, commands_used_powerwords
+from models.metrics import commands_counter
 # from functions.workhorses import generate_dicts as gen_dicts
 from functions.workhorses import (
     split_on_dice,
@@ -85,7 +85,8 @@ class Roll(commands.Cog):
             sub_overall = f"```{table}```"
             overall += sub_overall
 
-        commands_used_roll.inc()
+        commands_counter.labels("roll")
+        commands_counter.labels("roll").inc()
         # await ctx.defer(ephemeral=True)
         await ctx.defer()
         if args_len > 5:
@@ -97,7 +98,8 @@ class Roll(commands.Cog):
     async def _power_words(self, ctx: commands.Context) -> None:
         pw_list = make_pw_list(ctx.prefix)
 
-        commands_used_powerwords.inc()
+        commands_counter.labels("powerwords")
+        commands_counter.labels("powerwords").inc()
 
         await ctx.defer(ephemeral=True)
         await ctx.send(pw_list)

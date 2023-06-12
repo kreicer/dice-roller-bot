@@ -1,8 +1,4 @@
-from models.metrics import (pw_used_explode,
-                            pw_used_penetrate,
-                            pw_used_reroll,
-                            pw_used_drop_highest,
-                            pw_used_drop_lowest)
+from models.metrics import pw_counter
 from functions.workhorses import dice_roll
 from functions.checks import (check_value_vs_throws as check_v_v_t,
                               check_edge_vs_two as check_e_v_t,
@@ -24,7 +20,8 @@ def postfix_magick(throws_result_list, dice_parts):
             while counter < value:
                 throws_result_list.remove(min(throws_result_list))
                 counter += 1
-            pw_used_drop_lowest.inc()
+            pw_counter.labels("drop_lowest")
+            pw_counter.labels("drop_lowest").inc()
             return throws_result_list
 
         # drop highest
@@ -34,7 +31,8 @@ def postfix_magick(throws_result_list, dice_parts):
             while counter < value:
                 throws_result_list.remove(max(throws_result_list))
                 counter += 1
-            pw_used_drop_highest.inc()
+            pw_counter.labels("drop_highest")
+            pw_counter.labels("drop_highest").inc()
             return throws_result_list
 
         # reroll
@@ -47,7 +45,8 @@ def postfix_magick(throws_result_list, dice_parts):
                     new_throws_result_list += additional_roll
                 else:
                     new_throws_result_list.append(throws_result)
-            pw_used_reroll.inc()
+            pw_counter.labels("reroll")
+            pw_counter.labels("reroll").inc()
             return new_throws_result_list
 
         # exploding dice
@@ -66,7 +65,8 @@ def postfix_magick(throws_result_list, dice_parts):
                     additional_roll = dice_roll(1, edge)
                     new_throws_result_list += additional_roll
                     check = additional_roll[0]
-            pw_used_explode.inc()
+            pw_counter.labels("explode")
+            pw_counter.labels("explode").inc()
             return new_throws_result_list
 
         # penetrating dice
@@ -86,7 +86,8 @@ def postfix_magick(throws_result_list, dice_parts):
                     penetrating_result = additional_roll[0] - 1
                     new_throws_result_list.append(penetrating_result)
                     check = additional_roll[0]
-            pw_used_penetrate.inc()
+            pw_counter.labels("penetrate")
+            pw_counter.labels("penetrate").inc()
             return new_throws_result_list
 
         # do nothing

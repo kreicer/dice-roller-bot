@@ -7,7 +7,7 @@ from functions.checks import check_limit, check_lang
 from functions.workhorses import text_writer, logger
 from functions.config import jokes_db, jokes_dir, log_file
 from lang.list import available_languages as lang_list
-from models.metrics import commands_used_joke_hear, commands_used_joke_tell
+from models.metrics import commands_counter
 
 # global
 number_of_jokes = 1
@@ -86,7 +86,8 @@ class Jokes(commands.Cog):
         joke_text = cur.fetchone()[0]
         db.close()
 
-        commands_used_joke_hear.inc()
+        commands_counter.labels("joke_hear")
+        commands_counter.labels("joke_hear").inc()
 
         if not everyone:
             await ctx.defer(ephemeral=True)
@@ -113,7 +114,8 @@ class Jokes(commands.Cog):
         log_txt = "New joke was posted by " + str(author)
         logger(log_file, "INFO", log_txt)
 
-        commands_used_joke_tell.inc()
+        commands_counter.labels("joke_tell")
+        commands_counter.labels("joke_tell").inc()
 
         # Output
         await ctx.defer(ephemeral=True)
