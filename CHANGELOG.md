@@ -1,3 +1,13 @@
+## Version 2.0.2
+New
+- metrics in prometheus format
+- metrics for guilds, rolls and powerwords
+
+Improved
+- hello command output
+- roll output now flexible
+- fix few errors
+
 ## Version 2.0.1
 New
 - return "stat" and "about" commands, was moved into "Info" cog
