@@ -95,11 +95,11 @@ class Roll(commands.Cog):
 
     @commands.hybrid_command(name=pw["name"], brief=pw["brief"], help=pw["help"], aliases=pw["aliases"],
                              with_app_command=True)
-    async def _power_words(self, ctx: commands.Context) -> None:
+    async def _postfix(self, ctx: commands.Context) -> None:
         pw_list = make_pw_list(ctx.prefix)
 
-        commands_counter.labels("powerwords")
-        commands_counter.labels("powerwords").inc()
+        commands_counter.labels("postfix")
+        commands_counter.labels("postfix").inc()
 
         await ctx.defer(ephemeral=True)
         await ctx.send(pw_list)

@@ -19,7 +19,7 @@ def check_lang(language, for_error):
 def check_match(match):
     if match is None:
         error_text = "Wrong dice or modifier.\n" \
-                     "Dice pattern is *[throws]*d*[edge]*/*[power_word]*:*[value]*.\n" \
+                     "Dice pattern is *[throws]*d*[edge]*/*[postfix]*:*[value]*.\n" \
                      "Modifier should start from + or - and can be another dice or number."
         raise commands.BadArgument(None, error_text)
 
@@ -83,11 +83,11 @@ def check_edge(edge):
 
 def check_postfix(postfix, aliases):
     if postfix == "":
-        error_text = "Alias to \"Power Word\" can not be empty."
+        error_text = "Alias to \"Postfix\" can not be empty."
         raise commands.BadArgument(None, error_text)
     elif postfix not in aliases.keys():
-        error_text = "Can not find this alias to \"Power Word\".\n" \
-                     "You can list all available \"Power Words\" with: ```/powerword```"
+        error_text = "Can not find this alias to exist \"Postfix\".\n" \
+                     "You can list all available \"Postfixes\" with: ```/postfix```"
         raise commands.BadArgument(None, error_text)
     else:
         postfix = aliases[postfix]
@@ -104,19 +104,19 @@ def check_value(value, defaults):
 
 def check_value_vs_throws(throws, value):
     if value >= throws:
-        error_text = "Value can not be higher or equal to number of throws in this Power Word."
+        error_text = "Value can not be higher or equal to number of throws in this Postfix."
         raise commands.BadArgument(None, error_text)
 
 
 def check_value_vs_edge(edge, value):
     if value > edge:
-        error_text = "Value can not be higher than dice edge in this Power Word."
+        error_text = "Value can not be higher than dice edge in this Postfix."
         raise commands.BadArgument(None, error_text)
 
 
 def check_edge_vs_two(edge):
     if edge < 2:
-        error_text = "Can not use this Power Word with dice edge equal to 1."
+        error_text = "Can not use this Postfix with dice edge equal to 1."
         raise commands.BadArgument(None, error_text)
 
 

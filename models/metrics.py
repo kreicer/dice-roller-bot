@@ -7,8 +7,8 @@ prometheus_client.REGISTRY.unregister(prometheus_client.PLATFORM_COLLECTOR)
 # metrics for commands
 commands_counter = Counter("commands_counter", "Counter for commands", ["command"])
 
-# power words usage
-pw_counter = Counter("pw_counter", "Counter for powerword usage", ["postfix"])
+# postfix usage
+postfix_counter = Counter("postfix_counter", "Counter for postfix usage", ["postfix"])
 
 # guilds join and leave
 guilds_counter = Counter("guilds_counter", "Counter for guilds", ["status"])

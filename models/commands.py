@@ -60,9 +60,9 @@ roll = {
             - single dice: 4d20\n \
             - single dice with modifiers: 3d8+d4-1\n \
             - multiple dice with (or without) modifiers: 2d4-1 d8 3d20-3d2\n \
-            - single dice with PowerWord(PW): 3d20/dl:1\n \
-            - single dice with PW and modifiers: 2d8/dh+2\n \
-            - multiple dice with PW and modifiers: 3d6/exp+2 2d20/dl-1"
+            - single dice with Postfix: 3d20/dl:1\n \
+            - single dice with Postfix and modifiers: 2d8/dh+2\n \
+            - multiple dice with Postfix and modifiers: 3d6/exp+2 2d20/dl-1"
 }
 # info for command prefix
 prefix = {
@@ -133,9 +133,9 @@ feedback = {
     "help": "Send your feedback to developers team"
 }
 postfix = {
-    "name": "powerwords",
+    "name": "postfix",
     "usage": "",
-    "aliases": ["pw"],
-    "brief": "List Power Words",
-    "help": "List Power Words"
+    "aliases": ["px"],
+    "brief": "List Postfixes",
+    "help": "List Postfixes"
 }

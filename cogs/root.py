@@ -21,7 +21,7 @@ class Root(commands.Cog):
     #    global postfix_list
     #    postfix_list = gen_dicts(pfs_dict)
     #    await ctx.defer(ephemeral=True)
-    #    await ctx.send(f'```Power words aliases re-generated.\n'
+    #    await ctx.send(f'```Postfixes aliases re-generated.\n'
     #                   f'Right now list is:\n'
     #                   f'{postfix_list}```')
 
