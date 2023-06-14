@@ -24,6 +24,9 @@ touch config
 6. Add bot token, commands prefix, path to jokes database and top.gg integration options into config.py
 ```console
 [bot]
+name = <bot_name>
+version = <bot_version>
+developer = <developer>
 token = <token_here>
 shards = <number_of_shards_here>
 default_prefix = <prefix_here>
@@ -33,12 +36,26 @@ dev_link = https://discordapp.com/users/<your_discord_user_id>
 send_stat = <True_or_False>
 token = <topgg_token_here>
 
+[metrics]
+enable = <True_or_False>
+port = <port_number>
+python_ext = <True_or_False>
+
 [db]
 jokes_db = databases/<jokes_db_name>.db
 admin_db = databases/<admin_db_name>.db
 
+[dirs]
+feedback_dir = <feedback_directory>
+jokes_dir = <jokes_directory>
+
 [logs]
 log_file = <log_file_name>.log
+
+[links]
+github_link = <github_link>
+topgg_link = <topgg_link>
+privacy_policy = <privacy_policy_doc_link>
 ```
 7. Run bot
 ```console

@@ -23,6 +23,11 @@ dev_link = config.get("bot", "dev_link")
 send_stat = config.getboolean("topgg", "send_stat")
 topgg_token = config.get("topgg", "token")
 
+# metrics section
+metrics_enable = config.getboolean("metrics", "enable")
+metrics_port = config.getint("metrics", "port")
+metrics_python_ext = config.getboolean("metrics", "python_ext")
+
 # databases section
 jokes_db = config.get("db", "jokes_db")
 admin_db = config.get("db", "admin_db")
