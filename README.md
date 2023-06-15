@@ -26,14 +26,22 @@ touch config
 [bot]
 name = <bot_name>
 version = <bot_version>
-developer = <developer>
 token = <token_here>
 shards = <number_of_shards_here>
-default_prefix = <prefix_here>
-dev_link = https://discordapp.com/users/<your_discord_user_id>
+prefix = <prefix_here>
+
+[developer]
+name = <developer>
+link = https://discordapp.com/users/<your_discord_user_id>
+github_link = <github_link>
+
+[community]
+policy = <privacy_policy_doc_link>
+support = http://discord.gg/<invite_code>
 
 [topgg]
-send_stat = <True_or_False>
+enable = <True_or_False>
+link = <topgg_link>
 token = <topgg_token_here>
 
 [metrics]
@@ -42,21 +50,15 @@ port = <port_number>
 python_ext = <True_or_False>
 
 [db]
-jokes_db = databases/<jokes_db_name>.db
-admin_db = databases/<admin_db_name>.db
+jokes = databases/<jokes_db_name>.db
+admin = databases/<admin_db_name>.db
 
-[dirs]
-feedback_dir = <feedback_directory>
-jokes_dir = <jokes_directory>
+[dir]
+feedback = <feedback_directory>
+jokes = <jokes_directory>
 
-[logs]
-log_file = <log_file_name>.log
-
-[links]
-github_link = <github_link>
-topgg_link = <topgg_link>
-privacy_policy = <privacy_policy_doc_link>
-support = http://discord.gg/<invite_code>
+[log]
+file = <log_file_name>.log
 ```
 7. Run bot
 ```console
@@ -64,7 +66,7 @@ python bot.py
 ```
 
 ## Usage
-Use help command or tag bot to list all available commands and it's description.
+Use help command or tag bot to list all available commands.
 
 
 ## Future features

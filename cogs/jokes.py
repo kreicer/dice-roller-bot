@@ -5,7 +5,7 @@ from models.commands import joke as j, joke_hear as j_hear, joke_tell as j_tell
 from models.limits import joke_limit
 from functions.checks import check_limit, check_lang
 from functions.workhorses import text_writer, logger
-from functions.config import jokes_db, jokes_dir, log_file
+from functions.config import db_jokes, dir_jokes, log_file
 from lang.list import available_languages as lang_list
 from models.metrics import commands_counter
 
@@ -45,7 +45,7 @@ class Jokes(commands.Cog):
         global number_of_jokes
         sql = "SELECT COUNT(joke_id) FROM jokes;"
         try:
-            db = sqlite3.connect(jokes_db)
+            db = sqlite3.connect(db_jokes)
             cur = db.cursor()
             cur.execute(sql)
             number_of_jokes = cur.fetchone()[0]
@@ -54,7 +54,7 @@ class Jokes(commands.Cog):
             log_txt = "Jokes number updated, current number: " + str(number_of_jokes)
             logger(log_file, "INFO", log_txt)
         except sqlite3.OperationalError:
-            log_txt = f"Failed to load database file - {jokes_db}"
+            log_txt = f"Failed to load database file - {db_jokes}"
             logger(log_file, "ERROR", log_txt)
         return number_of_jokes
 
@@ -79,7 +79,7 @@ class Jokes(commands.Cog):
                                                              displayed_default="Yes",
                                                              description="Send to channel")) -> None:
         random_joke_number = random.randint(1, number_of_jokes)
-        db = sqlite3.connect(jokes_db)
+        db = sqlite3.connect(db_jokes)
         cur = db.cursor()
         sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
         cur.execute(sql_joke, [random_joke_number])
@@ -109,7 +109,7 @@ class Jokes(commands.Cog):
         check_limit(joke_len, joke_limit, for_error)
         author = ctx.message.author
         joke = "\"" + joke + "\""
-        text_writer(language + ": " + joke, jokes_dir)
+        text_writer(language + ": " + joke, dir_jokes)
         # Logger
         log_txt = "New joke was posted by " + str(author)
         logger(log_file, "INFO", log_txt)

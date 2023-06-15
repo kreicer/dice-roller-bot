@@ -1,7 +1,14 @@
 from discord.ext import commands, tasks
 from models.commands import stat as st, about as ab
 from functions.workhorses import logger
-from functions.config import bot_name, bot_version, bot_dev, default_shards, log_file, github, topgg, policy
+from functions.config import (bot_name,
+                              bot_version,
+                              dev_name,
+                              bot_shards,
+                              log_file,
+                              dev_github,
+                              topgg_link,
+                              community_policy)
 from models.metrics import commands_counter
 
 guilds_number = 0
@@ -36,7 +43,7 @@ class Info(commands.Cog):
 
         await ctx.defer(ephemeral=True)
         await ctx.send(f'**STATISTICS**\n'
-                       f'Shards: {default_shards}\n'
+                       f'Shards: {bot_shards}\n'
                        f'Servers: {guilds_number}')
 
     @commands.hybrid_command(name=ab["name"], brief=ab["brief"], usage=ab["usage"], help=ab["help"],
@@ -47,11 +54,11 @@ class Info(commands.Cog):
 
         await ctx.defer(ephemeral=True)
         await ctx.send(f'**{bot_name}**\n'
-                       f'Developer: {bot_dev}\n'
+                       f'Developer: {dev_name}\n'
                        f'Version: {bot_version}\n'
-                       f'Github: {github}\n'
-                       f'Top.gg: {topgg}\n'
-                       f'Privacy Policy: {policy}')
+                       f'Github: {dev_github}\n'
+                       f'Top.gg: {topgg_link}\n'
+                       f'Privacy Policy: {community_policy}')
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -13,14 +13,22 @@ except FileNotFoundError:
 # bot section
 bot_name = config.get("bot", "name")
 bot_version = config.get("bot", "version")
-bot_dev = config.get("bot", "developer")
 bot_token = config.get("bot", "token")
-default_shards = config.getint("bot", "shards")
-default_prefix = config.get("bot", "default_prefix")
-dev_link = config.get("bot", "dev_link")
+bot_shards = config.getint("bot", "shards")
+bot_prefix = config.get("bot", "prefix")
+
+# developer section
+dev_name = config.get("developer", "name")
+dev_link = config.get("developer", "link")
+dev_github = config.get("developer", "github_link")
+
+# community section
+community_policy = config.get("community", "policy")
+community_support = config.get("community", "support")
 
 # topgg section
-send_stat = config.getboolean("topgg", "send_stat")
+topgg_enable = config.getboolean("topgg", "enable")
+topgg_link = config.get("topgg", "link")
 topgg_token = config.get("topgg", "token")
 
 # metrics section
@@ -29,18 +37,12 @@ metrics_port = config.getint("metrics", "port")
 metrics_python_ext = config.getboolean("metrics", "python_ext")
 
 # databases section
-jokes_db = config.get("db", "jokes_db")
-admin_db = config.get("db", "admin_db")
+db_jokes = config.get("db", "jokes")
+db_admin = config.get("db", "admin")
 
 # directories
-feedback_dir = config.get("dirs", "feedback_dir")
-jokes_dir = config.get("dirs", "jokes_dir")
+dir_feedback = config.get("dir", "feedback")
+dir_jokes = config.get("dir", "jokes")
 
 # logs
-log_file = config.get("logs", "log_file")
-
-# link section
-github = config.get("links", "github_link")
-topgg = config.get("links", "topgg_link")
-policy = config.get("links", "privacy_policy")
-support = config.get("links", "support")
+log_file = config.get("log", "file")

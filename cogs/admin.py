@@ -5,7 +5,7 @@ from models.limits import prefix_limit
 from models.metrics import commands_counter
 from functions.checks import check_limit
 from functions.workhorses import logger
-from functions.config import admin_db, dev_link, log_file
+from functions.config import db_admin, dev_link, log_file
 
 
 # admin cog
@@ -34,7 +34,7 @@ class Admin(commands.Cog):
         secure_prefix = tuple((guild_id, str(prefix)))
         sql = "INSERT OR REPLACE INTO guild_prefixes (guild_id, guild_prefix) VALUES (?,?);"
         try:
-            db = sqlite3.connect(admin_db)
+            db = sqlite3.connect(db_admin)
             cur = db.cursor()
             cur.execute(sql, secure_prefix)
             db.commit()
@@ -42,7 +42,7 @@ class Admin(commands.Cog):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'New prefix is: {prefix}')
         except sqlite3.OperationalError:
-            log_txt = f"Failed to load database file - {admin_db}"
+            log_txt = f"Failed to load database file - {db_admin}"
             logger(log_file, "ERROR", log_txt)
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**SQL Operational Error**\n'
@@ -60,7 +60,7 @@ class Admin(commands.Cog):
         secure_guild_id = (guild_id,)
         sql = "DELETE FROM guild_prefixes WHERE guild_id=?;"
         try:
-            db = sqlite3.connect(admin_db)
+            db = sqlite3.connect(db_admin)
             cur = db.cursor()
             cur.execute(sql, secure_guild_id)
             db.commit()
@@ -68,7 +68,7 @@ class Admin(commands.Cog):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'Prefix was restored to default value')
         except sqlite3.OperationalError:
-            log_txt = f"Failed to load database file - {admin_db}"
+            log_txt = f"Failed to load database file - {db_admin}"
             logger(log_file, "ERROR", log_txt)
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**SQL Operational Error**\n'

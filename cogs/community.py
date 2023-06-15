@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from functions.workhorses import text_writer, logger
-from functions.config import feedback_dir, log_file, support
+from functions.config import dir_feedback, log_file, community_support
 from models.commands import feedback as fdk, hello as hl, support as sup
 from models.metrics import commands_counter
 
@@ -53,7 +53,7 @@ class Community(commands.Cog):
         author = ctx.message.author
         # TODO: migrate directory name to config, add check on exist, if not - create
         feedback = "\"" + feedback + "\""
-        text_writer(feedback, feedback_dir)
+        text_writer(feedback, dir_feedback)
 
         log_txt = "New feedback was posted by " + str(author)
         logger(log_file, "INFO", log_txt)
@@ -93,7 +93,7 @@ class Community(commands.Cog):
     @commands.hybrid_command(name=sup["name"], brief=sup["brief"], help=sup["help"], aliases=sup["aliases"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def _support(self, ctx: commands.Context) -> None:
-        link = support
+        link = community_support
 
         commands_counter.labels("support")
         commands_counter.labels("support").inc()
