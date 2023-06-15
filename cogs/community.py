@@ -1,7 +1,8 @@
+import discord
 from discord.ext import commands
 from functions.workhorses import text_writer, logger
-from functions.config import feedback_dir, log_file
-from models.commands import feedback as fdk, hello as hl
+from functions.config import feedback_dir, log_file, support
+from models.commands import feedback as fdk, hello as hl, support as sup
 from models.metrics import commands_counter
 
 
@@ -88,6 +89,24 @@ class Community(commands.Cog):
 
         await ctx.defer(ephemeral=True)
         await ctx.send(hello_text)
+
+    @commands.hybrid_command(name=sup["name"], brief=sup["brief"], help=sup["help"], aliases=sup["aliases"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def _support(self, ctx: commands.Context) -> None:
+        link = support
+
+        commands_counter.labels("support")
+        commands_counter.labels("support").inc()
+
+        try:
+            channel = await ctx.author.create_dm()
+            await channel.send(link)
+            await ctx.defer(ephemeral=True)
+            await ctx.send("Link already in your direct messages 👋")
+        except discord.Forbidden:
+            # await ctx.defer(ephemeral=True) # without defer cos bot cant send it if blocked
+            await ctx.send(f'**Forbidden**\n'
+                           f'Bot did not have permissions to write you DM.')
 
     # FEEDBACK ERRORS HANDLER
     @_send_feedback.error

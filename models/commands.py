@@ -20,7 +20,7 @@ stat = {
 hello = {
     "name": "hello",
     "usage": "",
-    "aliases": ["sup", "hi"],
+    "aliases": ["hi"],
     "brief": "Show extended quick start message",
     "help": "Dice Roller tell you about base dice model and provide roll examples"
 }
@@ -138,4 +138,12 @@ postfix = {
     "aliases": ["px"],
     "brief": "List Postfixes",
     "help": "List Postfixes"
+}
+
+support = {
+    "name": "support",
+    "usage": "",
+    "aliases": ["sup"],
+    "brief": "Invite you to support server",
+    "help": "Invite you to support server"
 }

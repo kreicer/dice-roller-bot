@@ -56,6 +56,7 @@ log_file = <log_file_name>.log
 github_link = <github_link>
 topgg_link = <topgg_link>
 privacy_policy = <privacy_policy_doc_link>
+support = http://discord.gg/<invite_code>
 ```
 7. Run bot
 ```console
@@ -67,17 +68,7 @@ Use help command or tag bot to list all available commands and it's description.
 
 
 ## Future features
-- verification ✓
-- performance improvement ✓
-- checks ✓
-- output improvements ✓
-- new d command to quick single roll ✓
-- change bot prefix ✓
-- non-classic dice types ✓
-- postfix mechanism ✓
-- errors improvements ✓
 - help improvement
-- more jokes ✓
 - secret rolls
 - localization
 - video guide into full bot functionality
