@@ -78,7 +78,7 @@ async def on_ready():
     # log ready info and connected guilds number
     log_txt = "Bot ready and connected to " + str(len(roller.guilds)) + " servers"
     logger(log_file, "INFO", log_txt)
-    await roller.change_presence(activity=discord.Activity(name=f'testing v{bot_version}!',
+    await roller.change_presence(activity=discord.Activity(name=f'v{bot_version}!',
                                                            type=discord.ActivityType.competing))
 
 
