@@ -1,3 +1,17 @@
+## Version 2.0.3
+New
+- new command "support" of "community" section send you invite to community server
+- return "fate" dice
+
+Improved
+- change "powerword" command name to "postfix"
+- make config more neater
+- allow to configure metrics basics from config
+- make some "help" command outputs richer
+
+Fixed
+- bot status
+
 ## Version 2.0.2
 New
 - metrics in prometheus format
