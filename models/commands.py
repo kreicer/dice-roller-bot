@@ -6,7 +6,7 @@ about = {
     "usage": "",
     "aliases": ["bot", "version"],
     "brief": "Show info about the bot",
-    "help": "Show bot version, Privacy Policy, link on Github, link on top.gg etc"
+    "help": "Show developer, bot version, Privacy Policy, link on Github, link on top.gg etc"
 }
 # info for command stat
 stat = {
@@ -14,7 +14,7 @@ stat = {
     "usage": "",
     "aliases": ["st"],
     "brief": "Show bot statistics",
-    "help": "Show number of shards, servers usage etc"
+    "help": "Show number of shards and servers"
 }
 # info for command hello
 hello = {
@@ -78,15 +78,15 @@ prefix_set = {
     "usage": "",
     "aliases": ["ps"],
     "brief": "Set new prefix for the bot commands",
-    "help": "Set new prefix"
+    "help": "Set new prefix for the bot commands, it should be 3 or less symbols."
 }
 # info for subcommand restore command prefix
 prefix_restore = {
     "name": "restore",
     "usage": "",
     "aliases": ["pr"],
-    "brief": "Restore default prefix",
-    "help": "Restore default prefix"
+    "brief": "Restore default prefix for the bot commands",
+    "help": "Restore default prefix for the bot commands (can be found in bot description)"
 }
 # ROOT: command for generating aliases dictionary
 generate_aliases = {
@@ -108,22 +108,22 @@ extension_list = {
     "name": "list",
     "usage": "",
     "aliases": ["cog_l"],
-    "brief": "List extension",
-    "help": "List extension"
+    "brief": "List extensions",
+    "help": "Post full list of extensions (cogs)"
 }
 extension_load = {
     "name": "load",
     "usage": "",
     "aliases": ["cog_ld"],
-    "brief": "Load extension",
-    "help": "Load extension"
+    "brief": "Load extension by it's name",
+    "help": "Load extension by it's name"
 }
 extension_unload = {
     "name": "unload",
     "usage": "",
     "aliases": ["cog_ud"],
-    "brief": "Unload extension",
-    "help": "Unload extension"
+    "brief": "Unload extension by it's name",
+    "help": "Unload extension by it's name"
 }
 feedback = {
     "name": "feedback",
@@ -137,7 +137,7 @@ postfix = {
     "usage": "",
     "aliases": ["px"],
     "brief": "List Postfixes",
-    "help": "List Postfixes"
+    "help": "Post full list of Postfixes with usage and examples"
 }
 
 support = {
@@ -145,5 +145,5 @@ support = {
     "usage": "",
     "aliases": ["sup"],
     "brief": "Invite you to support server",
-    "help": "Invite you to support server"
+    "help": "Invite you to community support server where you can ask for help, suggest improvement or just chat"
 }

@@ -49,7 +49,8 @@ class Community(commands.Cog):
 
     @commands.hybrid_command(name=fdk["name"], brief=fdk["brief"], help=fdk["help"], aliases=fdk["aliases"])
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def _send_feedback(self, ctx: commands.Context, *, feedback: str) -> None:
+    async def _send_feedback(self, ctx: commands.Context, *,
+                             feedback: str = commands.parameter(description="Your feedback text")) -> None:
         author = ctx.message.author
         # TODO: migrate directory name to config, add check on exist, if not - create
         feedback = "\"" + feedback + "\""
