@@ -78,6 +78,19 @@ def make_subzero(not_subzero):
     return subzero
 
 
+def fate_subzero(not_subzero):
+    subzero = []
+    for list_object in not_subzero:
+        if list_object == "+":
+            list_object = "-"
+        elif list_object == "-":
+            list_object = "+"
+        else:
+            list_object = "."
+        subzero.append(list_object)
+    return subzero
+
+
 # make dice label for table from args
 def dice_maker(*args):
     args_list = list(args)

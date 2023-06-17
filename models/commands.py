@@ -62,7 +62,8 @@ roll = {
             - multiple dice with (or without) modifiers: 2d4-1 d8 3d20-3d2\n \
             - single dice with Postfix: 3d20/dl:1\n \
             - single dice with Postfix and modifiers: 2d8/dh+2\n \
-            - multiple dice with Postfix and modifiers: 3d6/exp+2 2d20/dl-1"
+            - multiple dice with Postfix and modifiers: 3d6/exp+2 2d20/dl-1\n \
+            - fate/fudge dice: 4dF d4+2dF 10df-5 (postfixes didn't work with this dice type)"
 }
 # info for command prefix
 prefix = {

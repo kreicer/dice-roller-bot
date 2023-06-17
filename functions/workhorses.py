@@ -77,9 +77,24 @@ def dice_roll(throws, edge):
     return dice_roll_result
 
 
+def fate_roll(throws):
+    dice_roll_result = []
+    for counts in range(1, throws + 1):
+        roll_result = random.choice(["+", "-", "."])
+        dice_roll_result.append(roll_result)
+    dice_edge_counter.labels("F")
+    dice_edge_counter.labels("F").inc(throws)
+    return dice_roll_result
+
+
 # summarize result
 def calc_result(dice_result):
     total_result = sum(dice_result)
+    return total_result
+
+
+def fate_result(dice_result):
+    total_result = dice_result.count("+") - dice_result.count("-")
     return total_result
 
 

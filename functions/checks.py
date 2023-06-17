@@ -20,6 +20,7 @@ def check_match(match):
     if match is None:
         error_text = "Wrong dice or modifier.\n" \
                      "Dice pattern is *[throws]*d*[edge]*/*[postfix]*:*[value]*.\n" \
+                     "Fate/Fudge dice pattern is *[throws]*d*F*.\n"\
                      "Modifier should start from + or - and can be another dice or number."
         raise commands.BadArgument(None, error_text)
 
@@ -36,7 +37,10 @@ def check_dice_dict(dice_dict):
     dice_dict["type"] = 0
     if dice_dict["delimiter"] == "d":
         dice_dict["edge"] = check_edge(dice_dict["edge"])
-        dice_dict["type"] = 1
+        if isinstance(dice_dict["edge"], int):
+            dice_dict["type"] = 1
+        else:
+            dice_dict["type"] = 3
     if dice_dict["separator"] == "/":
         dice_dict["postfix"] = check_postfix(dice_dict["postfix"], aliases_dict)
         default_value = postfix_dict[dice_dict["postfix"]]["default_value"]
@@ -74,6 +78,8 @@ def check_edge(edge):
     if edge == "0" or edge == "":
         error_text = "Value of dice edge can not be zero or empty."
         raise commands.BadArgument(None, error_text)
+    elif edge.upper() == "F":
+        edge = "F"
     else:
         edge = int(edge)
         error_text = f"Dice edge value ({edge}) is greater than the current limit of {e_limit}"

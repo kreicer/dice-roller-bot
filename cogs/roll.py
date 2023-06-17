@@ -10,14 +10,23 @@ from functions.workhorses import (
     split_on_dice,
     split_on_parts,
     dice_roll,
+    fate_roll,
     calc_result,
+    fate_result,
     add_mod_result,
     sub_mod_result,
     make_pw_list
 )
 from functions.postfixes import postfix_magick
 from functions.checks import check_limit
-from functions.visualizers import make_subzero, dice_maker, convert_dice_for_output, body_for_output, create_table
+from functions.visualizers import (
+    make_subzero,
+    fate_subzero,
+    dice_maker,
+    convert_dice_for_output,
+    body_for_output,
+    create_table
+)
 
 
 # roll cog
@@ -55,6 +64,9 @@ class Roll(commands.Cog):
                 elif dice_parts["type"] == 1:
                     throws_result_list = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     sub_sum = calc_result(throws_result_list)
+                elif dice_parts["type"] == 3:
+                    throws_result_list = fate_roll(dice_parts["throws"])
+                    sub_sum = fate_result(throws_result_list)
                 else:
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     throws_result_list = postfix_magick(throws_result_list_before_postfix, dice_parts)
@@ -70,8 +82,12 @@ class Roll(commands.Cog):
                                          dice_parts["postfix"], ":", dice_parts["value"])
                 visual_bucket += visual_dice
                 if dice_parts["mod"] == "-":
-                    throws_result_list = make_subzero(throws_result_list)
-                    visual_list += throws_result_list
+                    if dice_parts["type"] != 3:
+                        throws_result_list = make_subzero(throws_result_list)
+                        visual_list += throws_result_list
+                    else:
+                        throws_result_list = fate_subzero(throws_result_list)
+                        visual_list += throws_result_list
                 else:
                     visual_list += throws_result_list
 
