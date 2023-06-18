@@ -41,6 +41,22 @@ postfixes = {
         "example": "roll 5d10/dh:2",
         "enabled": True
     },
+    "kl": {
+        "name": "Keep Lowest",
+        "aliases": ["keeplowest", "kl", "klow"],
+        "default_value": 1,
+        "description": "Keep specified number of dice with lowest number",
+        "example": "roll 4d100/kl:1",
+        "enabled": True
+    },
+    "kh": {
+        "name": "Keep Highest",
+        "aliases": ["keephighest", "kh", "khigh"],
+        "default_value": 1,
+        "description": "Keep specified number of dice with highest number",
+        "example": "roll 3d4/kh:1",
+        "enabled": True
+    },
     "rr": {
         "name": "ReRoll",
         "aliases": ["reroll", "rr"],
@@ -58,6 +74,12 @@ aliases = {
     "dh": "dh",
     "dhigh": "dh",
     "drophighest": "dh",
+    "kl": "kl",
+    "klow": "kl",
+    "keeplowest": "kl",
+    "kh": "kh",
+    "khigh": "kh",
+    "keephighest": "kh",
     "exp": "exp",
     "explode": "exp",
     "pen": "pen",

@@ -90,6 +90,32 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("penetrate").inc()
             return new_throws_result_list
 
+        # keep lowest
+        case "kl":
+            new_throws_result_list = []
+            check_v_v_t(throws, value)
+            counter = 0
+            while counter < value:
+                new_throws_result_list.append(min(throws_result_list))
+                throws_result_list.remove(min(throws_result_list))
+                counter += 1
+            postfix_counter.labels("keep_lowest")
+            postfix_counter.labels("keep_lowest").inc()
+            return new_throws_result_list
+
+        # keep highest
+        case "kh":
+            new_throws_result_list = []
+            check_v_v_t(throws, value)
+            counter = 0
+            while counter < value:
+                new_throws_result_list.append(max(throws_result_list))
+                throws_result_list.remove(max(throws_result_list))
+                counter += 1
+            postfix_counter.labels("keep_highest")
+            postfix_counter.labels("keep_highest").inc()
+            return new_throws_result_list
+
         # do nothing
         case _:
             return throws_result_list

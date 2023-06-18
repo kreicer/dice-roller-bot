@@ -117,5 +117,5 @@ def make_pw_list(prefix):
             pw_list += postfixes[postfix]["description"] + "\n"
             pw_list += "*Aliases*: " + str(postfixes[postfix]["aliases"]) + "\n"
             pw_list += "*Example*: " + prefix + postfixes[postfix]["example"] + "\n"
-            pw_list += "- - - - - - -\n"
+            pw_list += "○ ○ ○ ○ ○ ○ ○ \n"
     return pw_list
