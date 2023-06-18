@@ -107,7 +107,7 @@ class Community(commands.Cog):
         except discord.Forbidden:
             # await ctx.defer(ephemeral=True) # without defer cos bot cant send it if blocked
             await ctx.send(f'**Forbidden**\n'
-                           f'Bot did not have permissions to write you DM.')
+                           f'Bot does not have permissions to write you DM.')
 
     # FEEDBACK ERRORS HANDLER
     @_send_feedback.error
