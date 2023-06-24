@@ -16,6 +16,7 @@ postfix_counter = Counter("postfix_counter", "Counter for postfix usage", ["post
 guilds_counter = Counter("guilds_counter", "Counter for guilds", ["status"])
 
 # dice edges
+edge_valid = [2, 4, 6, 8, 10, 12, 20, 100]
 dice_edge_counter = Counter("dice_edge_counter", "Counter for dice", ["edge"])
 
 errors_counter = Counter("errors_counter", "Counter for errors of all type", ["command", "error"])

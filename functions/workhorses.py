@@ -6,7 +6,7 @@ import random
 from functions.checks import check_match, check_dice_dict, check_file_exist, check_limit
 from models.limits import dice_limit
 from models.postfixes import postfixes
-from models.metrics import dice_edge_counter
+from models.metrics import dice_edge_counter, edge_valid
 
 
 def json_writer(new_data, filename):
@@ -72,8 +72,9 @@ def dice_roll(throws, edge):
     for counts in range(1, throws + 1):
         roll_result = random.randint(1, edge)
         dice_roll_result.append(roll_result)
-    dice_edge_counter.labels(edge)
-    dice_edge_counter.labels(edge).inc(throws)
+    if edge in edge_valid:
+        dice_edge_counter.labels(edge)
+        dice_edge_counter.labels(edge).inc(throws)
     return dice_roll_result
 
 
