@@ -9,7 +9,7 @@ from functions.config import (bot_name,
                               dev_github,
                               topgg_link,
                               community_policy)
-from models.metrics import commands_counter
+from models.metrics import commands_counter, errors_counter
 
 guilds_number = 0
 
@@ -68,6 +68,8 @@ class Info(commands.Cog):
     @_stat.error
     async def _stat_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("stat", "BotMissingPermissions")
+            errors_counter.labels("stat", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
@@ -77,6 +79,8 @@ class Info(commands.Cog):
     @_about.error
     async def _about_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("about", "BotMissingPermissions")
+            errors_counter.labels("about", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'

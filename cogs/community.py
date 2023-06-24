@@ -3,7 +3,7 @@ from discord.ext import commands
 from functions.workhorses import text_writer, logger
 from functions.config import dir_feedback, log_file, community_support
 from models.commands import feedback as fdk, hello as hl, support as sup
-from models.metrics import commands_counter
+from models.metrics import commands_counter, errors_counter
 
 
 # for future version
@@ -119,16 +119,22 @@ class Community(commands.Cog):
     @_send_feedback.error
     async def _send_feedback_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("feedback", "BotMissingPermissions")
+            errors_counter.labels("feedback", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.BadArgument):
+            errors_counter.labels("feedback", "BadArgument")
+            errors_counter.labels("feedback", "BadArgument").inc()
             log_txt = "File exist already "
             logger(log_file, "ERROR", log_txt)
             await ctx.defer(ephemeral=True)
             await ctx.send(f'Something wrong on our end.')
         if isinstance(error, commands.MissingRequiredArgument):
+            errors_counter.labels("feedback", "MissingRequiredArgument")
+            errors_counter.labels("feedback", "MissingRequiredArgument").inc()
             prefix = ctx.prefix
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'
@@ -139,6 +145,8 @@ class Community(commands.Cog):
     @_hello.error
     async def _hello_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("hello", "BotMissingPermissions")
+            errors_counter.labels("hello", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
@@ -148,6 +156,8 @@ class Community(commands.Cog):
     @_support.error
     async def _support_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("support", "BotMissingPermissions")
+            errors_counter.labels("support", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'

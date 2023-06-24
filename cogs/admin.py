@@ -2,7 +2,7 @@ import sqlite3
 from discord.ext import commands
 from models.commands import prefix as pfx, prefix_set as spfx, prefix_restore as rpfx
 from models.limits import prefix_limit
-from models.metrics import commands_counter
+from models.metrics import commands_counter, errors_counter
 from functions.checks import check_limit
 from functions.workhorses import logger
 from functions.config import db_admin, dev_link, log_file
@@ -21,6 +21,10 @@ class Admin(commands.Cog):
     async def _prefix(self, ctx: commands.Context) -> None:
         if ctx.invoked_subcommand is None:
             prefix = ctx.prefix
+
+            commands_counter.labels("prefix")
+            commands_counter.labels("prefix").inc()
+
             await ctx.defer(ephemeral=True)
             await ctx.send(f'Please choose: you want to set prefix or restore it.'
                            f'```{prefix}prefix set```'
@@ -87,6 +91,8 @@ class Admin(commands.Cog):
     @_prefix.error
     async def _prefix_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("prefix", "BotMissingPermissions")
+            errors_counter.labels("prefix", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
@@ -96,6 +102,8 @@ class Admin(commands.Cog):
     @_restore_prefix.error
     async def _restore_prefix_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("prefix_restore", "BotMissingPermissions")
+            errors_counter.labels("prefix_restore", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
@@ -105,20 +113,28 @@ class Admin(commands.Cog):
     @_set_prefix.error
     async def _set_prefix_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
+            errors_counter.labels("prefix_set", "MissingPermissions")
+            errors_counter.labels("prefix_set", "MissingPermissions").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Permissions**\n'
                            f'Sorry, but you need administrator permissions to change the bot prefix.')
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("prefix_set", "BotMissingPermissions")
+            errors_counter.labels("prefix_set", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.MissingRequiredArgument):
+            errors_counter.labels("prefix_set", "MissingRequiredArgument")
+            errors_counter.labels("prefix_set", "MissingRequiredArgument").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'
                            f'Specify valid prefix, please.\n'
                            'Empty prefix specified.')
         if isinstance(error, commands.ArgumentParsingError):
+            errors_counter.labels("prefix_set", "ArgumentParsingError")
+            errors_counter.labels("prefix_set", "ArgumentParsingError").inc()
             prefix = ctx.prefix
             new_prefix = error.args[0]
             shorter_prefix = new_prefix[:prefix_limit]
@@ -128,6 +144,8 @@ class Admin(commands.Cog):
                            f'Specified prefix is longer than {prefix_limit} symbols. Example:'
                            f'```{prefix}prefix set {shorter_prefix}```')
         if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("prefix_set", "CommandOnCooldown")
+            errors_counter.labels("prefix_set", "CommandOnCooldown").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Command On Cooldown**\n'
                            f'This command is on cooldown.\n'

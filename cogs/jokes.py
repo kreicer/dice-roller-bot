@@ -7,7 +7,7 @@ from functions.checks import check_limit, check_lang
 from functions.workhorses import text_writer, logger
 from functions.config import db_jokes, dir_jokes, log_file
 from lang.list import available_languages as lang_list
-from models.metrics import commands_counter
+from models.metrics import commands_counter, errors_counter
 
 # global
 number_of_jokes = 1
@@ -68,6 +68,10 @@ class Jokes(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def _joke(self, ctx: commands.Context) -> None:
         prefix = ctx.prefix
+
+        commands_counter.labels("joke")
+        commands_counter.labels("joke").inc()
+
         if ctx.invoked_subcommand is None:
             await ctx.defer(ephemeral=True)
             await ctx.send(f'Please choose: you want to tell joke or hear it.'
@@ -131,6 +135,8 @@ class Jokes(commands.Cog):
     @_joke.error
     async def _joke_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("joke", "BotMissingPermissions")
+            errors_counter.labels("joke", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
@@ -140,6 +146,8 @@ class Jokes(commands.Cog):
     @_joke_hear.error
     async def _joke_hear_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("joke_hear", "BotMissingPermissions")
+            errors_counter.labels("joke_hear", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
@@ -150,16 +158,22 @@ class Jokes(commands.Cog):
     async def _joke_tell_error(self, ctx, error):
         prefix = ctx.prefix
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("joke_tell", "BotMissingPermissions")
+            errors_counter.labels("joke_tell", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.MissingRequiredArgument):
+            errors_counter.labels("joke_tell", "MissingRequiredArgument")
+            errors_counter.labels("joke_tell", "MissingRequiredArgument").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'
                            f'Specify valid arguments: language of joke and joke text, please. '
                            f'Example: ```{prefix}joke tell EN \"Joke text...\"```')
         if isinstance(error, commands.ArgumentParsingError):
+            errors_counter.labels("joke_tell", "ArgumentParsingError")
+            errors_counter.labels("joke_tell", "ArgumentParsingError").inc()
             error_dict = error.args[0]
             joke_text = error_dict["joke"]
             lang = error_dict["lang"]
@@ -172,6 +186,8 @@ class Jokes(commands.Cog):
                            f'in {joke_limit} symbols. Example:'
                            f'```{prefix}joke tell {lang} \"{shorter_joke}\"```')
         if isinstance(error, commands.BadArgument):
+            errors_counter.labels("joke_tell", "BadArgument")
+            errors_counter.labels("joke_tell", "BadArgument").inc()
             error_dict = error.args[0]
             joke_text = error_dict["joke"]
             await ctx.defer(ephemeral=True)
@@ -181,6 +197,8 @@ class Jokes(commands.Cog):
                            f'Or contact support server with add language request. Example:'
                            f'```{prefix}joke tell EN \"{joke_text}\"```')
         if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("joke_tell", "CommandOnCooldown")
+            errors_counter.labels("joke_tell", "CommandOnCooldown").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Command On Cooldown**\n'
                            f'This command is on cooldown.\n'

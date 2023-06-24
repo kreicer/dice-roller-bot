@@ -4,7 +4,7 @@ from discord.ext import commands  # , tasks
 from models.commands import roll as roll, postfix as pw
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
-from models.metrics import commands_counter
+from models.metrics import commands_counter, errors_counter
 # from functions.workhorses import generate_dicts as gen_dicts
 from functions.workhorses import (
     split_on_dice,
@@ -129,21 +129,29 @@ class Roll(commands.Cog):
     async def _roll_error(self, ctx, error):
         prefix = ctx.prefix
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("roll", "BotMissingPermissions")
+            errors_counter.labels("roll", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.MissingRequiredArgument):
+            errors_counter.labels("roll", "MissingRequiredArgument")
+            errors_counter.labels("roll", "MissingRequiredArgument").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'
                            f'You should to specify one valid dice at least.'
                            f'Try something like: ```{prefix}roll 4d20/dl:1+3```')
         if isinstance(error, commands.BadArgument):
+            errors_counter.labels("roll", "BadArgument")
+            errors_counter.labels("roll", "BadArgument").inc()
             error_text = error.args[0]
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Bad Argument**\n'
                            f'{error_text}')
         if isinstance(error, commands.ArgumentParsingError):
+            errors_counter.labels("roll", "ArgumentParsingError")
+            errors_counter.labels("roll", "ArgumentParsingError").inc()
             error_text = error.args[0]
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Argument Parsing Error**\n'
@@ -153,6 +161,8 @@ class Roll(commands.Cog):
     @_postfix.error
     async def _postfix_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("postfix", "BotMissingPermissions")
+            errors_counter.labels("postfix", "BotMissingPermissions").inc()
             dm = await ctx.author.create_dm()
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'

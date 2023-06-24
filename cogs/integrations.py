@@ -2,6 +2,7 @@ import topgg
 from discord.ext import commands
 from functions.workhorses import logger
 from functions.config import topgg_enable, topgg_token, log_file
+from models.metrics import errors_counter
 
 
 # TOP.GG INTEGRATION COG
@@ -24,6 +25,8 @@ class Integrations(commands.Cog):
     async def on_autopost_error(self):
         log_txt = f"Could not post stats on Top.gg"
         logger(log_file, "ERROR", log_txt)
+        errors_counter.labels("integration", "Exception")
+        errors_counter.labels("integration", "Exception").inc()
 
 
 async def setup(bot: commands.Bot) -> None:

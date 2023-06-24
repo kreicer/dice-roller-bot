@@ -17,3 +17,5 @@ guilds_counter = Counter("guilds_counter", "Counter for guilds", ["status"])
 
 # dice edges
 dice_edge_counter = Counter("dice_edge_counter", "Counter for dice", ["edge"])
+
+errors_counter = Counter("errors_counter", "Counter for errors of all type", ["command", "error"])
