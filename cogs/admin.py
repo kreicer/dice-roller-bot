@@ -8,14 +8,16 @@ from functions.workhorses import logger
 from functions.config import db_admin, dev_link, log_file
 
 
-# admin cog
+# ADMIN COG
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
 
+    # PREFIX COMMANDS GROUP
     @commands.hybrid_group(name=pfx["name"], brief=pfx["brief"], help=pfx["help"], aliases=pfx["aliases"],
                            invoke_without_command=True, with_app_command=True)
     @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _prefix(self, ctx: commands.Context) -> None:
         if ctx.invoked_subcommand is None:
             prefix = ctx.prefix
@@ -24,9 +26,11 @@ class Admin(commands.Cog):
                            f'```{prefix}prefix set```'
                            f'```{prefix}prefix restore```')
 
+    # PREFIX SET COMMAND
     @_prefix.command(name=spfx["name"], brief=spfx["brief"], help=spfx["help"], aliases=spfx["aliases"])
     @commands.cooldown(1, 1, commands.BucketType.user)
     @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _set_prefix(self, ctx: commands.Context,
                           prefix: str = commands.parameter(description="New prefix for your server")) -> None:
         check_limit(len(prefix), prefix_limit, prefix)
@@ -55,6 +59,7 @@ class Admin(commands.Cog):
     # PREFIX RESTORE COMMAND
     @_prefix.command(name=rpfx["name"], brief=rpfx["brief"], help=rpfx["help"], aliases=rpfx["aliases"])
     @commands.has_permissions(administrator=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _restore_prefix(self, ctx: commands.Context) -> None:
         guild_id = str(ctx.guild.id)
         secure_guild_id = (guild_id,)
@@ -78,6 +83,24 @@ class Admin(commands.Cog):
         commands_counter.labels("prefix_restore")
         commands_counter.labels("prefix_restore").inc()
 
+    # PREFIX ERRORS HANDLER
+    @_prefix.error
+    async def _prefix_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
+
+    # PREFIX RESTORE ERRORS HANDLER
+    @_restore_prefix.error
+    async def _restore_prefix_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
+
     # PREFIX SET ERRORS HANDLER
     @_set_prefix.error
     async def _set_prefix_error(self, ctx, error):
@@ -86,10 +109,10 @@ class Admin(commands.Cog):
             await ctx.send(f'**Missing Permissions**\n'
                            f'Sorry, but you need administrator permissions to change the bot prefix.')
         if isinstance(error, commands.BotMissingPermissions):
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Bot Missing Permissions**\n'
-                           f'Dice Roller have missing permissions to answer you in this channel.\n'
-                           f'You can solve it by adding rights in channel or server management section.')
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'

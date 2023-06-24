@@ -4,7 +4,7 @@ from functions.workhorses import logger
 from functions.config import topgg_enable, topgg_token, log_file
 
 
-# top.gg integration cog
+# TOP.GG INTEGRATION COG
 class Integrations(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

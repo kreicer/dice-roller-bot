@@ -21,7 +21,7 @@ number_of_jokes = 1
 #
 #    @discord.ui.button(label="Use This", style=discord.ButtonStyle.blurple)
 #    async def use_this_button(self, button: discord.ui.Button, interaction: discord.Interaction):
-#        await interaction.response.pong
+#        await interaction.message.edit(content=f'{interaction.user.name}')
 #        await self.ctx.send('Hello!')
 #
 #    @discord.ui.button(label="Dismiss", style=discord.ButtonStyle.gray)
@@ -30,7 +30,7 @@ number_of_jokes = 1
 #        await self.ctx.delete()
 
 
-# jokes cog
+# JOKES COG
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -59,11 +59,13 @@ class Jokes(commands.Cog):
         return number_of_jokes
 
     @_update_jokes.before_loop
-    async def before_printer(self):
+    async def _before_update_jokes(self):
         await self.bot.wait_until_ready()
 
+    # JOKE COMMANDS GROUP
     @commands.hybrid_group(name=j["name"], brief=j["brief"], help=j["help"], aliases=j["aliases"],
                            invoke_without_command=True, with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _joke(self, ctx: commands.Context) -> None:
         prefix = ctx.prefix
         if ctx.invoked_subcommand is None:
@@ -72,8 +74,10 @@ class Jokes(commands.Cog):
                            f'```{prefix}joke tell```'
                            f'```{prefix}joke hear```')
 
+    # JOKE HEAR COMMAND
     @_joke.command(name=j_hear["name"], brief=j_hear["brief"], usage=j_hear["usage"], help=j_hear["help"],
                    with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _joke_hear(self, ctx: commands.Context,
                          everyone: bool = commands.parameter(default=True,
                                                              displayed_default="Yes",
@@ -93,9 +97,11 @@ class Jokes(commands.Cog):
             await ctx.defer(ephemeral=True)
         await ctx.send(f'Today joke is: ```{joke_text}```')
 
+    # JOKE TELL COMMAND
     @_joke.command(name=j_tell["name"], brief=j_tell["brief"], help=j_tell["help"], usage=j_tell["usage"],
                    with_app_command=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
     async def _joke_tell(self, ctx: commands.Context,
                          language: str = commands.parameter(description="Language of joke"),
                          joke: str = commands.parameter(description="Text of joke")) -> None:
@@ -125,19 +131,29 @@ class Jokes(commands.Cog):
     @_joke.error
     async def _joke_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'Dice Roller have missing permissions to answer you in this channel.\n'
-                           f'You can solve it by adding rights in channel or server management section.')
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
+
+    # JOKE HEAR ERRORS HANDLER
+    @_joke_hear.error
+    async def _joke_hear_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
     # JOKE TELL ERRORS HANDLER
     @_joke_tell.error
     async def _joke_tell_error(self, ctx, error):
         prefix = ctx.prefix
         if isinstance(error, commands.BotMissingPermissions):
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Bot Missing Permissions**\n'
-                           f'Dice Roller have missing permissions to answer you in this channel.\n'
-                           f'You can solve it by adding rights in channel or server management section.')
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'

@@ -14,7 +14,7 @@ from models.metrics import commands_counter
 guilds_number = 0
 
 
-# user cog
+# INFO COG
 class Info(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -35,8 +35,10 @@ class Info(commands.Cog):
     async def before_printer(self):
         await self.bot.wait_until_ready()
 
+    # STAT COMMAND
     @commands.hybrid_command(name=st["name"], brief=st["brief"], usage=st["usage"], help=st["help"],
                              with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _stat(self, ctx: commands.Context) -> None:
         commands_counter.labels("stat")
         commands_counter.labels("stat").inc()
@@ -46,8 +48,10 @@ class Info(commands.Cog):
                        f'Shards: {bot_shards}\n'
                        f'Servers: {guilds_number}')
 
+    # ABOUT COMMAND
     @commands.hybrid_command(name=ab["name"], brief=ab["brief"], usage=ab["usage"], help=ab["help"],
                              with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _about(self, ctx: commands.Context) -> None:
         commands_counter.labels("about")
         commands_counter.labels("about").inc()
@@ -59,6 +63,24 @@ class Info(commands.Cog):
                        f'Github: {dev_github}\n'
                        f'Top.gg: {topgg_link}\n'
                        f'Privacy Policy: {community_policy}')
+
+    # STAT ERRORS HANDLER
+    @_stat.error
+    async def _stat_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
+
+    # ABOUT ERRORS HANDLER
+    @_about.error
+    async def _about_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
 
 async def setup(bot: commands.Bot) -> None:

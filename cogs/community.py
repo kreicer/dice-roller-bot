@@ -34,7 +34,7 @@ from models.metrics import commands_counter
 #        await self.context.send("This is help cog")
 
 
-# Community COG
+# COMMUNITY COG
 class Community(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -47,8 +47,10 @@ class Community(commands.Cog):
     #    def cog_unload(self):
     #        self.bot.help_command = self._original_help_command
 
+    # FEEDBACK COMMAND
     @commands.hybrid_command(name=fdk["name"], brief=fdk["brief"], help=fdk["help"], aliases=fdk["aliases"])
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
     async def _send_feedback(self, ctx: commands.Context, *,
                              feedback: str = commands.parameter(description="Your feedback text")) -> None:
         author = ctx.message.author
@@ -65,8 +67,10 @@ class Community(commands.Cog):
         await ctx.defer(ephemeral=True)
         await ctx.send("Thank you for the feedback!")
 
+    # HELLO COMMAND
     @commands.hybrid_command(name=hl["name"], brief=hl["brief"], help=hl["help"], aliases=hl["aliases"])
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
     async def _hello(self, ctx: commands.Context) -> None:
         hello_text = ("Hello, friend!\n"
                       "My name is Dice Roller. I will be your guide in this awesome adventure. "
@@ -91,8 +95,10 @@ class Community(commands.Cog):
         await ctx.defer(ephemeral=True)
         await ctx.send(hello_text)
 
+    # SUPPORT COMMAND
     @commands.hybrid_command(name=sup["name"], brief=sup["brief"], help=sup["help"], aliases=sup["aliases"])
     @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
     async def _support(self, ctx: commands.Context) -> None:
         link = community_support
 
@@ -112,6 +118,11 @@ class Community(commands.Cog):
     # FEEDBACK ERRORS HANDLER
     @_send_feedback.error
     async def _send_feedback_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.BadArgument):
             log_txt = "File exist already "
             logger(log_file, "ERROR", log_txt)
@@ -123,6 +134,24 @@ class Community(commands.Cog):
             await ctx.send(f'**Missing Required Argument**\n'
                            f'You should to write feedback message.'
                            f'Try something like: ```{prefix}feedback Awesome bot!```')
+
+    # HELLO ERRORS HANDLER
+    @_hello.error
+    async def _hello_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
+
+    # SUPPORT ERRORS HANDLER
+    @_support.error
+    async def _support_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
 
 async def setup(bot: commands.Bot) -> None:

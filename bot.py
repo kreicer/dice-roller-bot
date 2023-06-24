@@ -114,9 +114,15 @@ async def on_guild_join(guild):
 async def on_command_error(ctx, error):
     prefix = ctx.prefix
     if isinstance(error, commands.CommandNotFound):
-        await ctx.defer(ephemeral=True)
-        await ctx.send(f'**Command Not Found**\n'
-                       f'Use the "{prefix}help" command to get full list of commands')
+        try:
+            await ctx.defer(ephemeral=True)
+            await ctx.send(f'**Command Not Found**\n'
+                           f'Use the "{prefix}help" command to get full list of commands')
+        except discord.Forbidden:
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Forbidden**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
 
 roller.run(bot_token)

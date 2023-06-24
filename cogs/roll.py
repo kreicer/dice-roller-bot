@@ -29,7 +29,7 @@ from functions.visualizers import (
 )
 
 
-# roll cog
+# ROLL COG
 class Roll(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -40,8 +40,10 @@ class Roll(commands.Cog):
     #    postfix_list = gen_dicts(pfs_dict)
     #    return postfix_list
 
+    # ROLL COMMAND
     @commands.hybrid_command(name=roll["name"], brief=roll["brief"], help=roll["help"], aliases=roll["aliases"],
                              with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _roll(self, ctx: commands.Context, *,
                     rolls: str = commands.parameter(description="Place dice here, split with whitespace")) -> None:
         overall = ""
@@ -109,8 +111,10 @@ class Roll(commands.Cog):
             await asyncio.sleep(5)
         await ctx.send(overall)
 
+    # POSTFIX COMMAND
     @commands.hybrid_command(name=pw["name"], brief=pw["brief"], help=pw["help"], aliases=pw["aliases"],
                              with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def _postfix(self, ctx: commands.Context) -> None:
         pw_list = make_pw_list(ctx.prefix)
 
@@ -120,15 +124,15 @@ class Roll(commands.Cog):
         await ctx.defer(ephemeral=True)
         await ctx.send(pw_list)
 
-    # PREFIX SET ERRORS HANDLER
+    # ROLL ERRORS HANDLER
     @_roll.error
     async def _roll_error(self, ctx, error):
         prefix = ctx.prefix
         if isinstance(error, commands.BotMissingPermissions):
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Bot Missing Permissions**\n'
-                           f'Dice Roller have missing permissions to answer you in this channel.\n'
-                           f'You can solve it by adding rights in channel or server management section.')
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Required Argument**\n'
@@ -144,6 +148,15 @@ class Roll(commands.Cog):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Argument Parsing Error**\n'
                            f'{error_text}')
+
+    # POSTFIX ERRORS HANDLER
+    @_postfix.error
+    async def _postfix_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
 
 async def setup(bot: commands.Bot) -> None:

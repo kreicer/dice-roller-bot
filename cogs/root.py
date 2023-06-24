@@ -9,7 +9,7 @@ from models.commands import extension as ext, extension_load as ext_load, extens
 postfix_list = []
 
 
-# root cog
+# ROOT COG
 class Root(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -25,10 +25,12 @@ class Root(commands.Cog):
     #                   f'Right now list is:\n'
     #                   f'{postfix_list}```')
 
+    # COG COMMANDS GROUP
     # TODO: should add checks for cog is in list
     @commands.hybrid_group(name=ext["name"], brief=ext["brief"], help=ext["help"], aliases=ext["aliases"],
                            invoke_without_command=True, with_app_command=True)
     @commands.is_owner()
+    @commands.bot_has_permissions(send_messages=True)
     async def _extensions(self, ctx: commands.Context) -> None:
         prefix = ctx.prefix
         if ctx.invoked_subcommand is None:
@@ -38,10 +40,12 @@ class Root(commands.Cog):
                            f'```{prefix}cog load```'
                            f'```{prefix}cog unload```')
 
+    # COG LIST COMMAND
     @_extensions.command(name=ext_list["name"], brief=ext_list["brief"], help=ext_list["help"],
                          aliases=ext_list["aliases"], with_app_command=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_owner()
+    @commands.bot_has_permissions(send_messages=True)
     async def _ext_list(self, ctx: commands.Context) -> None:
         extension_list = []
         for extension in os.listdir("./cogs/"):
@@ -50,10 +54,12 @@ class Root(commands.Cog):
         await ctx.defer(ephemeral=True)
         await ctx.send(f'Available cogs list is: ```{extension_list}```')
 
+    # COG LOAD COMMAND
     @_extensions.command(name=ext_load["name"], brief=ext_load["brief"], help=ext_load["help"],
                          aliases=ext_load["aliases"], with_app_command=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_owner()
+    @commands.bot_has_permissions(send_messages=True)
     async def _ext_load(self, ctx: commands.Context,
                         extension: str = commands.parameter(description="Extension name")) -> None:
         try:
@@ -79,10 +85,12 @@ class Root(commands.Cog):
             await ctx.send(f'**No Entry Point Error**\n'
                            f'This cog can not be loaded. Setup function does not exist.')
 
+    # COG UNLOAD COMMAND
     @_extensions.command(name=ext_unload["name"], brief=ext_unload["brief"], help=ext_unload["help"],
                          aliases=ext_unload["aliases"], with_app_command=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.is_owner()
+    @commands.bot_has_permissions(send_messages=True)
     async def _ext_unload(self, ctx: commands.Context,
                           extension: str = commands.parameter(description="Extension name")) -> None:
         try:
@@ -113,9 +121,18 @@ class Root(commands.Cog):
     #        await ctx.send(f'```Sorry, but this command is on cooldown.\n'
     #                       f'You can use it in {round(error.retry_after, 2)} sec.```')
 
-    # COG COMMANDS ERRORS HANDLE
+    # COG ERRORS HANDLER
+    @_extensions.error
+    async def _extensions_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
+
+    # COG LIST ERRORS HANDLER
     @_ext_list.error
-    async def ext_list_error(self, ctx, error):
+    async def _ext_list_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Permissions**\n'
@@ -125,9 +142,15 @@ class Root(commands.Cog):
             await ctx.send(f'**Command On Cooldown**\n'
                            f'This command is on cooldown.\n'
                            f'You can use it in {round(error.retry_after, 2)} sec.')
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
+    # COG LOAD ERRORS HANDLER
     @_ext_load.error
-    async def ext_load_error(self, ctx, error):
+    async def _ext_load_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Permissions**\n'
@@ -137,9 +160,15 @@ class Root(commands.Cog):
             await ctx.send(f'**Command On Cooldown**\n'
                            f'This command is on cooldown.\n'
                            f'You can use it in {round(error.retry_after, 2)} sec.')
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
+    # COG UNLOAD ERRORS HANDLER
     @_ext_unload.error
-    async def ext_unload_error(self, ctx, error):
+    async def _ext_unload_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Permissions**\n'
@@ -149,6 +178,11 @@ class Root(commands.Cog):
             await ctx.send(f'**Command On Cooldown**\n'
                            f'This command is on cooldown.\n'
                            f'You can use it in {round(error.retry_after, 2)} sec.')
+        if isinstance(error, commands.BotMissingPermissions):
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
 
 async def setup(bot: commands.Bot) -> None:

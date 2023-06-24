@@ -3,6 +3,7 @@ from prometheus_client import start_http_server
 from functions.config import metrics_port, metrics_enable
 
 
+# METRICS COG
 class Metrics(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
