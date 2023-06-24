@@ -64,6 +64,14 @@ postfixes = {
         "description": "Reroll dice with result on value or lower",
         "example": "roll 2d20/rr:2",
         "enabled": True
+    },
+    "x": {
+        "name": "Multiplier",
+        "aliases": ["multiplier"],
+        "default_value": 2,
+        "description": "Multiply the number of dice rolls by the value",
+        "example": "roll 2d20/x:3",
+        "enabled": True
     }
 }
 
@@ -85,5 +93,7 @@ aliases = {
     "pen": "pen",
     "penetrate": "pen",
     "rr": "rr",
-    "reroll": "rr"
+    "reroll": "rr",
+    "x": "x",
+    "multiplier": "x"
 }

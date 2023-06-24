@@ -4,7 +4,8 @@ from functions.checks import (check_value_vs_throws as check_v_v_t,
                               check_edge_vs_two as check_e_v_t,
                               check_value_for_explode as check_v_exp,
                               check_value_for_penetrate as check_v_pen,
-                              check_value_vs_edge as check_v_v_e)
+                              check_value_vs_edge as check_v_v_e,
+                              check_value_for_multiply as check_v_f_mul)
 
 
 def postfix_magick(throws_result_list, dice_parts):
@@ -115,6 +116,15 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("keep_highest")
             postfix_counter.labels("keep_highest").inc()
             return new_throws_result_list
+
+        case "x":
+            check_v_f_mul(throws, value)
+            counter = (throws * value) - throws
+            while counter:
+                additional_roll = dice_roll(1, edge)
+                throws_result_list += additional_roll
+                counter -= 1
+            return throws_result_list
 
         # do nothing
         case _:

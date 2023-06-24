@@ -136,3 +136,12 @@ def check_value_for_penetrate(value):
     if value == 1:
         error_text = "Penetrating dice can not be rolled with value equal to 1 - protection from infinity loop"
         raise commands.BadArgument(None, error_text)
+
+
+def check_value_for_multiply(throws, value):
+    if value > r_limit:
+        error_text = f"Multiplier value cannot be higher than current rolls limit {r_limit}"
+        raise commands.BadArgument(None, error_text)
+    elif throws * value > r_limit:
+        error_text = f"Multiplied throws number cannot be higher than current roll limit {r_limit}"
+        raise commands.BadArgument(None, error_text)
