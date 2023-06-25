@@ -124,6 +124,8 @@ def postfix_magick(throws_result_list, dice_parts):
                 additional_roll = dice_roll(1, edge)
                 throws_result_list += additional_roll
                 counter -= 1
+            postfix_counter.labels("multiplier")
+            postfix_counter.labels("multiplier").inc()
             return throws_result_list
 
         # do nothing
