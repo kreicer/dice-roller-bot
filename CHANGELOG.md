@@ -1,3 +1,15 @@
+## Version 2.0.4
+New
+- new postfixes - keep lowest, keep highest, multiplier
+- new metrics for errors
+
+Improved
+- limit dice edges in dice metrics
+- add many errors handlers
+
+Fixed
+- some typos in text
+
 ## Version 2.0.3
 New
 - new command "support" of "community" section send you invite to community server
