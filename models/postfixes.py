@@ -67,7 +67,7 @@ postfixes = {
     },
     "x": {
         "name": "Multiplier",
-        "aliases": ["multiplier"],
+        "aliases": ["multiplier", "x"],
         "default_value": 2,
         "description": "Multiply the number of dice rolls by the value",
         "example": "roll 2d20/x:3",
