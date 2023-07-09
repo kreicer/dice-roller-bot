@@ -9,7 +9,7 @@ from functions.config import db_admin, dev_link, log_file
 
 
 # ADMIN COG
-class Admin(commands.Cog):
+class Server(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
 
@@ -153,4 +153,4 @@ class Admin(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(Admin(bot))
+    await bot.add_cog(Server(bot))
