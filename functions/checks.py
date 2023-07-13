@@ -2,7 +2,7 @@ from lang.list import available_languages as lang_list
 from models.postfixes import postfixes as postfix_dict, aliases as aliases_dict
 from discord.ext import commands
 from pathlib import Path
-from models.limits import edge_limit as e_limit, roll_limit as r_limit
+from models.limits import edge_limit as e_limit, roll_limit as r_limit, modifier_limit as m_limit
 
 
 # check limits
@@ -33,14 +33,16 @@ def check_file_exist(filename):
 
 def check_dice_dict(dice_dict):
     dice_dict["mod"] = check_mod(dice_dict["mod"])
-    dice_dict["throws"] = check_throws(dice_dict["throws"])
-    dice_dict["type"] = 0
     if dice_dict["delimiter"] == "d":
+        dice_dict["throws"] = check_throws(dice_dict["throws"])
         dice_dict["edge"] = check_edge(dice_dict["edge"])
         if isinstance(dice_dict["edge"], int):
             dice_dict["type"] = 1
         else:
             dice_dict["type"] = 3
+    else:
+        dice_dict["throws"] = check_modifier(dice_dict["throws"])
+        dice_dict["type"] = 0
     if dice_dict["separator"] == "/":
         dice_dict["postfix"] = check_postfix(dice_dict["postfix"], aliases_dict)
         default_value = postfix_dict[dice_dict["postfix"]]["default_value"]
@@ -69,8 +71,19 @@ def check_throws(throws):
         raise commands.BadArgument(None, error_text)
     else:
         throws = int(throws)
-        error_text = f"Dice edge value ({throws}) is greater than the current limit of {r_limit}"
+        error_text = f"Number of throws ({throws}) is greater than the current limit of {r_limit}"
         check_limit(throws, r_limit, error_text)
+    return throws
+
+
+def check_modifier(throws):
+    if throws == "0":
+        error_text = "Modifier can not be zero."
+        raise commands.BadArgument(None, error_text)
+    else:
+        throws = int(throws)
+        error_text = f"Modifier ({throws}) is greater than the current limit of {m_limit}"
+        check_limit(throws, m_limit, error_text)
     return throws
 
 
