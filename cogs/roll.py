@@ -15,7 +15,8 @@ from functions.workhorses import (
     fate_result,
     add_mod_result,
     sub_mod_result,
-    make_pw_list
+    generate_postfix_short_output,
+    generate_postfix_help
 )
 from functions.postfixes import postfix_magick
 from functions.checks import check_limit
@@ -115,14 +116,20 @@ class Roll(commands.Cog):
     @commands.hybrid_command(name=pw["name"], brief=pw["brief"], help=pw["help"], aliases=pw["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def _postfix(self, ctx: commands.Context) -> None:
-        pw_list = make_pw_list(ctx.prefix)
+    async def _postfix(self, ctx: commands.Context,
+                       postfix: str = commands.parameter(default="all",
+                                                         displayed_default="Yes",
+                                                         description="Postfix short name")) -> None:
+        if postfix.lower() == "all":
+            result = generate_postfix_short_output(ctx.prefix)
+        else:
+            result = generate_postfix_help(ctx.prefix, postfix.lower())
 
         commands_counter.labels("postfix")
         commands_counter.labels("postfix").inc()
 
         await ctx.defer(ephemeral=True)
-        await ctx.send(pw_list)
+        await ctx.send(result)
 
     # ROLL ERRORS HANDLER
     @_roll.error
@@ -167,6 +174,13 @@ class Roll(commands.Cog):
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
+        if isinstance(error, commands.BadArgument):
+            errors_counter.labels("postfix", "BadArgument")
+            errors_counter.labels("postfix", "BadArgument").inc()
+            error_text = error.args[0]
+            await ctx.defer(ephemeral=True)
+            await ctx.send(f'**Bad Argument**\n'
+                           f'{error_text}')
 
 
 async def setup(bot: commands.Bot) -> None:

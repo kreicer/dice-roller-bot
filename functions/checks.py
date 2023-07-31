@@ -105,7 +105,7 @@ def check_postfix(postfix, aliases):
         error_text = "Alias to \"Postfix\" can not be empty."
         raise commands.BadArgument(None, error_text)
     elif postfix not in aliases.keys():
-        error_text = "Can not find this alias to exist \"Postfix\".\n" \
+        error_text = "Can not find this alias to existing \"Postfix\".\n" \
                      "You can list all available \"Postfixes\" with: ```/postfix```"
         raise commands.BadArgument(None, error_text)
     else:
@@ -157,4 +157,11 @@ def check_value_for_multiply(throws, value):
         raise commands.BadArgument(None, error_text)
     elif throws * value > r_limit:
         error_text = f"Multiplied throws number cannot be higher than current roll limit {r_limit}"
+        raise commands.BadArgument(None, error_text)
+
+
+def check_postfix_is_right_and_available(postfix):
+    if postfix not in postfix_dict.keys():
+        error_text = "Can not find this short name to existing \"Postfix\".\n" \
+                     "You can list all available \"Postfixes\" with: ```/postfix```"
         raise commands.BadArgument(None, error_text)

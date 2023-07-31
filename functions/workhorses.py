@@ -3,7 +3,13 @@ import re
 import uuid
 import datetime
 import random
-from functions.checks import check_match, check_dice_dict, check_file_exist, check_limit
+from functions.checks import (
+    check_match,
+    check_dice_dict,
+    check_file_exist,
+    check_limit,
+    check_postfix_is_right_and_available
+)
 from models.limits import dice_limit
 from models.postfixes import postfixes
 from models.metrics import dice_edge_counter, edge_valid
@@ -110,13 +116,39 @@ def sub_mod_result(total_result, mod_amount):
     return total_mod_result
 
 
-def make_pw_list(prefix):
-    pw_list = ""
+def generate_postfix_short_output(prefix):
+    green_start = "[0;32m"
+    gray_start = "[0;30m"
+    all_end = "[0;0m"
+    output = f"```ansi\n{green_start}POSTFIXES{all_end}\n\n"
     for postfix in postfixes:
         if postfixes[postfix]["enabled"]:
-            pw_list += "**" + postfixes[postfix]["name"] + "**" + "\n"
-            pw_list += postfixes[postfix]["description"] + "\n"
-            pw_list += "*Aliases*: " + str(postfixes[postfix]["aliases"]) + "\n"
-            pw_list += "*Example*: " + prefix + postfixes[postfix]["example"] + "\n"
-            pw_list += "○ ○ ○ ○ ○ ○ ○ \n"
-    return pw_list
+            output += "- "
+            output += f"{green_start}{postfix}{gray_start}{all_end}"
+            output += " - "
+            output += f"{postfixes[postfix]['shorty']}\n"
+    output += "\n\n"
+    output += "Postfix position in dice structure\n"
+    output += f"{gray_start}<throws>d<edge>/{green_start}<postfix>{gray_start}:<value>{all_end}\n\n"
+    output += f"{gray_start}For detailed info about each postfix use postfix command with postfix argument. "
+    output += f"Example: {prefix}postfix rr{all_end}```"
+    return output
+
+
+def generate_postfix_help(prefix, postfix):
+    check_postfix_is_right_and_available(postfix)
+    green_start = "[0;32m"
+    gray_start = "[0;30m"
+    blue_start = "[0;34m"
+    all_end = "[0;0m"
+    default = postfixes[postfix]['default_value']
+    if default == "":
+        default = "max"
+    output = f"```ansi\n{green_start}{postfixes[postfix]['name'].upper()}{all_end}\n\n"
+    output += f"{postfixes[postfix]['description']}\n\n"
+    output += f"Aliases: {blue_start}{postfixes[postfix]['aliases']}{all_end}\n"
+    output += f"Example: {blue_start}{prefix}{postfixes[postfix]['example']}{all_end}\n"
+    output += f"Default value: {blue_start}{default}{all_end}\n\n"
+    output += f"{gray_start}For list all postfixes use postfix command with default argument. "
+    output += f"Example: {prefix}postfix{all_end}```"
+    return output
