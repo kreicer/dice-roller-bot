@@ -28,6 +28,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
+from classes.ui import PostfixView
 
 
 # ROLL COG
@@ -128,8 +129,9 @@ class Roll(commands.Cog):
         commands_counter.labels("postfix")
         commands_counter.labels("postfix").inc()
 
+        view = PostfixView()
         await ctx.defer(ephemeral=True)
-        await ctx.send(result)
+        await ctx.send(result, view=view)
 
     # ROLL ERRORS HANDLER
     @_roll.error
