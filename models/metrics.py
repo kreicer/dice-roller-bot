@@ -28,5 +28,8 @@ ui_button_counter = Counter("ui_button_click_counter", "Counter for buttons", ["
 # ui modals
 ui_modals_counter = Counter("ui_modals_submit_counter", "Counter for modals", ["cmd", "modal"])
 
+# ui select
+ui_selects_counter = Counter("ui_selects_counter", "Counter for selects", ["cmd", "select"])
+
 # ui errors
 ui_errors_counter = Counter("ui_errors_counter", "Counter for errors in ui", ["cmd", "ui", "error"])

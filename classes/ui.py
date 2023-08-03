@@ -2,9 +2,36 @@ import traceback
 import discord
 
 from functions.config import dir_feedback, log_file
-from functions.workhorses import text_writer, logger
-from models.metrics import ui_button_counter, ui_modals_counter
+from functions.workhorses import text_writer, logger, generate_postfix_short_output, generate_postfix_help
+from models.metrics import ui_button_counter, ui_modals_counter, ui_selects_counter
 from models.postfixes import postfixes
+
+
+class PostfixSelector(discord.ui.View):
+    def __init__(self, *, timeout=None):
+        super().__init__(timeout=timeout)
+
+    postfixes_list = []
+    for item in postfixes.keys():
+        if postfixes[item]["enabled"]:
+            postfixes_list.append(item)
+    options_list = []
+    for item in postfixes_list:
+        opt = discord.SelectOption(label=postfixes[item]["name"], value=item)
+        options_list.append(opt)
+    all = discord.SelectOption(label="List postfixes", value="all")
+    options_list.insert(0, all)
+
+    @discord.ui.select(placeholder="Select the postfix...", min_values=1, max_values=1, options=options_list)
+    async def _report_button(self, interaction: discord.Interaction, select: discord.ui.Select):
+        postfix = select.values[0]
+        if postfix == "all":
+            result = generate_postfix_short_output()
+        else:
+            result = generate_postfix_help(postfix.lower())
+        ui_selects_counter.labels("postfix", postfix)
+        ui_selects_counter.labels("postfix", postfix).inc()
+        await interaction.response.edit_message(content=result)
 
 
 class Feedback(discord.ui.Modal, title="Feedback"):

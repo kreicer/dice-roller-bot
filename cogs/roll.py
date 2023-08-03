@@ -15,8 +15,7 @@ from functions.workhorses import (
     fate_result,
     add_mod_result,
     sub_mod_result,
-    generate_postfix_short_output,
-    generate_postfix_help
+    generate_postfix_short_output
 )
 from functions.postfixes import postfix_magick
 from functions.checks import check_limit
@@ -28,7 +27,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from classes.ui import PostfixView
+from classes.ui import PostfixSelector
 
 
 # ROLL COG
@@ -117,19 +116,13 @@ class Roll(commands.Cog):
     @commands.hybrid_command(name=pw["name"], brief=pw["brief"], help=pw["help"], aliases=pw["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def _postfix(self, ctx: commands.Context,
-                       postfix: str = commands.parameter(default="all",
-                                                         displayed_default="Yes",
-                                                         description="Postfix short name")) -> None:
-        if postfix.lower() == "all":
-            result = generate_postfix_short_output(ctx.prefix)
-        else:
-            result = generate_postfix_help(ctx.prefix, postfix.lower())
+    async def _postfix(self, ctx: commands.Context) -> None:
+        result = generate_postfix_short_output()
 
         commands_counter.labels("postfix")
         commands_counter.labels("postfix").inc()
 
-        view = PostfixView()
+        view = PostfixSelector()
         await ctx.defer(ephemeral=True)
         await ctx.send(result, view=view)
 

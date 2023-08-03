@@ -116,7 +116,7 @@ def sub_mod_result(total_result, mod_amount):
     return total_mod_result
 
 
-def generate_postfix_short_output(prefix):
+def generate_postfix_short_output():
     green_start = "[0;32m"
     gray_start = "[0;30m"
     all_end = "[0;0m"
@@ -130,15 +130,13 @@ def generate_postfix_short_output(prefix):
     output += "\n\n"
     output += "Postfix position in dice structure\n"
     output += f"{gray_start}<throws>d<edge>/{green_start}<postfix>{gray_start}:<value>{all_end}\n\n"
-    output += f"{gray_start}For detailed info about each postfix use postfix command with postfix argument. "
-    output += f"Example: {prefix}postfix rr{all_end}```"
+    output += f"{gray_start}For detailed info about each postfix use selector below```"
     return output
 
 
-def generate_postfix_help(prefix, postfix):
+def generate_postfix_help(postfix):
     check_postfix_is_right_and_available(postfix)
     green_start = "[0;32m"
-    gray_start = "[0;30m"
     blue_start = "[0;34m"
     all_end = "[0;0m"
     default = postfixes[postfix]['default_value']
@@ -147,8 +145,6 @@ def generate_postfix_help(prefix, postfix):
     output = f"```ansi\n{green_start}{postfixes[postfix]['name'].upper()}{all_end}\n\n"
     output += f"{postfixes[postfix]['description']}\n\n"
     output += f"Aliases: {blue_start}{postfixes[postfix]['aliases']}{all_end}\n"
-    output += f"Example: {blue_start}{prefix}{postfixes[postfix]['example']}{all_end}\n"
-    output += f"Default value: {blue_start}{default}{all_end}\n\n"
-    output += f"{gray_start}For list all postfixes use postfix command with default argument. "
-    output += f"Example: {prefix}postfix{all_end}```"
+    output += f"Example: {blue_start}/{postfixes[postfix]['example']}{all_end}\n"
+    output += f"Default value: {blue_start}{default}{all_end}```"
     return output
