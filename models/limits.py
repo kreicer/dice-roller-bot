@@ -7,3 +7,5 @@ roll_limit = 50
 modifier_limit = 1000000
 joke_limit = 250
 visual_dice_label_limit = 40
+shortcuts_limit = 10
+shortcut_name_limit = 15

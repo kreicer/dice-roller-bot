@@ -1,33 +1,73 @@
 import sqlite3
 import random
+
+import discord
 from discord.ext import commands, tasks
-from models.commands import joke as j, joke_hear as j_hear, joke_tell as j_tell
-from models.limits import joke_limit
-from functions.checks import check_limit, check_lang
-from functions.workhorses import text_writer, logger
+
+from classes.ui import Feedback
+from models.commands import joke as j
+from functions.workhorses import text_writer, logger, generate_joke_output
 from functions.config import db_jokes, dir_jokes, log_file
-from lang.list import available_languages as lang_list
-from models.metrics import commands_counter, errors_counter
+from models.metrics import commands_counter, errors_counter, ui_modals_counter, ui_button_counter
 
 # global
 number_of_jokes = 1
 
 
-# for higher versions
-# class Buttons(discord.ui.View):
-#    def __init__(self, ctx):
-#        super().__init__(timeout=None)
-#        self.ctx = ctx
-#
-#    @discord.ui.button(label="Use This", style=discord.ButtonStyle.blurple)
-#    async def use_this_button(self, button: discord.ui.Button, interaction: discord.Interaction):
-#        await interaction.message.edit(content=f'{interaction.user.name}')
-#        await self.ctx.send('Hello!')
-#
-#    @discord.ui.button(label="Dismiss", style=discord.ButtonStyle.gray)
-#    async def dismiss_button(self, button: discord.ui.Button, interaction: discord.Interaction):
-#        await interaction.command.joke
-#        await self.ctx.delete()
+# JOKES UI
+class SubmitJoke(Feedback, title="Submit joke"):
+    joke_text = discord.ui.TextInput(
+        label="Joke",
+        style=discord.TextStyle.long,
+        placeholder="Write your joke text here...",
+        required=True,
+        min_length=10,
+        max_length=3000,
+        row=2
+    )
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        username = self.username.value
+        joke_text = self.joke_text.value
+
+        text = f"username: \"{username}\"\n" \
+               f"joke: \"{joke_text}\"\n"
+        text_writer(text, dir_jokes)
+
+        log_txt = f"[ joke -> button 'submit joke' ] New joke was posted by {username}"
+        logger(log_file, "INFO", log_txt)
+        ui_modals_counter.labels("joke", "submit")
+        ui_modals_counter.labels("joke", "submit").inc()
+        await interaction.response.send_message("Thanks for your joke!", ephemeral=True)
+
+
+class JokesView(discord.ui.View):
+    def __init__(self, *, timeout=None):
+        super().__init__(timeout=timeout)
+
+    @discord.ui.button(label="Another joke", style=discord.ButtonStyle.blurple, emoji="😜")
+    async def _another_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        random_joke_number = random.randint(1, number_of_jokes)
+        joke_id = random_joke_number
+        db = sqlite3.connect(db_jokes)
+        cur = db.cursor()
+        sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
+        cur.execute(sql_joke, [random_joke_number])
+        joke_text = cur.fetchone()[0]
+        db.close()
+
+        result = generate_joke_output(joke_id, joke_text)
+
+        ui_button_counter.labels("joke", "another")
+        ui_button_counter.labels("joke", "another").inc()
+        await interaction.response.edit_message(content=result)
+
+    @discord.ui.button(label="Submit joke", style=discord.ButtonStyle.blurple, emoji="📝")
+    async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        modal = SubmitJoke()
+        ui_button_counter.labels("joke", "submit")
+        ui_button_counter.labels("joke", "submit").inc()
+        await interaction.response.send_modal(modal)
 
 
 # JOKES COG
@@ -63,30 +103,12 @@ class Jokes(commands.Cog):
         await self.bot.wait_until_ready()
 
     # JOKE COMMANDS GROUP
-    @commands.hybrid_group(name=j["name"], brief=j["brief"], help=j["help"], aliases=j["aliases"],
-                           invoke_without_command=True, with_app_command=True)
+    @commands.hybrid_command(name=j["name"], brief=j["brief"], help=j["help"], aliases=j["aliases"],
+                             invoke_without_command=True, with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _joke(self, ctx: commands.Context) -> None:
-        prefix = ctx.prefix
-
-        commands_counter.labels("joke")
-        commands_counter.labels("joke").inc()
-
-        if ctx.invoked_subcommand is None:
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'Please choose: you want to tell joke or hear it.'
-                           f'```{prefix}joke tell```'
-                           f'```{prefix}joke hear```')
-
-    # JOKE HEAR COMMAND
-    @_joke.command(name=j_hear["name"], brief=j_hear["brief"], usage=j_hear["usage"], help=j_hear["help"],
-                   with_app_command=True)
-    @commands.bot_has_permissions(send_messages=True)
-    async def _joke_hear(self, ctx: commands.Context,
-                         everyone: bool = commands.parameter(default=True,
-                                                             displayed_default="Yes",
-                                                             description="Send to channel")) -> None:
         random_joke_number = random.randint(1, number_of_jokes)
+        joke_id = random_joke_number
         db = sqlite3.connect(db_jokes)
         cur = db.cursor()
         sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
@@ -94,42 +116,17 @@ class Jokes(commands.Cog):
         joke_text = cur.fetchone()[0]
         db.close()
 
-        commands_counter.labels("joke_hear")
-        commands_counter.labels("joke_hear").inc()
+        result = generate_joke_output(joke_id, joke_text)
 
-        if not everyone:
-            await ctx.defer(ephemeral=True)
-        await ctx.send(f'Today joke is: ```{joke_text}```')
+        view = JokesView()
+        view.add_item(discord.ui.Button(label="Rate jokes", style=discord.ButtonStyle.link,
+                                        url="https://discord.gg/TuXxE57kqy", emoji="🤩"))
 
-    # JOKE TELL COMMAND
-    @_joke.command(name=j_tell["name"], brief=j_tell["brief"], help=j_tell["help"], usage=j_tell["usage"],
-                   with_app_command=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.bot_has_permissions(send_messages=True)
-    async def _joke_tell(self, ctx: commands.Context,
-                         language: str = commands.parameter(description="Language of joke"),
-                         joke: str = commands.parameter(description="Text of joke")) -> None:
-        joke_len = len(joke)
-        for_error = {
-            "lang": language,
-            "joke": joke
-        }
-        language = language.upper()
-        check_lang(language, for_error)
-        check_limit(joke_len, joke_limit, for_error)
-        author = ctx.message.author
-        joke = "\"" + joke + "\""
-        text_writer(language + ": " + joke, dir_jokes)
-        # Logger
-        log_txt = "New joke was posted by " + str(author)
-        logger(log_file, "INFO", log_txt)
+        commands_counter.labels("joke")
+        commands_counter.labels("joke").inc()
 
-        commands_counter.labels("joke_tell")
-        commands_counter.labels("joke_tell").inc()
-
-        # Output
         await ctx.defer(ephemeral=True)
-        await ctx.send(f'Your joke is accepted! ```Language of joke: {language}\nJoke text: {joke}```')
+        await ctx.send(result, view=view)
 
     # JOKE ERRORS HANDLER
     @_joke.error
@@ -141,68 +138,6 @@ class Jokes(commands.Cog):
             await dm.send(f'**Bot Missing Permissions**\n'
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
-
-    # JOKE HEAR ERRORS HANDLER
-    @_joke_hear.error
-    async def _joke_hear_error(self, ctx, error):
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("joke_hear", "BotMissingPermissions")
-            errors_counter.labels("joke_hear", "BotMissingPermissions").inc()
-            dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
-
-    # JOKE TELL ERRORS HANDLER
-    @_joke_tell.error
-    async def _joke_tell_error(self, ctx, error):
-        prefix = ctx.prefix
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("joke_tell", "BotMissingPermissions")
-            errors_counter.labels("joke_tell", "BotMissingPermissions").inc()
-            dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
-        if isinstance(error, commands.MissingRequiredArgument):
-            errors_counter.labels("joke_tell", "MissingRequiredArgument")
-            errors_counter.labels("joke_tell", "MissingRequiredArgument").inc()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Missing Required Argument**\n'
-                           f'Specify valid arguments: language of joke and joke text, please. '
-                           f'Example: ```{prefix}joke tell EN \"Joke text...\"```')
-        if isinstance(error, commands.ArgumentParsingError):
-            errors_counter.labels("joke_tell", "ArgumentParsingError")
-            errors_counter.labels("joke_tell", "ArgumentParsingError").inc()
-            error_dict = error.args[0]
-            joke_text = error_dict["joke"]
-            lang = error_dict["lang"]
-            shorter_joke = joke_text[:joke_limit - 2]
-            joke_len = len(joke_text)
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Argument Parsing Error**\n'
-                           f'Make your joke shorter, please.\n'
-                           f'The submitted joke has length {joke_len}. It is greater than the limit '
-                           f'in {joke_limit} symbols. Example:'
-                           f'```{prefix}joke tell {lang} \"{shorter_joke}\"```')
-        if isinstance(error, commands.BadArgument):
-            errors_counter.labels("joke_tell", "BadArgument")
-            errors_counter.labels("joke_tell", "BadArgument").inc()
-            error_dict = error.args[0]
-            joke_text = error_dict["joke"]
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Bad Argument**\n'
-                           f'Chosen language not in list of available languages.\n'
-                           f'Please, ensure you choose one of this languages {lang_list}. '
-                           f'Or contact support server with add language request. Example:'
-                           f'```{prefix}joke tell EN \"{joke_text}\"```')
-        if isinstance(error, commands.CommandOnCooldown):
-            errors_counter.labels("joke_tell", "CommandOnCooldown")
-            errors_counter.labels("joke_tell", "CommandOnCooldown").inc()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Command On Cooldown**\n'
-                           f'This command is on cooldown.\n'
-                           f'You can use it in {round(error.retry_after, 2)} sec.')
 
 
 async def setup(bot: commands.Bot) -> None:

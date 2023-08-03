@@ -148,3 +148,13 @@ def generate_postfix_help(postfix):
     output += f"Example: {blue_start}/{postfixes[postfix]['example']}{all_end}\n"
     output += f"Default value: {blue_start}{default}{all_end}```"
     return output
+
+
+def generate_joke_output(joke_id, joke_text):
+    green_start = "[0;32m"
+    all_end = "[0;0m"
+    output = f"```ansi\n" \
+             f"{green_start}Joke #{joke_id}{all_end}\n\n" \
+             f"{joke_text}\n" \
+             f"```"
+    return output

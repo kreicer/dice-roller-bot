@@ -1,5 +1,3 @@
-from lang.list import available_languages as lang_list
-
 # info for command about
 about = {
     "name": "about",
@@ -31,24 +29,6 @@ joke = {
     "aliases": ["j"],
     "brief": "Command to get or tell jokes",
     "help": "Command to get or tell DnD or another roleplay jokes"
-}
-# info for subcommand tell command joke
-joke_tell = {
-    "name": "tell",
-    "usage": "LANG",
-    "aliases": ["tell"],
-    "brief": "Tell a roleplay joke",
-    "help": f"Submit a joke for bot.\n"
-            f"Select LANG for joke from list:\n{lang_list}\n"
-            f"Add joke text in quotation marks."
-}
-# info for subcommand hear command joke
-joke_hear = {
-    "name": "hear",
-    "usage": "LANG",
-    "aliases": ["hear"],
-    "brief": "Get a roleplay joke",
-    "help": "Bot post a random roleplay joke from collection"
 }
 # info for command roll
 roll = {
@@ -147,4 +127,36 @@ support = {
     "aliases": ["sup"],
     "brief": "Invite you to support server",
     "help": "Invite you to community support server where you can ask for help, suggest improvement or just chat"
+}
+# info for command shortcut
+shortcut = {
+    "name": "shortcut",
+    "usage": "",
+    "aliases": ["srt"],
+    "brief": "Manage server's shortcuts (admin only)",
+    "help": "Manage server's shortcuts for all users on server"
+}
+# info for command shortcut
+shortcut_list = {
+    "name": "list",
+    "usage": "",
+    "aliases": ["srt_list"],
+    "brief": "List server's shortcuts",
+    "help": "List all server's shortcuts"
+}
+# info for command shortcut
+shortcut_add = {
+    "name": "add",
+    "usage": "word dice",
+    "aliases": ["srt_add"],
+    "brief": "Add new shortcut",
+    "help": "Add new shortcut on the server for all users"
+}
+# info for command shortcut
+shortcut_remove = {
+    "name": "remove",
+    "usage": "shortcut",
+    "aliases": ["srt_rmv"],
+    "brief": "Remove existing shortcut",
+    "help": "Remove existing shortcut from server for all users"
 }

@@ -1,10 +1,12 @@
 import asyncio
 
+import discord
 from discord.ext import commands  # , tasks
 from models.commands import roll as roll, postfix as pw
+from models.postfixes import postfixes
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
-from models.metrics import commands_counter, errors_counter
+from models.metrics import commands_counter, errors_counter, ui_selects_counter
 # from functions.workhorses import generate_dicts as gen_dicts
 from functions.workhorses import (
     split_on_dice,
@@ -15,7 +17,7 @@ from functions.workhorses import (
     fate_result,
     add_mod_result,
     sub_mod_result,
-    generate_postfix_short_output
+    generate_postfix_short_output, generate_postfix_help
 )
 from functions.postfixes import postfix_magick
 from functions.checks import check_limit
@@ -27,7 +29,34 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from classes.ui import PostfixSelector
+
+
+# POSTFIX UI
+class PostfixSelector(discord.ui.View):
+    def __init__(self, *, timeout=None):
+        super().__init__(timeout=timeout)
+
+    postfixes_list = []
+    for item in postfixes.keys():
+        if postfixes[item]["enabled"]:
+            postfixes_list.append(item)
+    options_list = []
+    for item in postfixes_list:
+        opt = discord.SelectOption(label=postfixes[item]["name"], value=item)
+        options_list.append(opt)
+    all = discord.SelectOption(label="List postfixes", value="all")
+    options_list.insert(0, all)
+
+    @discord.ui.select(placeholder="Select the postfix...", min_values=1, max_values=1, options=options_list)
+    async def _postfix_selector(self, interaction: discord.Interaction, select: discord.ui.Select):
+        postfix = select.values[0]
+        if postfix == "all":
+            result = generate_postfix_short_output()
+        else:
+            result = generate_postfix_help(postfix.lower())
+        ui_selects_counter.labels("postfix", postfix)
+        ui_selects_counter.labels("postfix", postfix).inc()
+        await interaction.response.edit_message(content=result)
 
 
 # ROLL COG
