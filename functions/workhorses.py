@@ -81,6 +81,7 @@ def dice_roll(throws, edge):
     if edge in edge_valid:
         dice_edge_counter.labels(edge)
         dice_edge_counter.labels(edge).inc(throws)
+        dice_edge_counter.labels("all").inc(throws)
     return dice_roll_result
 
 
@@ -91,6 +92,7 @@ def fate_roll(throws):
         dice_roll_result.append(roll_result)
     dice_edge_counter.labels("F")
     dice_edge_counter.labels("F").inc(throws)
+    dice_edge_counter.labels("all").inc(throws)
     return dice_roll_result
 
 
