@@ -119,7 +119,7 @@ class Roll(commands.Cog):
                                          dice_parts["postfix"], ":", dice_parts["value"])
                 visual_bucket += visual_dice
                 if dice_parts["mod"] == "-":
-                    if dice_parts["type"] != 3:
+                    if dice_parts["type"] < 3:
                         throws_result_list = make_subzero(throws_result_list)
                         visual_list += throws_result_list
                     else:
