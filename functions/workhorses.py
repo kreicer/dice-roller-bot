@@ -104,6 +104,7 @@ def cod_wod_roll(throws, value):
             dice_roll_result.append(roll_result)
     dice_edge_counter.labels("Darkness").inc(throws)
     dice_edge_counter.labels("all").inc(throws)
+    return dice_roll_result
 
 def cod_wod_results(dice_result,edge,failure):
     total_result = sum(1 for i in dice_result if i >= edge)
