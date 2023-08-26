@@ -60,10 +60,8 @@ def split_on_dice(bucket):
     list_of_dice = []
     dice = ""
     for i in str_list:
-        if i in ["+", "-"]:
-            dice += i
-        else:
-            dice += i
+        dice += i
+        if i not in ["+", "-"]:
             list_of_dice.append(dice)
             dice = ""
     len_for_check = len(list_of_dice)
