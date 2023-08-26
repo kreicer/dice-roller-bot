@@ -13,6 +13,8 @@ from functions.workhorses import (
     split_on_parts,
     dice_roll,
     fate_roll,
+    cod_wod_roll,
+    cod_wod_results,
     calc_result,
     fate_result,
     add_mod_result,
