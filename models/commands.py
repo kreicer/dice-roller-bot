@@ -43,7 +43,11 @@ roll = {
             - single dice with Postfix: 3d20/dl:1\n \
             - single dice with Postfix and modifiers: 2d8/dh+2\n \
             - multiple dice with Postfix and modifiers: 3d6/exp+2 2d20/dl-1\n \
-            - fate/fudge dice: 4dF d4+2dF 10df-5 (postfixes didn't work with this dice type)"
+            - fate/fudge dice: 4dF d4+2dF 10df-5 (postfixes didn't work with this dice type)\n \
+            - Chronicles of Darkness dice: 6cod10 for normal, 6cod9 for \'9-again\' or 6cod8 for \'8-again\'. First value is dice pool. \
+            Modifiers at the end will add/subtract successes. Not compatible with postfixes.\n \
+            - World of Darkness dice: 6wod6. First number is dice pool. Second number is difficulty rating. \
+            Modifiers at the end will add/subtract successes. Not compatible with postfixes."
 }
 # info for command prefix
 prefix = {
