@@ -99,6 +99,9 @@ class Roll(commands.Cog):
                 elif dice_parts["type"] == 3:
                     throws_result_list = fate_roll(dice_parts["throws"])
                     sub_sum = fate_result(throws_result_list)
+                elif dice_parts["type"] == 4:
+                    throws_result_list = cod_wod_roll(dice_parts["throws"], dice_parts["value"])
+                    sub_sum = cod_wod_results(throws_result_list, dice_parts["edge"], dice_parts["failure"])
                 else:
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     throws_result_list = postfix_magick(throws_result_list_before_postfix, dice_parts)

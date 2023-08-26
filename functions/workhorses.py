@@ -94,6 +94,23 @@ def fate_roll(throws):
     return dice_roll_result
 
 
+def cod_wod_roll(throws, value):
+    dice_roll_result = []
+    for counts in range(throws):
+        roll_result = random.randint(1, 10)
+        dice_roll_result.append(roll_result)
+        while roll_result >= value:  # explosions
+            roll_result = random.randint(1, 10)
+            dice_roll_result.append(roll_result)
+    dice_edge_counter.labels("Darkness").inc(throws)
+    dice_edge_counter.labels("all").inc(throws)
+
+def cod_wod_results(dice_result,edge,failure):
+    total_result = sum(1 for i in dice_result if i >= edge)
+    if failure:
+        total_result -= dice_result.count(1)
+    return total_result
+
 # summarize result
 def calc_result(dice_result):
     total_result = sum(dice_result)
