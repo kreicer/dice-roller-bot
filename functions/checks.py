@@ -48,10 +48,11 @@ def check_dice_dict(dice_dict):
         dice_dict["type"] = 4
     elif dice_dict["delimiter"] == "cod":
         dice_dict["throws"] = check_throws(dice_dict["throws"])
-        dice_dict["value"] = check_value_for_explode(check_value(dice_dict["edge"]))
+        dice_dict["value"] = check_value(dice_dict["edge"], 10)
         dice_dict["edge"] = 8
         dice_dict["failure"] = False
         dice_dict["type"] = 4
+        check_value_for_explode(dice_dict["value"])
     else:
         dice_dict["throws"] = check_modifier(dice_dict["throws"])
         dice_dict["type"] = 0
