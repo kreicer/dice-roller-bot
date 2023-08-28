@@ -94,6 +94,148 @@ def fate_roll(throws):
     return dice_roll_result
 
 
+"""
+=====================================================================================
+=====================================================================================
+=====================================================================================
+=====================================================================================
+"""
+
+
+class DiceBucket:
+    def __init__(self, components: dict):
+        self.throws = components["throws"]
+        self.type = components["type"]
+        self.dice = []
+        if "edge" in components.keys():
+            self.edge = components["edge"]
+        else:
+            self.edge = 3
+        if "postfix" in components.keys():
+            self.postfix = components["postfix"]
+        else:
+            self.postfix = False
+        if "value" in components.keys():
+            self.value = components["value"]
+        else:
+            self.value = False
+
+    def roll(self):
+        dice_args = [self.type, self.edge]
+        if self.value:
+            dice_args.append(self.value)
+        end = self.throws
+        if self.postfix == "x":
+            end *= self.value
+        i = 0
+        while i < end:
+            i += 1
+            dice = Dice(*dice_args)
+            dice.roll()
+            self.dice.append(dice)
+            if self.postfix == "rr":
+                while self.dice[-1].result <= self.value:
+                    self.dice[-1].roll()
+            if self.postfix == "exp" and dice.result >= self.value:
+                end += 1
+            elif self.postfix == "pen":
+                armor = 0
+                while dice.result >= self.value:
+                    armor += 1
+                    dice = Dice(self.type, self.edge, armor)
+                    self.dice.append(dice)
+        if (self.postfix not in ["dl", "kl", "kh", "dh"]) or (len(self.dice) < 2):
+            return
+        elif self.postfix == "dl":
+            self.dice.sort()
+            self.dice = self.dice[1:]
+        elif self.postfix == "dh":
+            self.dice.sort()
+            self.dice = self.dice[:-2]
+        elif self.postfix == "kh":
+            self.dice = max(self.dice)
+        elif self.postfix == "kl":
+            self.dice = min(self.dice)
+
+    def text(self):
+        results = []
+        for i in self.dice:
+            results.append(str(i))
+        return results
+
+    def sum(self):
+        return sum(self.dice)
+
+
+class Dice:
+    # types:
+    # 1-2 = Standard (d4, d6, d8 etc)
+    # 3 = Fate
+    # 4 = Chronicles of Darkness
+    # 5 = World of Darkness
+    def __init__(self, dice_type: int, edge=3, value: int = 0):
+        self.type = dice_type
+        self.edge = edge
+        self.result = 0
+        self.math_value = 0
+        self.armor = 0
+        if value > 0:
+            self.value = value
+
+    def roll(self):
+        if self.type == 3:
+            self.result = random.randint(1, 3)
+            self.result -= self.armor
+            self.math_value = self.result - 2
+        elif 4 <= self.type <= 5:
+            self.result = random.randint(1, 10)
+            self.result -= self.armor
+            if self.result >= self.edge:
+                self.math_value = 1
+            elif self.type == 5 and self.result == 1:
+                self.math_value = -1
+        else:
+            self.result = random.randint(1, self.edge)
+            self.result -= self.armor
+            self.math_value = self.result
+
+    def __repr__(self):
+        result = self.result
+        if self.type == 3:
+            result = "-.+"[result-1]
+        if self.result == 1 or self.result >= self.edge:
+            return f'[{result}]'  # make the important results bold
+        return f'{result}'
+
+    def __radd__(self, other):
+        return self.math_value + other
+
+    def __add__(self, other):
+        return self.math_value + other
+
+    def __lt__(self, other):
+        return self.result < other.result
+
+    def __gt__(self, other):
+        return self.result > other.result
+
+    def __len__(self, other):
+        return self.result <= other.result
+
+    def __ge__(self, other):
+        return self.result >= other.result
+
+    def __eq__(self, other):
+        return self.result == other.result
+
+    """
+    =====================================================================================
+    =====================================================================================
+    =====================================================================================
+    =====================================================================================
+    """
+
+
 def cod_wod_roll(throws, value):
     dice_roll_result = []
     for counts in range(throws):
@@ -106,11 +248,13 @@ def cod_wod_roll(throws, value):
     dice_edge_counter.labels("all").inc(throws)
     return dice_roll_result
 
-def cod_wod_results(dice_result,edge,failure):
+
+def cod_wod_results(dice_result, edge, failure):
     total_result = sum(1 for i in dice_result if i >= edge)
     if failure:
         total_result -= dice_result.count(1)
     return total_result
+
 
 # summarize result
 def calc_result(dice_result):
