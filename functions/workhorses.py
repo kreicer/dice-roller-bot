@@ -71,35 +71,7 @@ def split_on_dice(bucket):
     return list_of_dice
 
 
-def dice_roll(throws, edge):
-    dice_roll_result = []
-    for counts in range(1, throws + 1):
-        roll_result = random.randint(1, edge)
-        dice_roll_result.append(roll_result)
-    if edge in edge_valid:
-        dice_edge_counter.labels(edge)
-        dice_edge_counter.labels(edge).inc(throws)
-    dice_edge_counter.labels("all").inc(throws)
-    return dice_roll_result
 
-
-def fate_roll(throws):
-    dice_roll_result = []
-    for counts in range(1, throws + 1):
-        roll_result = random.choice(["+", "-", "."])
-        dice_roll_result.append(roll_result)
-    dice_edge_counter.labels("F")
-    dice_edge_counter.labels("F").inc(throws)
-    dice_edge_counter.labels("all").inc(throws)
-    return dice_roll_result
-
-
-"""
-=====================================================================================
-=====================================================================================
-=====================================================================================
-=====================================================================================
-"""
 
 
 class DiceBucket:
@@ -107,21 +79,36 @@ class DiceBucket:
         self.throws = components["throws"]
         self.type = components["type"]
         self.dice = []
+        self.log = ["all"]
+        if self.type == 3:
+            self.log.append("F")
+        elif 4<= self.type <= 5:
+            self.log.append("Darkness")
         if "edge" in components.keys():
             self.edge = components["edge"]
         else:
             self.edge = 3
         if "postfix" in components.keys():
             self.postfix = components["postfix"]
+            default = -1
+            if self.postfix in ["dl", "dh", "kl", "kh", "rr", "x"]:
+                default = 1
+            elif self.postfix in ["exp", "pen"]:
+                default = self.edge
+            if "value" in components.keys():
+                self.value = components["value"]
+            else:
+                self.value = default
+            if self.value == '':
+                self.value = default
+
         else:
             self.postfix = False
-        if "value" in components.keys():
-            self.value = components["value"]
-        else:
-            self.value = False
 
     def roll(self):
         dice_args = [self.type, self.edge]
+        for edge in self.log:
+            dice_edge_counter.labels(edge).inc(self.throws)
         if self.value:
             dice_args.append(self.value)
         end = self.throws
@@ -143,19 +130,24 @@ class DiceBucket:
                 while dice.result >= self.value:
                     armor += 1
                     dice = Dice(self.type, self.edge, armor)
+                    dice.armor = armor
+                    dice.roll()
                     self.dice.append(dice)
         if (self.postfix not in ["dl", "kl", "kh", "dh"]) or (len(self.dice) < 2):
             return
-        elif self.postfix == "dl":
+        else:
             self.dice.sort()
-            self.dice = self.dice[1:]
-        elif self.postfix == "dh":
-            self.dice.sort()
-            self.dice = self.dice[:-2]
-        elif self.postfix == "kh":
-            self.dice = max(self.dice)
-        elif self.postfix == "kl":
-            self.dice = min(self.dice)
+            match self.postfix:
+                case "dl":
+                    self.dice = self.dice[1:]
+                case  "dh":
+                    self.dice = self.dice[:-2]
+                case  "kh":
+                    self.dice = [self.dice[-1]]
+                case  "kl":
+                    self.dice = [self.dice[0]]
+                case _:
+                    return
 
     def text(self):
         results = []
@@ -175,7 +167,10 @@ class Dice:
     # 5 = World of Darkness
     def __init__(self, dice_type: int, edge=3, value: int = 0):
         self.type = dice_type
-        self.edge = edge
+        if self.type == 3:
+            self.edge = 3
+        else:
+            self.edge = edge
         self.result = 0
         self.math_value = 0
         self.armor = 0
@@ -196,14 +191,14 @@ class Dice:
                 self.math_value = -1
         else:
             self.result = random.randint(1, self.edge)
-            self.result -= self.armor
+            self.result -= min(self.armor, self.result)  # Make sure we don't subtract into negative values.
             self.math_value = self.result
 
     def __repr__(self):
         result = self.result
         if self.type == 3:
             result = "-.+"[result-1]
-        if self.result == 1 or self.result >= self.edge:
+        if self.result <= 1 or self.result >= self.edge:
             return f'[{result}]'  # make the important results bold
         return f'{result}'
 
@@ -214,68 +209,19 @@ class Dice:
         return self.math_value + other
 
     def __lt__(self, other):
-        return self.result < other.result
+        return (self.result < other)
 
     def __gt__(self, other):
-        return self.result > other.result
+        return (self.result > other)
 
-    def __len__(self, other):
-        return self.result <= other.result
+    def __le__(self, other):
+        return self.result <= other
 
     def __ge__(self, other):
-        return self.result >= other.result
+        return self.result >= other
 
     def __eq__(self, other):
-        return self.result == other.result
-
-    """
-    =====================================================================================
-    =====================================================================================
-    =====================================================================================
-    =====================================================================================
-    """
-
-
-def cod_wod_roll(throws, value):
-    dice_roll_result = []
-    for counts in range(throws):
-        roll_result = random.randint(1, 10)
-        dice_roll_result.append(roll_result)
-        while roll_result >= value:  # explosions
-            roll_result = random.randint(1, 10)
-            dice_roll_result.append(roll_result)
-    dice_edge_counter.labels("Darkness").inc(throws)
-    dice_edge_counter.labels("all").inc(throws)
-    return dice_roll_result
-
-
-def cod_wod_results(dice_result, edge, failure):
-    total_result = sum(1 for i in dice_result if i >= edge)
-    if failure:
-        total_result -= dice_result.count(1)
-    return total_result
-
-
-# summarize result
-def calc_result(dice_result):
-    total_result = sum(dice_result)
-    return total_result
-
-
-def fate_result(dice_result):
-    total_result = dice_result.count("+") - dice_result.count("-")
-    return total_result
-
-
-# mod rolls result
-def add_mod_result(total_result, mod_amount):
-    total_mod_result = total_result + mod_amount
-    return total_mod_result
-
-
-def sub_mod_result(total_result, mod_amount):
-    total_mod_result = total_result - mod_amount
-    return total_mod_result
+        return self.result == other
 
 
 def generate_postfix_short_output():

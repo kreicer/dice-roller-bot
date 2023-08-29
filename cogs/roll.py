@@ -11,14 +11,7 @@ from models.metrics import commands_counter, errors_counter, ui_selects_counter
 from functions.workhorses import (
     split_on_dice,
     split_on_parts,
-    dice_roll,
-    fate_roll,
-    cod_wod_roll,
-    cod_wod_results,
-    calc_result,
-    fate_result,
-    add_mod_result,
-    sub_mod_result,
+    DiceBucket,
     generate_postfix_short_output, generate_postfix_help
 )
 from functions.postfixes import postfix_magick
@@ -95,28 +88,17 @@ class Roll(commands.Cog):
                 if dice_parts["type"] == 0:
                     throws_result_list = [dice_parts["throws"]]
                     sub_sum = dice_parts["throws"]
-                elif dice_parts["type"] == 1:
-                    throws_result_list = dice_roll(dice_parts["throws"], dice_parts["edge"])
-                    sub_sum = calc_result(throws_result_list)
-                elif dice_parts["type"] == 3:
-                    throws_result_list = fate_roll(dice_parts["throws"])
-                    sub_sum = fate_result(throws_result_list)
-                elif dice_parts["type"] == 4:
-                    throws_result_list = cod_wod_roll(dice_parts["throws"], dice_parts["value"])
-                    sub_sum = cod_wod_results(throws_result_list, dice_parts["edge"], dice_parts["failure"])
-                    if dice_parts["failure"]:
-                        dice_parts["value"] = dice_parts["edge"]
-                    dice_parts["edge"] = 10
                 else:
-                    throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
-                    throws_result_list = postfix_magick(throws_result_list_before_postfix, dice_parts)
-                    sub_sum = calc_result(throws_result_list)
+                    roller = DiceBucket(dice_parts)
+                    roller.roll()
+                    throws_result_list = roller.text()
+                    sub_sum = roller.sum()
 
                 # dice summarize
                 if dice_parts["mod"] == "-":
-                    result_sum = sub_mod_result(result_sum, sub_sum)
+                    result_sum -= sub_sum
                 else:
-                    result_sum = add_mod_result(result_sum, sub_sum)
+                    result_sum += sub_sum
                 # dice visualize
                 visual_dice = dice_maker(dice_parts["mod"], dice_parts["throws"], "d", dice_parts["edge"], "/",
                                          dice_parts["postfix"], ":", dice_parts["value"])
