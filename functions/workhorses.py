@@ -72,7 +72,16 @@ def split_on_dice(bucket):
 
 
 
-
+def dice_roll(throws, edge):
+    dice_roll_result = []
+    for counts in range(1, throws + 1):
+        roll_result = random.randint(1, edge)
+        dice_roll_result.append(roll_result)
+    if edge in edge_valid:
+        dice_edge_counter.labels(edge)
+        dice_edge_counter.labels(edge).inc(throws)
+    dice_edge_counter.labels("all").inc(throws)
+    return dice_roll_result
 
 class DiceBucket:
     def __init__(self, components: dict):
