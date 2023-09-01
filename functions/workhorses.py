@@ -12,7 +12,7 @@ from functions.checks import (
 )
 from models.limits import dice_limit
 from models.postfixes import postfixes
-from models.metrics import dice_edge_counter, edge_valid
+from models.metrics import dice_edge_counter, edge_valid, postfix_counter
 
 
 def json_writer(new_data, filename):
@@ -71,7 +71,6 @@ def split_on_dice(bucket):
     return list_of_dice
 
 
-
 def dice_roll(throws, edge):
     dice_roll_result = []
     for counts in range(1, throws + 1):
@@ -83,6 +82,7 @@ def dice_roll(throws, edge):
     dice_edge_counter.labels("all").inc(throws)
     return dice_roll_result
 
+
 class DiceBucket:
     def __init__(self, components: dict):
         self.throws = components["throws"]
@@ -91,7 +91,7 @@ class DiceBucket:
         self.log = ["all"]
         if self.type == 3:
             self.log.append("F")
-        elif 4<= self.type <= 5:
+        elif 4 <= self.type <= 5:
             self.log.append("Darkness")
         if "edge" in components.keys():
             self.edge = components["edge"]
@@ -100,6 +100,7 @@ class DiceBucket:
         if "postfix" in components.keys():
             self.postfix = components["postfix"]
             default = -1
+            self.postfixlabel = postfixes[self.postfix]["name"].replace(" ", "_").lower()
             if self.postfix in ["dl", "dh", "kl", "kh", "rr", "x"]:
                 default = 1
             elif self.postfix in ["exp", "pen"]:
@@ -115,20 +116,30 @@ class DiceBucket:
             self.postfix = False
 
     def roll(self):
-        dice_args = [self.type, self.edge]
+        # handle logs
         for edge in self.log:
             dice_edge_counter.labels(edge).inc(self.throws)
+        if self.postfixlabel:
+            postfix_counter.labels(self.postfixlabel)
+            postfix_counter.labels(self.postfixlabel).inc()
+
+        # setup arguments for the Dice class
+        dice_args = [self.type, self.edge]
         if self.value:
             dice_args.append(self.value)
         end = self.throws
         if self.postfix == "x":
             end *= self.value
+
+        # roll the dice
         i = 0
         while i < end:
             i += 1
             dice = Dice(*dice_args)
             dice.roll()
             self.dice.append(dice)
+
+            # handle the postfixes related to each dice object.
             if self.postfix == "rr":
                 while self.dice[-1].result <= self.value:
                     self.dice[-1].roll()
@@ -142,23 +153,26 @@ class DiceBucket:
                     dice.armor = armor
                     dice.roll()
                     self.dice.append(dice)
-        if (self.postfix not in ["dl", "kl", "kh", "dh"]) or (len(self.dice) < 2):
+
+        # handle postfixes related to the finished list of dice
+        if (self.postfix not in ["dl", "kl", "kh", "dh"]) or (len(self.dice) > self.value):
             return
         else:
             self.dice.sort()
             match self.postfix:
                 case "dl":
-                    self.dice = self.dice[1:]
+                    self.dice = self.dice[self.value:]
                 case  "dh":
-                    self.dice = self.dice[:-1]
+                    self.dice = self.dice[:-self.value]
                 case  "kh":
-                    self.dice = [self.dice[-1]]
+                    self.dice = [self.dice[-self.value:]]
                 case  "kl":
-                    self.dice = [self.dice[0]]
-                case _:
+                    self.dice = [self.dice[:self.value]]
+                case _:  # default case
                     return
 
     def text(self):
+        # return the printed version of the dice list
         results = []
         for i in self.dice:
             results.append(str(i))
@@ -187,23 +201,29 @@ class Dice:
             self.value = value
 
     def roll(self):
+        # handle Fate rolls
         if self.type == 3:
             self.result = random.randint(1, 3)
-            self.result -= self.armor
+            self.result -= min(self.armor, self.result)  # not typically seen in this game system
             self.math_value = self.result - 2
         elif 4 <= self.type <= 5:
+            # handle CoD and WoD rolls
             self.result = random.randint(1, 10)
-            self.result -= self.armor
+            self.result -= min(self.armor, self.result)  # not typically seen in this game system
             if self.result >= self.edge:
                 self.math_value = 1
             elif self.type == 5 and self.result == 1:
                 self.math_value = -1
         else:
+            # handle standard dice rolls
             self.result = random.randint(1, self.edge)
             self.result -= min(self.armor, self.result)  # Make sure we don't subtract into negative values.
             self.math_value = self.result
 
+    # Give the dice built in operations so that values can be determined with builtin functions
+    # instead of needing special functions for the class.
     def __repr__(self):
+        # allows for print(dice) command to natively show the text version of the dice.
         result = self.result
         if self.type == 3:
             result = "-.+"[result-1]
@@ -218,10 +238,10 @@ class Dice:
         return self.math_value + other
 
     def __lt__(self, other):
-        return (self.result < other)
+        return self.result < other
 
     def __gt__(self, other):
-        return (self.result > other)
+        return self.result > other
 
     def __le__(self, other):
         return self.result <= other
