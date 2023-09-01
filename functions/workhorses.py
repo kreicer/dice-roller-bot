@@ -150,7 +150,7 @@ class DiceBucket:
                 case "dl":
                     self.dice = self.dice[1:]
                 case  "dh":
-                    self.dice = self.dice[:-2]
+                    self.dice = self.dice[:-1]
                 case  "kh":
                     self.dice = [self.dice[-1]]
                 case  "kl":
