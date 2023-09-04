@@ -3,7 +3,7 @@ postfixes = {
     "exp": {
         "name": "Explode",
         "aliases": ["explode", "exp"],
-        "default_value": "",
+        "default_value": -1,
         "description": "Modifying dice to become exploding dice: roll again when equal or higher than value.",
         "shorty": "modify dice to become explode dice",
         "example": "roll 2d20/exp",
@@ -12,7 +12,7 @@ postfixes = {
     "pen": {
         "name": "Penetrate",
         "aliases": ["penetrate", "pen"],
-        "default_value": "",
+        "default_value": -1,
         "description": "Modifying dice to become penetrating dice: roll again when equal or higher than value. "
                        "But 1 will be subtracted from the result of that additional roll.",
         "shorty": "modify dice to become penetration dice",
@@ -81,6 +81,36 @@ postfixes = {
         "shorty": "multiply dice amount",
         "example": "roll 2d20/x:3",
         "enabled": True
+    },
+    "fate": {
+        "name": "Fate",
+        "aliases": ["f", "fate"],
+        "default_value": 6,
+        "description": "Roll dice in the Fate system (+ - .)",
+        "shorty": "Roll Fate dice",
+        "example": "roll 4d6/fate",
+        "type": 3,
+        "enabled": True
+    },
+    "cod": {
+        "name": "CoD",
+        "aliases": ["cod"],
+        "default_value": 10,
+        "description": "Roll dice in the Chronicles of Darkness System. ",
+        "shorty": "Roll Chronicles of Darkness dice",
+        "example": "roll 5d10/cod. 5d10/cod:9 for 9-again, and 5d10/cod:8 for 8-again",
+        "type": 4,
+        "enabled": True
+    },
+    "wod": {
+        "name": "WoD",
+        "aliases": ["wod"],
+        "default_value": 6,
+        "description": "Roll dice in the World of Darkness System. ",
+        "shorty": "Roll World of Darkness dice",
+        "example": "roll 5d10/wod to roll standard difficulty (6). 5d10/wod:N to roll with difficulty \"N\"",
+        "type": 5,
+        "enabled": True
     }
 }
 
@@ -104,5 +134,9 @@ aliases = {
     "rr": "rr",
     "reroll": "rr",
     "x": "x",
-    "multiplier": "x"
+    "multiplier": "x",
+    "f": "fate",
+    "fate": "fate",
+    "cod": "cod",
+    "wod": "wod"
 }

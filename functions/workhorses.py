@@ -86,6 +86,7 @@ def dice_roll(throws, edge):
 class DiceBucket:
     def __init__(self, components: dict):
         self.throws = components["throws"]
+        self.edge = components["edge"]
         self.type = components["type"]
         self.dice = []
         self.log = ["all"]
@@ -93,27 +94,15 @@ class DiceBucket:
             self.log.append("F")
         elif 4 <= self.type <= 5:
             self.log.append("Darkness")
-        if "edge" in components.keys():
-            self.edge = components["edge"]
-        else:
-            self.edge = 3
         if "postfix" in components.keys():
             self.postfix = components["postfix"]
-            default = -1
             self.postfixlabel = postfixes[self.postfix]["name"].replace(" ", "_").lower()
-            if self.postfix in ["dl", "dh", "kl", "kh", "rr", "x"]:
-                default = 1
-            elif self.postfix in ["exp", "pen"]:
-                default = self.edge
-            if "value" in components.keys():
-                self.value = components["value"]
-            else:
-                self.value = default
-            if self.value == '':
-                self.value = default
+            self.value = components["value"]
 
         else:
             self.postfix = False
+            self.postfixlabel = False
+            self.value = False
 
     def roll(self):
         # handle logs
@@ -123,11 +112,11 @@ class DiceBucket:
             postfix_counter.labels(self.postfixlabel)
             postfix_counter.labels(self.postfixlabel).inc()
 
-        # setup arguments for the Dice class
-        dice_args = [self.type, self.edge]
+        # setup arguments for the Dice class and handle relevant postfixes
+        end = self.throws
+        dice_args = [self.type, self.edge, self.postfix == "rr"]
         if self.value:
             dice_args.append(self.value)
-        end = self.throws
         if self.postfix == "x":
             end *= self.value
 
@@ -140,22 +129,20 @@ class DiceBucket:
             self.dice.append(dice)
 
             # handle the postfixes related to each dice object.
-            if self.postfix == "rr":
-                while self.dice[-1].result <= self.value:
-                    self.dice[-1].roll()
-            if self.postfix == "exp" and dice.result >= self.value:
+            if (self.postfix in ["exp", "cod"] and dice.result >= self.value) or \
+               (self.postfix == "wod" and dice.result == 10):
                 end += 1
             elif self.postfix == "pen":
                 armor = 0
                 while dice.result >= self.value:
                     armor += 1
-                    dice = Dice(self.type, self.edge, armor)
+                    dice = Dice(self.type, self.edge)
                     dice.armor = armor
                     dice.roll()
                     self.dice.append(dice)
 
         # handle postfixes related to the finished list of dice
-        if (self.postfix not in ["dl", "kl", "kh", "dh"]) or (len(self.dice) > self.value):
+        if (self.postfix not in ["dl", "kl", "kh", "dh"]) or (len(self.dice) <= self.value):
             return
         else:
             self.dice.sort()
@@ -165,9 +152,9 @@ class DiceBucket:
                 case  "dh":
                     self.dice = self.dice[:-self.value]
                 case  "kh":
-                    self.dice = [self.dice[-self.value:]]
+                    self.dice = self.dice[-self.value:]
                 case  "kl":
-                    self.dice = [self.dice[:self.value]]
+                    self.dice = self.dice[:self.value]
                 case _:  # default case
                     return
 
@@ -188,46 +175,59 @@ class Dice:
     # 3 = Fate
     # 4 = Chronicles of Darkness
     # 5 = World of Darkness
-    def __init__(self, dice_type: int, edge=3, value: int = 0):
+    def __init__(self, dice_type: int, edge, rr=False, value: int = 0):
         self.type = dice_type
-        if self.type == 3:
-            self.edge = 3
-        else:
-            self.edge = edge
+        self.edge = edge
         self.result = 0
+        self.min = 1
         self.math_value = 0
         self.armor = 0
         if value > 0:
             self.value = value
+            if rr:
+                self.min = self.value+1
 
     def roll(self):
         # handle Fate rolls
         if self.type == 3:
+            self.edge = 3
             self.result = random.randint(1, 3)
             self.result -= min(self.armor, self.result)  # not typically seen in this game system
             self.math_value = self.result - 2
-        elif 4 <= self.type <= 5:
-            # handle CoD and WoD rolls
-            self.result = random.randint(1, 10)
-            self.result -= min(self.armor, self.result)  # not typically seen in this game system
-            if self.result >= self.edge:
-                self.math_value = 1
-            elif self.type == 5 and self.result == 1:
-                self.math_value = -1
+
         else:
             # handle standard dice rolls
-            self.result = random.randint(1, self.edge)
+            self.result = random.randint(self.min, self.edge)
             self.result -= min(self.armor, self.result)  # Make sure we don't subtract into negative values.
-            self.math_value = self.result
+            match self.type:
+                case 4:
+                    self.math_value = int(self.result >= 8)
+                case 5:
+                    self.math_value = int(self.result >= self.value)
+                    self.math_value -= int(self.result == 1)
+                case _:
+                    self.math_value = self.result
 
     # Give the dice built in operations so that values can be determined with builtin functions
     # instead of needing special functions for the class.
     def __repr__(self):
         # allows for print(dice) command to natively show the text version of the dice.
         result = self.result
-        if self.type == 3:
-            result = "-.+"[result-1]
-        if self.result <= 1 or self.result >= self.edge:
+        important = []
+        match self.type:
+            case 3:
+                result = "-.+"[result - 1]
+                important.extend(["-", "+"])
+            case 4:
+                important.extend([8, 9, 10])
+            case 5:
+                important.append(1)
+                for i in range(self.value, 11):
+                    important.append(i)
+            case _:
+                if self.edge == 20:
+                    important.extend([1, 20])
+        if result in important:
             return f'[{result}]'  # make the important results bold
         return f'{result}'
 

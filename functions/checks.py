@@ -30,32 +30,59 @@ def check_file_exist(filename):
     if exist_file.is_file():
         raise commands.BadArgument
 
-
+def check_postfix_problems(post, throws, val, edge):
+    # Check postfixes for math problems all at once.
+    match post:
+        case "dl":
+            check_value_vs_throws(throws, val)
+        case "dh":
+            check_value_vs_throws(throws, val)
+        case "kl":
+            check_value_vs_throws(throws, val)
+        case "kh":
+            check_value_vs_throws(throws, val)
+        case "exp":
+            check_value_for_explode(val)
+            check_edge_vs_two(edge)
+        case "pen":
+            check_value_for_penetrate(val)
+            check_edge_vs_two(edge)
+        case "rr":
+            check_value_vs_edge(edge, val)
+            check_edge_vs_two(edge)
+        case "x":
+            check_value_for_multiply(throws, val)
+        case "fate":
+            pass
+        case "cod":
+            check_value_for_explode(val)
+            check_edge_ten(edge)
+        case "wod":
+            check_edge_ten(edge)
+            check_min_value(val)
 def check_dice_dict(dice_dict):
     dice_dict["mod"] = check_mod(dice_dict["mod"])
     if dice_dict["delimiter"] == "d":
         dice_dict["throws"] = check_throws(dice_dict["throws"])
         dice_dict["edge"] = check_edge(dice_dict["edge"])
-        if isinstance(dice_dict["edge"], int):
-            dice_dict["type"] = 1
-        else:
-            dice_dict["type"] = 3
-    elif dice_dict["delimiter"] == "cod":
-        dice_dict["throws"] = check_throws(dice_dict["throws"])
-        dice_dict["value"] = check_edge(dice_dict["edge"])
-        dice_dict.update({"edge": 8, "postfix": "exp", "type": 4})
-    elif dice_dict["delimiter"] == "wod":
-        dice_dict["throws"] = check_throws(dice_dict["throws"])
-        dice_dict["edge"] = check_value(dice_dict["edge"], 10)
-        dice_dict.update({"value": 10, "postfix": "exp", "type": 5})
+        dice_dict["type"] = 1
     else:
         dice_dict["throws"] = check_modifier(dice_dict["throws"])
         dice_dict["type"] = 0
     if dice_dict["separator"] == "/":
         dice_dict["postfix"] = check_postfix(dice_dict["postfix"], aliases_dict)
         default_value = postfix_dict[dice_dict["postfix"]]["default_value"]
+        if default_value < 0:
+            default_value = dice_dict["edge"]
         dice_dict["value"] = check_value(dice_dict["value"], default_value)
-        dice_dict["type"] = 2
+        if "type" in postfix_dict[dice_dict["postfix"]].keys():
+            dice_dict["type"] = postfix_dict[dice_dict["postfix"]]["type"]
+        else:
+            dice_dict["type"] = 2
+        check_postfix_problems(dice_dict["postfix"], dice_dict["throws"], dice_dict["value"], dice_dict["edge"])
+    else:
+        dice_dict.pop("postfix")
+        dice_dict.pop("value")
     dice_dict.pop("delimiter")
     dice_dict.pop("separator")
     return dice_dict
@@ -99,8 +126,6 @@ def check_edge(edge):
     if edge == "0" or edge == "":
         error_text = "Value of dice edge can not be zero or empty."
         raise commands.BadArgument(None, error_text)
-    elif edge.upper() == "F":
-        edge = "F"
     else:
         edge = int(edge)
         error_text = f"Dice edge value ({edge}) is greater than the current limit of {e_limit}"
@@ -136,9 +161,15 @@ def check_value_vs_throws(throws, value):
 
 
 def check_value_vs_edge(edge, value):
-    if value > edge:
+    if value >= edge:
+        error_text = "Value must be lower than dice edge in this Postfix."
+        raise commands.BadArgument(None, error_text)
+
+def check_value_less_than_edge(edge, value):
+    if value >= edge:
         error_text = "Value can not be higher than dice edge in this Postfix."
         raise commands.BadArgument(None, error_text)
+
 
 
 def check_edge_vs_two(edge):
@@ -158,6 +189,15 @@ def check_value_for_penetrate(value):
         error_text = "Penetrating dice can not be rolled with value equal to 1 - protection from infinity loop"
         raise commands.BadArgument(None, error_text)
 
+def check_edge_ten(edge):
+    if edge != 10:
+        error_text = f'This postfix expects to use 10 sided dice'
+        raise commands.BadArgument(None, error_text)
+
+def check_min_value(value):
+    if value < 2:
+        error_text = f'The Difficulty must be higher than 1'
+        raise commands.BadArgument(None, error_text)
 
 def check_value_for_multiply(throws, value):
     if value > r_limit:

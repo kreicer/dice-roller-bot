@@ -100,8 +100,12 @@ class Roll(commands.Cog):
                 else:
                     result_sum += sub_sum
                 # dice visualize
-                visual_dice = dice_maker(dice_parts["mod"], dice_parts["throws"], "d", dice_parts["edge"], "/",
-                                         dice_parts["postfix"], ":", dice_parts["value"])
+                args = [dice_parts["mod"], dice_parts["throws"]]
+                if dice_parts["type"] > 0:
+                    args.extend(["d", dice_parts["edge"]])
+                if "postfix" in dice_parts.keys():
+                    args.extend(["/", dice_parts["postfix"], ":", dice_parts["value"]])
+                visual_dice = dice_maker(*args)
                 visual_bucket += visual_dice
                 if dice_parts["mod"] == "-":
                     if dice_parts["type"] < 3:

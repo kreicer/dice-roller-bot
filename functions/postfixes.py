@@ -41,7 +41,7 @@ def postfix_magick(throws_result_list, dice_parts):
             check_v_v_e(edge, value)
             new_throws_result_list = []
             for throws_result in throws_result_list:
-                if throws_result <= value:
+                if throws_result < value:
                     additional_roll = dice_roll(1, edge)
                     new_throws_result_list += additional_roll
                 else:
