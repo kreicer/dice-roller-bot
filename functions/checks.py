@@ -20,7 +20,6 @@ def check_match(match):
     if match is None:
         error_text = "Wrong dice or modifier.\n" \
                      "Dice pattern is *[throws]*d*[edge]*/*[postfix]*:*[value]*.\n" \
-                     "Fate/Fudge dice pattern is *[throws]*d*F*.\n"\
                      "Modifier should start from + or - and can be another dice or number."
         raise commands.BadArgument(None, error_text)
 
