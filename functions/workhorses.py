@@ -10,6 +10,7 @@ from functions.checks import (
     check_limit,
     check_postfix_is_right_and_available
 )
+from functions.config import bot_name, bot_version, dev_name, bot_shards
 from models.limits import dice_limit
 from models.postfixes import postfixes
 from models.metrics import dice_edge_counter, edge_valid
@@ -158,5 +159,34 @@ def generate_joke_output(joke_id, joke_text):
     output = f"```ansi\n" \
              f"{green_start}Joke #{joke_id}{all_end}\n\n" \
              f"{joke_text}\n" \
+             f"```"
+    return output
+
+
+def generate_prefix_output(prefix, state):
+    green_start = "[0;32m"
+    red_start = "[0;31m"
+    blue_start = "[0;34m"
+    all_end = "[0;0m"
+    if state == "disabled":
+        current_state = f"{red_start}disabled{all_end}"
+    else:
+        current_state = f"{blue_start}enabled{all_end}"
+    output = f"```ansi\n" \
+             f"{green_start}Prefix Control Interface{all_end}\n\n" \
+             f"Current guild prefix state - {current_state}\n" \
+             f"Current guild prefix value - {blue_start}{prefix}{all_end}\n" \
+             f"```"
+    return output
+
+
+def generate_info_output(guilds_number):
+    green_start = "[0;32m"
+    blue_start = "[0;34m"
+    all_end = "[0;0m"
+    output = f"```ansi\n" \
+             f"{green_start}{bot_name} v{bot_version} by {dev_name}{all_end}\n\n" \
+             f"Shards: {blue_start}{bot_shards}{all_end}\n" \
+             f"Servers: {blue_start}{guilds_number}{all_end}\n" \
              f"```"
     return output

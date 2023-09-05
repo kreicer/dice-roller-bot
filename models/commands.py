@@ -2,17 +2,9 @@
 about = {
     "name": "about",
     "usage": "",
-    "aliases": ["bot", "version"],
+    "aliases": ["bot", "version", "stat"],
     "brief": "Show info about the bot",
     "help": "Show developer, bot version, Privacy Policy, link on Github, link on top.gg etc"
-}
-# info for command stat
-stat = {
-    "name": "stat",
-    "usage": "",
-    "aliases": ["st"],
-    "brief": "Show bot statistics",
-    "help": "Show number of shards and servers"
 }
 # info for command hello
 hello = {

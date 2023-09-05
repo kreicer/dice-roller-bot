@@ -1,51 +1,59 @@
 import discord
-from discord.ext import commands
-from functions.workhorses import text_writer, logger
-from functions.config import dir_feedback, log_file, community_support
-from models.commands import feedback as fdk, hello as hl, support as sup
+from discord.ext import commands, tasks
+from functions.workhorses import text_writer, logger, generate_info_output
+from functions.config import dir_feedback, log_file, community_support, dev_github, topgg_link, community_policy
+from models.commands import feedback as fdk, hello as hl, support as sup, about as ab
 from models.metrics import commands_counter, errors_counter
 
+guilds_number = 0
 
-# for future version
-# class MyHelp(commands.HelpCommand):
-#     async def send_bot_help(self, mapping):
-#         body = ""
-#         for cog, cmds in mapping.items():
-#             command_signatures = [self.get_command_signature(c) for c in cmds]
-#             if command_signatures:
-#                 cog_name = getattr(cog, "qualified_name", "No Category")
-#                 body += f"{cog_name}:\n" \
-#                        f"{command_signatures}\n"
-#         help_output = f"```{body}```"
-#
-#         channel = self.get_destination()
-#         await channel.send(help_output)
-#
-# !help <command>
-#    async def send_command_help(self, command):
-#        await self.context.send("This is help command")
-#
-#  !help <group>
-#    async def send_group_help(self, group):
-#        await self.context.send("This is help group")
-#
-# !help <cog>
-#    async def send_cog_help(self, cog):
-#        await self.context.send("This is help cog")
+
+class AboutView(discord.ui.View):
+    def __init__(self, *, timeout=None):
+        super().__init__(timeout=timeout)
 
 
 # COMMUNITY COG
 class Community(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
+        self._update_servers_number.start()
 
-    # for future version
-    #        self._original_help_command = bot.help_command
-    #        bot.help_command = MyHelp()
-    #        bot.help_command.cog = self
+    def cog_unload(self):
+        self._update_servers_number.cancel()
 
-    #    def cog_unload(self):
-    #        self.bot.help_command = self._original_help_command
+    @tasks.loop(hours=1)
+    async def _update_servers_number(self):
+        global guilds_number
+        guilds_number = len(self.bot.guilds)
+        # Logger
+        log_txt = "Guild number updated, current number: " + str(guilds_number)
+        logger(log_file, "INFO", log_txt)
+
+    @_update_servers_number.before_loop
+    async def _before_update_servers_number(self):
+        await self.bot.wait_until_ready()
+
+    # ABOUT COMMAND
+    @commands.hybrid_command(name=ab["name"], brief=ab["brief"], usage=ab["usage"], help=ab["help"],
+                             aliases=ab["aliases"], with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def _about(self, ctx: commands.Context) -> None:
+
+        result = generate_info_output(guilds_number)
+
+        view = AboutView()
+        view.add_item(discord.ui.Button(label="Github", style=discord.ButtonStyle.link,
+                                        url=dev_github, emoji="🧑‍💻"))
+        view.add_item(discord.ui.Button(label="Top.gg", style=discord.ButtonStyle.link,
+                                        url=topgg_link, emoji="👍"))
+        view.add_item(discord.ui.Button(label="Privacy Policy", style=discord.ButtonStyle.link,
+                                        url=community_policy, emoji="🔏"))
+
+        commands_counter.labels("about")
+        commands_counter.labels("about").inc()
+        await ctx.defer(ephemeral=True)
+        await ctx.send(result, view=view)
 
     # FEEDBACK COMMAND
     @commands.hybrid_command(name=fdk["name"], brief=fdk["brief"], help=fdk["help"], aliases=fdk["aliases"])
@@ -114,6 +122,17 @@ class Community(commands.Cog):
             # await ctx.defer(ephemeral=True) # without defer cos bot cant send it if blocked
             await ctx.send(f'**Forbidden**\n'
                            f'Bot does not have permissions to write you DM.')
+
+    # ABOUT ERRORS HANDLER
+    @_about.error
+    async def _about_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("about", "BotMissingPermissions")
+            errors_counter.labels("about", "BotMissingPermissions").inc()
+            dm = await ctx.author.create_dm()
+            await dm.send(f'**Bot Missing Permissions**\n'
+                          f'Dice Roller have missing permissions to answer you in this channel.\n'
+                          f'You can solve it by adding rights in channel or server management section.')
 
     # FEEDBACK ERRORS HANDLER
     @_send_feedback.error
