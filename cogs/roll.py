@@ -2,7 +2,7 @@ import asyncio
 
 import discord
 from discord.ext import commands  # , tasks
-from models.commands import roll as roll, postfix as pw
+from models.commands import cmds
 from models.postfixes import postfixes
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
@@ -71,7 +71,7 @@ class Roll(commands.Cog):
     #    return postfix_list
 
     # ROLL COMMAND
-    @commands.hybrid_command(name=roll["name"], brief=roll["brief"], help=roll["help"], aliases=roll["aliases"],
+    @commands.hybrid_command(name=cmds["roll"]["name"], brief=cmds["roll"]["brief"], aliases=cmds["roll"]["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _roll(self, ctx: commands.Context, *,
@@ -142,8 +142,8 @@ class Roll(commands.Cog):
         await ctx.send(overall)
 
     # POSTFIX COMMAND
-    @commands.hybrid_command(name=pw["name"], brief=pw["brief"], help=pw["help"], aliases=pw["aliases"],
-                             with_app_command=True)
+    @commands.hybrid_command(name=cmds["postfix"]["name"], brief=cmds["postfix"]["brief"],
+                             aliases=cmds["postfix"]["aliases"], with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _postfix(self, ctx: commands.Context) -> None:
         result = generate_postfix_short_output()

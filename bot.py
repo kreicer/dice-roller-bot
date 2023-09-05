@@ -5,9 +5,6 @@ from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
 
-# Change only the no_category default string
-help_command = commands.DefaultHelpCommand(no_category='Help', indent=3)
-
 
 # define prefix or mention
 async def get_prefix(bot, message):
@@ -44,7 +41,7 @@ intents.message_content = True
 class RollerBot(commands.AutoShardedBot):
     def __init__(self) -> None:
         super().__init__(command_prefix=get_prefix,
-                         help_command=help_command,
+                         help_command=None,
                          shard_count=bot_shards,
                          intents=intents)
 

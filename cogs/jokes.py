@@ -5,7 +5,7 @@ import discord
 from discord.ext import commands, tasks
 
 from classes.ui import Feedback
-from models.commands import joke as j
+from models.commands import cmds
 from functions.workhorses import text_writer, logger, generate_joke_output
 from functions.config import db_jokes, dir_jokes, log_file
 from models.metrics import commands_counter, errors_counter, ui_modals_counter, ui_button_counter
@@ -103,8 +103,8 @@ class Jokes(commands.Cog):
         await self.bot.wait_until_ready()
 
     # JOKE COMMANDS GROUP
-    @commands.hybrid_command(name=j["name"], brief=j["brief"], help=j["help"], aliases=j["aliases"],
-                             invoke_without_command=True, with_app_command=True)
+    @commands.hybrid_command(name=cmds["joke"]["name"], brief=cmds["joke"]["brief"], aliases=cmds["joke"]["aliases"],
+                             with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _joke(self, ctx: commands.Context) -> None:
         random_joke_number = random.randint(1, number_of_jokes)
