@@ -10,9 +10,13 @@ from functions.checks import (
     check_limit,
     check_postfix_is_right_and_available
 )
+from functions.config import bot_name, bot_version, dev_name, bot_shards
 from models.limits import dice_limit
 from models.postfixes import postfixes
+
+from models.commands import cmds
 from models.metrics import dice_edge_counter, edge_valid, postfix_counter
+
 
 
 def json_writer(new_data, filename):
@@ -261,7 +265,7 @@ def generate_postfix_short_output():
     for postfix in postfixes:
         if postfixes[postfix]["enabled"]:
             output += "- "
-            output += f"{green_start}{postfix}{gray_start}{all_end}"
+            output += f"{green_start}{postfix}{all_end}"
             output += " - "
             output += f"{postfixes[postfix]['shorty']}\n"
     output += "\n\n"
@@ -293,5 +297,86 @@ def generate_joke_output(joke_id, joke_text):
     output = f"```ansi\n" \
              f"{green_start}Joke #{joke_id}{all_end}\n\n" \
              f"{joke_text}\n" \
+             f"```"
+    return output
+
+
+def generate_prefix_output(prefix, state):
+    green_start = "[0;32m"
+    red_start = "[0;31m"
+    blue_start = "[0;34m"
+    all_end = "[0;0m"
+    if state == "disabled":
+        current_state = f"{red_start}disabled{all_end}"
+    else:
+        current_state = f"{blue_start}enabled{all_end}"
+    output = f"```ansi\n" \
+             f"{green_start}Prefix Control Interface{all_end}\n\n" \
+             f"Current guild prefix state - {current_state}\n" \
+             f"Current guild prefix value - {blue_start}{prefix}{all_end}\n" \
+             f"```"
+    return output
+
+
+def generate_info_output(guilds_number):
+    green_start = "[0;32m"
+    blue_start = "[0;34m"
+    all_end = "[0;0m"
+    output = f"```ansi\n" \
+             f"{green_start}{bot_name} v{bot_version} by {dev_name}{all_end}\n\n" \
+             f"Shards: {blue_start}{bot_shards}{all_end}\n" \
+             f"Servers: {blue_start}{guilds_number}{all_end}\n" \
+             f"```"
+    return output
+
+
+def generate_help_short_output(cogs_dict):
+    green_start = "[0;32m"
+    gray_start = "[0;30m"
+    all_end = "[0;0m"
+    output = f"```ansi\n{green_start}HELP{all_end}\n\n"
+    for key, value in cogs_dict.items():
+        output += f"{key}:\n"
+        for cmd in value:
+            output += f"  {green_start}{cmds[cmd]['name']: <10}{all_end}{cmds[cmd]['brief']}\n"
+        output += f"\n"
+    output += "\n"
+    output += f"{gray_start}For detailed info about each command use selector below{all_end}```"
+    return output
+
+
+def generate_commands_help(command):
+    green_start = "[0;32m"
+    blue_start = "[0;34m"
+    all_end = "[0;0m"
+    output = f"```ansi\n{green_start}{cmds[command]['name'].upper()}{all_end}\n\n"
+    output += f"{cmds[command]['help']}\n\n"
+    output += f"Aliases: {blue_start}{cmds[command]['aliases']}{all_end}\n"
+    output += f"Usage: {blue_start}/{cmds[command]['name']} {cmds[command]['usage']}{all_end}\n```"
+    return output
+
+
+def generate_hello_text():
+    green = "[0;32m"
+    blue = "[0;34m"
+    end = "[0;0m"
+    output = f"```ansi\n" \
+             f"Hello, friend!\n\n" \
+             f"My name is {blue}Dice Roller{end}. I will be your guide in this awesome adventure. " \
+             f"First of all, my core functionality - roll any dice you can image. " \
+             f"And be you useful helper on this way, of course. " \
+             f"I recommend start from something simple... Make a {green}d20{end} dice roll!\n\n" \
+             f"You can roll simple dice, complex dice with multipliers and also with Postfixes! " \
+             f"Let me show you some examples...\n\n" \
+             f"Your command should start from {green}slash (/){end}, local bot {green}prefix{end} " \
+             f"or bot {green}mention{end}. " \
+             f"Next part - command name. In our case it will be {green}\"roll\"{end} or just {green}\"r\"{end}. " \
+             f"Yep, whitespace next. " \
+             f"And from this moment only you decide what you want to roll. " \
+             f"Dice may be simple like {green}2d20{end}  or complex like {green}3d8+d4-1{end}. " \
+             f"Dice may contain {green}Postfix{end}. I will provide this as example - {green}4d8/dl:2{end}. " \
+             f"Best part here - you can combine any dice and roll more than one dice per command. " \
+             f"Like this - {green}/roll 3d6+d4 3d20/dh 2d20+2d4/dl:1-1{end}. " \
+             f"You can get full available list with command {green}/postfix{end}." \
              f"```"
     return output
