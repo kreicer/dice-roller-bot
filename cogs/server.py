@@ -1,95 +1,171 @@
 import sqlite3
+import traceback
+import typing
+
+import discord
 from discord.ext import commands
-from models.commands import prefix as pfx, prefix_set as spfx, prefix_restore as rpfx
-from models.limits import prefix_limit
-from models.metrics import commands_counter, errors_counter
-from functions.checks import check_limit
-from functions.workhorses import logger
-from functions.config import db_admin, dev_link, log_file
+
+from models.commands import  cmds
+from models.metrics import commands_counter, errors_counter, ui_modals_counter, ui_button_counter
+from functions.workhorses import logger, generate_prefix_output
+from functions.config import db_admin, dev_link, log_file, bot_prefix
 
 
-# ADMIN COG
+# SERVER UI
+class SetPrefix(discord.ui.Modal, title="Set new prefix"):
+    new_prefix = discord.ui.TextInput(
+        label="New prefix",
+        style=discord.TextStyle.short,
+        placeholder="Write server new prefix here...",
+        required=True,
+        min_length=1,
+        max_length=3,
+        row=1
+    )
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        traceback.print_exception(type(error), error, error.__traceback__)
+        await interaction.response.send_message("Something went wrong...", ephemeral=True)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        new_prefix = self.new_prefix.value
+        discord_id = str(interaction.guild_id)
+        source_type = 1
+        source_args = tuple((discord_id, source_type))
+        secure_prefix = tuple((discord_id, str(new_prefix)))
+        source_sql = "INSERT OR REPLACE INTO source (discord_id, type) VALUES (?,?);"
+        prefix_sql = "INSERT OR REPLACE INTO prefix (discord_id, prefix) VALUES (?,?);"
+        try:
+            db = sqlite3.connect(db_admin)
+            cur = db.cursor()
+            cur.execute(source_sql, source_args)
+            cur.execute(prefix_sql, secure_prefix)
+            db.commit()
+            db.close()
+            log_txt = f"[ prefix -> button 'set prefix' ] New prefix was set on {discord_id} server"
+            logger(log_file, "INFO", log_txt)
+            ui_modals_counter.labels("prefix", "set")
+            ui_modals_counter.labels("prefix", "set").inc()
+            result = generate_prefix_output(new_prefix, "New guild prefix value")
+            await interaction.response.edit_message(content=result)
+        except sqlite3.OperationalError:
+            log_txt = f"Failed to load database file - {db_admin}"
+            logger(log_file, "ERROR", log_txt)
+            await interaction.response.send_message(f"**SQL Operational Error**\n"
+                                                    f"Looks like Admin Database currently unavailable.\n"
+                                                    f"Please, report to [developer]({dev_link}).", ephemeral=True)
+
+
+class PrefixView(discord.ui.View):
+    def __init__(self, author: typing.Union[discord.Member, discord.User], timeout=None):
+        self.author = author
+        super().__init__(timeout=timeout)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user != self.author:
+            await interaction.response.send_message(f'**Missing Permissions**\n'
+                                                    f'Sorry, but you need administrator permissions to manage prefix '
+                                                    f'for this server.', ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Set prefix", style=discord.ButtonStyle.gray, emoji="📥")
+    async def _set_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        modal = SetPrefix()
+        ui_button_counter.labels("prefix", "set")
+        ui_button_counter.labels("prefix", "set").inc()
+        await interaction.response.send_modal(modal)
+
+    @discord.ui.button(label="Restore prefix", style=discord.ButtonStyle.gray, emoji="📤")
+    async def _restore_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        discord_id = str(interaction.guild_id)
+        prefix_args = (discord_id,)
+        prefix_sql = "DELETE FROM prefix WHERE discord_id=?;"
+        try:
+            db = sqlite3.connect(db_admin)
+            cur = db.cursor()
+            cur.execute(prefix_sql, prefix_args)
+            db.commit()
+            db.close()
+            log_txt = f"[ prefix -> button 'restore prefix' ] Prefix was restored on {discord_id} server"
+            logger(log_file, "INFO", log_txt)
+            result = generate_prefix_output(bot_prefix, "Guild prefix value was restored to default")
+            ui_modals_counter.labels("prefix", "restore")
+            ui_modals_counter.labels("prefix", "restore").inc()
+            await interaction.response.edit_message(content=result)
+        except sqlite3.OperationalError:
+            log_txt = f"Failed to load database file - {db_admin}"
+            logger(log_file, "ERROR", log_txt)
+            await interaction.response.send_message(f"**SQL Operational Error**\n"
+                                                    f"Looks like Admin Database currently unavailable.\n"
+                                                    f"Please, report to [developer]({dev_link}).", ephemeral=True)
+
+
+# SERVER COG
 class Server(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
 
     # PREFIX COMMANDS GROUP
-    @commands.hybrid_group(name=pfx["name"], brief=pfx["brief"], help=pfx["help"], aliases=pfx["aliases"],
-                           invoke_without_command=True, with_app_command=True)
+    @commands.hybrid_command(name=cmds["prefix"]["name"], brief=cmds["prefix"]["brief"],
+                             aliases=cmds["prefix"]["aliases"], with_app_command=True)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _prefix(self, ctx: commands.Context) -> None:
-        if ctx.invoked_subcommand is None:
-            prefix = ctx.prefix
-
-            commands_counter.labels("prefix")
-            commands_counter.labels("prefix").inc()
-
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'Please choose: you want to set prefix or restore it.'
-                           f'```{prefix}prefix set```'
-                           f'```{prefix}prefix restore```')
-
-    # PREFIX SET COMMAND
-    @_prefix.command(name=spfx["name"], brief=spfx["brief"], help=spfx["help"], aliases=spfx["aliases"])
-    @commands.cooldown(1, 1, commands.BucketType.user)
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(send_messages=True)
-    async def _set_prefix(self, ctx: commands.Context,
-                          prefix: str = commands.parameter(description="New prefix for your server")) -> None:
-        check_limit(len(prefix), prefix_limit, prefix)
-        guild_id = str(ctx.guild.id)
-        secure_prefix = tuple((guild_id, str(prefix)))
-        sql = "INSERT OR REPLACE INTO guild_prefixes (guild_id, guild_prefix) VALUES (?,?);"
+        discord_id = ctx.guild.id
+        current_prefix = bot_prefix
         try:
             db = sqlite3.connect(db_admin)
             cur = db.cursor()
-            cur.execute(sql, secure_prefix)
-            db.commit()
+            current_prefix_sql = "SELECT prefix FROM prefix WHERE discord_id=?;"
+            cur.execute(current_prefix_sql, [discord_id])
+            db_prefix = cur.fetchone()
+            if db_prefix is not None:
+                current_prefix = db_prefix[0]
             db.close()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'New prefix is: {prefix}')
         except sqlite3.OperationalError:
             log_txt = f"Failed to load database file - {db_admin}"
             logger(log_file, "ERROR", log_txt)
             await ctx.defer(ephemeral=True)
-            await ctx.send(f'**SQL Operational Error**\n'
-                           f'Looks like Admin Database currently unavailable.\n'
-                           f'Please, report to [developer]({dev_link}).')
+            await ctx.send(f"**SQL Operational Error**\n"
+                           f"Looks like Admin Database currently unavailable.\n"
+                           f"Please, report to [developer]({dev_link}).")
+        result = generate_prefix_output(current_prefix, "Current guild prefix value")
 
-        commands_counter.labels("prefix_set")
-        commands_counter.labels("prefix_set").inc()
+        view = PrefixView(author=ctx.author)
+        commands_counter.labels("prefix")
+        commands_counter.labels("prefix").inc()
 
-    # PREFIX RESTORE COMMAND
-    @_prefix.command(name=rpfx["name"], brief=rpfx["brief"], help=rpfx["help"], aliases=rpfx["aliases"])
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(send_messages=True)
-    async def _restore_prefix(self, ctx: commands.Context) -> None:
-        guild_id = str(ctx.guild.id)
-        secure_guild_id = (guild_id,)
-        sql = "DELETE FROM guild_prefixes WHERE guild_id=?;"
-        try:
-            db = sqlite3.connect(db_admin)
-            cur = db.cursor()
-            cur.execute(sql, secure_guild_id)
-            db.commit()
-            db.close()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'Prefix was restored to default value')
-        except sqlite3.OperationalError:
-            log_txt = f"Failed to load database file - {db_admin}"
-            logger(log_file, "ERROR", log_txt)
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**SQL Operational Error**\n'
-                           f'Looks like Admin Database currently unavailable.\n'
-                           f'Please, report to [developer]({dev_link}).')
+        await ctx.defer(ephemeral=True)
+        await ctx.send(result, view=view)
 
-        commands_counter.labels("prefix_restore")
-        commands_counter.labels("prefix_restore").inc()
+    # SHORTCUT COMMANDS GROUP
+    # @commands.hybrid_group(name=srt["name"], brief=srt["brief"], help=srt["help"], aliases=srt["aliases"],
+    #                       invoke_without_command=True, with_app_command=True)
+    # @commands.has_permissions(administrator=True)
+    # @commands.bot_has_permissions(send_messages=True)
+    # async def _shortcut(self, ctx: commands.Context) -> None:
+    #    if ctx.invoked_subcommand is None:
+    #        prefix = ctx.prefix
+
+    #        commands_counter.labels("shortcut")
+    #        commands_counter.labels("shortcut").inc()
+
+    #        await ctx.defer(ephemeral=True)
+    #        await ctx.send(f'Please choose: you want to list shortcuts, add it or remove it.'
+    #                       f'```{prefix}shortcut list```'
+    #                       f'```{prefix}shortcut add```'
+    #                       f'```{prefix}shortcut remove```')
 
     # PREFIX ERRORS HANDLER
     @_prefix.error
     async def _prefix_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            errors_counter.labels("shortcut_add", "MissingPermissions")
+            errors_counter.labels("shortcut_add", "MissingPermissions").inc()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(f'**Missing Permissions**\n'
+                           f'Sorry, but you need administrator permissions to manage prefix for this server.')
         if isinstance(error, commands.BotMissingPermissions):
             errors_counter.labels("prefix", "BotMissingPermissions")
             errors_counter.labels("prefix", "BotMissingPermissions").inc()
@@ -98,58 +174,22 @@ class Server(commands.Cog):
                           f'Dice Roller have missing permissions to answer you in this channel.\n'
                           f'You can solve it by adding rights in channel or server management section.')
 
-    # PREFIX RESTORE ERRORS HANDLER
-    @_restore_prefix.error
-    async def _restore_prefix_error(self, ctx, error):
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("prefix_restore", "BotMissingPermissions")
-            errors_counter.labels("prefix_restore", "BotMissingPermissions").inc()
-            dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
-
-    # PREFIX SET ERRORS HANDLER
-    @_set_prefix.error
-    async def _set_prefix_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            errors_counter.labels("prefix_set", "MissingPermissions")
-            errors_counter.labels("prefix_set", "MissingPermissions").inc()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Missing Permissions**\n'
-                           f'Sorry, but you need administrator permissions to change the bot prefix.')
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("prefix_set", "BotMissingPermissions")
-            errors_counter.labels("prefix_set", "BotMissingPermissions").inc()
-            dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
-        if isinstance(error, commands.MissingRequiredArgument):
-            errors_counter.labels("prefix_set", "MissingRequiredArgument")
-            errors_counter.labels("prefix_set", "MissingRequiredArgument").inc()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Missing Required Argument**\n'
-                           f'Specify valid prefix, please.\n'
-                           'Empty prefix specified.')
-        if isinstance(error, commands.ArgumentParsingError):
-            errors_counter.labels("prefix_set", "ArgumentParsingError")
-            errors_counter.labels("prefix_set", "ArgumentParsingError").inc()
-            prefix = ctx.prefix
-            new_prefix = error.args[0]
-            shorter_prefix = new_prefix[:prefix_limit]
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Argument Parsing Error**\n'
-                           f'Specify valid prefix, please.\n'
-                           f'Specified prefix is longer than {prefix_limit} symbols. Example:'
-                           f'```{prefix}prefix set {shorter_prefix}```')
-        if isinstance(error, commands.CommandOnCooldown):
-            errors_counter.labels("prefix_set", "CommandOnCooldown")
-            errors_counter.labels("prefix_set", "CommandOnCooldown").inc()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Command On Cooldown**\n'
-                           f'This command is on cooldown.\n'
-                           f'You can use it in {round(error.retry_after, 2)} sec.')
+    # SHORTCUT ERRORS HANDLER
+    # @_shortcut.error
+    # async def _shortcut_error(self, ctx, error):
+    #    if isinstance(error, commands.MissingPermissions):
+    #        errors_counter.labels("shortcut_add", "MissingPermissions")
+    #        errors_counter.labels("shortcut_add", "MissingPermissions").inc()
+    #        await ctx.defer(ephemeral=True)
+    #        await ctx.send(f'**Missing Permissions**\n'
+    #                       f'Sorry, but you need administrator permissions to manage shortcuts for this server.')
+    #    if isinstance(error, commands.BotMissingPermissions):
+    #        errors_counter.labels("shortcut", "BotMissingPermissions")
+    #        errors_counter.labels("shortcut", "BotMissingPermissions").inc()
+    #        dm = await ctx.author.create_dm()
+    #        await dm.send(f'**Bot Missing Permissions**\n'
+    #                      f'Dice Roller have missing permissions to answer you in this channel.\n'
+    #                      f'You can solve it by adding rights in channel or server management section.')
 
 
 async def setup(bot: commands.Bot) -> None:

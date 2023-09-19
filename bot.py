@@ -81,26 +81,47 @@ async def on_ready():
 # remove prefix from Admin DB when bot was kicked from server
 @roller.event
 async def on_guild_remove(guild):
-    guild_id = guild.id
-    secure_guild_id = (guild_id,)
-    prefix_sql = "DELETE FROM guild_prefixes WHERE guild_id=?;"
+    discord_id = guild.id
+    secure_args = (discord_id,)
+    prefix_sql = "DELETE FROM prefix WHERE discord_id=?;"
+    shortcut_sql = "DELETE FROM shortcut WHERE discord_id=?;"
+    source_sql = "DELETE FROM source WHERE discord_id=?;"
     try:
         db = sqlite3.connect(db_admin)
         cur = db.cursor()
-        cur.execute(prefix_sql, secure_guild_id)
+        cur.execute(prefix_sql, secure_args)
+        cur.execute(shortcut_sql, secure_args)
+        cur.execute(source_sql, secure_args)
         db.commit()
         db.close()
-        log_txt = f"Dice Roller was kicked from guild with id: {guild_id}"
+        log_txt = f"Dice Roller was kicked from guild with id: {discord_id}"
         logger(log_file, "INFO", log_txt)
     except sqlite3.OperationalError:
         log_txt = f"Failed to load database file - {db_admin}"
         logger(log_file, "ERROR", log_txt)
+    # metrics
     guilds_counter.labels("kicked")
     guilds_counter.labels("kicked").inc()
 
 
 @roller.event
 async def on_guild_join(guild):
+    discord_id = str(guild.id)
+    source_type = 1
+    source_args = tuple((discord_id, source_type))
+    source_sql = "INSERT OR REPLACE INTO source (discord_id, type) VALUES (?,?);"
+    try:
+        db = sqlite3.connect(db_admin)
+        cur = db.cursor()
+        cur.execute(source_sql, source_args)
+        db.commit()
+        db.close()
+        log_txt = f"Dice Roller was added on guild with id: {discord_id}"
+        logger(log_file, "INFO", log_txt)
+    except sqlite3.OperationalError:
+        log_txt = f"Failed to load database file - {db_admin}"
+        logger(log_file, "ERROR", log_txt)
+    # metrics
     guilds_counter.labels("joined")
     guilds_counter.labels("joined").inc()
 

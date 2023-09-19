@@ -80,30 +80,6 @@ cmds = {
     }
 }
 # =================
-# prefix
-prefix = {
-    "name": "prefix",
-    "usage": "",
-    "aliases": ["p"],
-    "brief": "Manage bot prefix (admin only)",
-    "help": "Manage prefix for the bot commands"
-}
-# info for subcommand set command prefix
-prefix_set = {
-    "name": "set",
-    "usage": "",
-    "aliases": ["ps"],
-    "brief": "Set new prefix for the bot commands",
-    "help": "Set new prefix for the bot commands, it should be 3 or less symbols."
-}
-# info for subcommand restore command prefix
-prefix_restore = {
-    "name": "restore",
-    "usage": "",
-    "aliases": ["pr"],
-    "brief": "Restore default prefix for the bot commands",
-    "help": "Restore default prefix for the bot commands (can be found in bot description)"
-}
 extension = {
     "name": "cog",
     "usage": "",
@@ -131,36 +107,4 @@ extension_unload = {
     "aliases": ["cog_ud"],
     "brief": "Unload extension by it's name",
     "help": "Unload extension by it's name"
-}
-# info for command shortcut
-shortcut = {
-    "name": "shortcut",
-    "usage": "",
-    "aliases": ["srt"],
-    "brief": "Manage server's shortcuts (admin only)",
-    "help": "Manage server's shortcuts for all users on server"
-}
-# info for command shortcut
-shortcut_list = {
-    "name": "list",
-    "usage": "",
-    "aliases": ["srt_list"],
-    "brief": "List server's shortcuts",
-    "help": "List all server's shortcuts"
-}
-# info for command shortcut
-shortcut_add = {
-    "name": "add",
-    "usage": "word dice",
-    "aliases": ["srt_add"],
-    "brief": "Add new shortcut",
-    "help": "Add new shortcut on the server for all users"
-}
-# info for command shortcut
-shortcut_remove = {
-    "name": "remove",
-    "usage": "shortcut",
-    "aliases": ["srt_rmv"],
-    "brief": "Remove existing shortcut",
-    "help": "Remove existing shortcut from server for all users"
 }

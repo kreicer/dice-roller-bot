@@ -26,12 +26,17 @@ def json_writer(new_data, filename):
 
 
 def text_writer(text, directory):
-    file_id = str(uuid.uuid4())
+    file_id = uuid_generator()
     filename = file_id + ".txt"
     filepath = directory + "/" + filename
     check_file_exist(filepath)
     with open(filepath, "w") as file:
         file.write(text)
+
+
+def uuid_generator():
+    new_uuid = str(uuid.uuid4())
+    return new_uuid
 
 
 def logger(filename, log_level, text):
@@ -164,19 +169,14 @@ def generate_joke_output(joke_id, joke_text):
     return output
 
 
-def generate_prefix_output(prefix, state):
+def generate_prefix_output(prefix, text):
     green_start = "[0;32m"
-    red_start = "[0;31m"
+    yellow_start = "[0;33m"
     blue_start = "[0;34m"
     all_end = "[0;0m"
-    if state == "disabled":
-        current_state = f"{red_start}disabled{all_end}"
-    else:
-        current_state = f"{blue_start}enabled{all_end}"
     output = f"```ansi\n" \
-             f"{green_start}Prefix Control Interface{all_end}\n\n" \
-             f"Current guild prefix state - {current_state}\n" \
-             f"Current guild prefix value - {blue_start}{prefix}{all_end}\n" \
+             f"{green_start}PREFIX {yellow_start}(ADMIN ACTION){all_end}\n\n" \
+             f"{text} - {blue_start}{prefix}{all_end}\n" \
              f"```"
     return output
 
