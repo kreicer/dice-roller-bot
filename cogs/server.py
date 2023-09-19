@@ -5,10 +5,12 @@ import typing
 import discord
 from discord.ext import commands
 
-from models.commands import  cmds
+from functions.sql import apply_sql, select_sql
+from models.commands import cmds
 from models.metrics import commands_counter, errors_counter, ui_modals_counter, ui_button_counter
 from functions.workhorses import logger, generate_prefix_output
 from functions.config import db_admin, dev_link, log_file, bot_prefix
+from models.sql import source_update, prefix_update, prefix_delete, prefix_get
 
 
 # SERVER UI
@@ -28,29 +30,32 @@ class SetPrefix(discord.ui.Modal, title="Set new prefix"):
         await interaction.response.send_message("Something went wrong...", ephemeral=True)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        new_prefix = self.new_prefix.value
+        # main
+        new_prefix = str(self.new_prefix.value)
         discord_id = str(interaction.guild_id)
         source_type = 1
-        source_args = tuple((discord_id, source_type))
-        secure_prefix = tuple((discord_id, str(new_prefix)))
-        source_sql = "INSERT OR REPLACE INTO source (discord_id, type) VALUES (?,?);"
-        prefix_sql = "INSERT OR REPLACE INTO prefix (discord_id, prefix) VALUES (?,?);"
-        try:
-            db = sqlite3.connect(db_admin)
-            cur = db.cursor()
-            cur.execute(source_sql, source_args)
-            cur.execute(prefix_sql, secure_prefix)
-            db.commit()
-            db.close()
+        secure_src = (discord_id, source_type)
+        secure_prefix = (discord_id, new_prefix)
+        execute_list = [(source_update, secure_src), (prefix_update, secure_prefix)]
+        success = apply_sql(db_admin, execute_list)
+        if success:
+            # logger
             log_txt = f"[ prefix -> button 'set prefix' ] New prefix was set on {discord_id} server"
             logger(log_file, "INFO", log_txt)
+
+            # metrics
             ui_modals_counter.labels("prefix", "set")
             ui_modals_counter.labels("prefix", "set").inc()
+
+            # answer
             result = generate_prefix_output(new_prefix, "New guild prefix value")
             await interaction.response.edit_message(content=result)
-        except sqlite3.OperationalError:
+        else:
+            # logger
             log_txt = f"Failed to load database file - {db_admin}"
             logger(log_file, "ERROR", log_txt)
+
+            # answer
             await interaction.response.send_message(f"**SQL Operational Error**\n"
                                                     f"Looks like Admin Database currently unavailable.\n"
                                                     f"Please, report to [developer]({dev_link}).", ephemeral=True)
@@ -61,6 +66,7 @@ class PrefixView(discord.ui.View):
         self.author = author
         super().__init__(timeout=timeout)
 
+    # check user click vs user spawn
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user != self.author:
             await interaction.response.send_message(f'**Missing Permissions**\n'
@@ -71,31 +77,39 @@ class PrefixView(discord.ui.View):
 
     @discord.ui.button(label="Set prefix", style=discord.ButtonStyle.gray, emoji="📥")
     async def _set_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = SetPrefix()
+        # metrics
         ui_button_counter.labels("prefix", "set")
         ui_button_counter.labels("prefix", "set").inc()
+
+        # answer
+        modal = SetPrefix()
         await interaction.response.send_modal(modal)
 
     @discord.ui.button(label="Restore prefix", style=discord.ButtonStyle.gray, emoji="📤")
     async def _restore_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # main
         discord_id = str(interaction.guild_id)
-        prefix_args = (discord_id,)
-        prefix_sql = "DELETE FROM prefix WHERE discord_id=?;"
-        try:
-            db = sqlite3.connect(db_admin)
-            cur = db.cursor()
-            cur.execute(prefix_sql, prefix_args)
-            db.commit()
-            db.close()
+        secure = (discord_id,)
+        execute_list = [(prefix_delete, secure)]
+        success = apply_sql(db_admin, execute_list)
+        if success:
+            # logger
             log_txt = f"[ prefix -> button 'restore prefix' ] Prefix was restored on {discord_id} server"
             logger(log_file, "INFO", log_txt)
-            result = generate_prefix_output(bot_prefix, "Guild prefix value was restored to default")
+
+            # metrics
             ui_modals_counter.labels("prefix", "restore")
             ui_modals_counter.labels("prefix", "restore").inc()
+
+            # answer
+            result = generate_prefix_output(bot_prefix, "Guild prefix value was restored to default")
             await interaction.response.edit_message(content=result)
-        except sqlite3.OperationalError:
+        else:
+            # logger
             log_txt = f"Failed to load database file - {db_admin}"
             logger(log_file, "ERROR", log_txt)
+
+            # answer
             await interaction.response.send_message(f"**SQL Operational Error**\n"
                                                     f"Looks like Admin Database currently unavailable.\n"
                                                     f"Please, report to [developer]({dev_link}).", ephemeral=True)
@@ -112,30 +126,20 @@ class Server(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _prefix(self, ctx: commands.Context) -> None:
-        discord_id = ctx.guild.id
-        current_prefix = bot_prefix
-        try:
-            db = sqlite3.connect(db_admin)
-            cur = db.cursor()
-            current_prefix_sql = "SELECT prefix FROM prefix WHERE discord_id=?;"
-            cur.execute(current_prefix_sql, [discord_id])
-            db_prefix = cur.fetchone()
-            if db_prefix is not None:
-                current_prefix = db_prefix[0]
-            db.close()
-        except sqlite3.OperationalError:
-            log_txt = f"Failed to load database file - {db_admin}"
-            logger(log_file, "ERROR", log_txt)
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f"**SQL Operational Error**\n"
-                           f"Looks like Admin Database currently unavailable.\n"
-                           f"Please, report to [developer]({dev_link}).")
-        result = generate_prefix_output(current_prefix, "Current guild prefix value")
+        # main
+        discord_id = str(ctx.guild.id)
+        secure = (discord_id,)
+        guild_prefix = select_sql(db_admin, prefix_get, secure)
+        if guild_prefix == "":
+            guild_prefix = bot_prefix
 
-        view = PrefixView(author=ctx.author)
+        # metrics
         commands_counter.labels("prefix")
         commands_counter.labels("prefix").inc()
 
+        # answer
+        view = PrefixView(author=ctx.author)
+        result = generate_prefix_output(guild_prefix, "Current guild prefix value")
         await ctx.defer(ephemeral=True)
         await ctx.send(result, view=view)
 
@@ -161,11 +165,18 @@ class Server(commands.Cog):
     @_prefix.error
     async def _prefix_error(self, ctx, error):
         if isinstance(error, commands.MissingPermissions):
-            errors_counter.labels("shortcut_add", "MissingPermissions")
-            errors_counter.labels("shortcut_add", "MissingPermissions").inc()
+            errors_counter.labels("prefix", "MissingPermissions")
+            errors_counter.labels("prefix", "MissingPermissions").inc()
             await ctx.defer(ephemeral=True)
             await ctx.send(f'**Missing Permissions**\n'
                            f'Sorry, but you need administrator permissions to manage prefix for this server.')
+        if isinstance(error, sqlite3.OperationalError):
+            errors_counter.labels("prefix", "OperationalError")
+            errors_counter.labels("prefix", "OperationalError").inc()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(f"**SQL Operational Error**\n"
+                           f"Looks like Admin Database currently unavailable.\n"
+                           f"Please, report to [developer]({dev_link}).")
         if isinstance(error, commands.BotMissingPermissions):
             errors_counter.labels("prefix", "BotMissingPermissions")
             errors_counter.labels("prefix", "BotMissingPermissions").inc()

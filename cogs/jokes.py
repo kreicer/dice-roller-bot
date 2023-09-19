@@ -5,10 +5,12 @@ import discord
 from discord.ext import commands, tasks
 
 from classes.ui import Feedback
+from functions.sql import select_sql
 from models.commands import cmds
 from functions.workhorses import text_writer, logger, generate_joke_output
 from functions.config import db_jokes, dir_jokes, log_file
 from models.metrics import commands_counter, errors_counter, ui_modals_counter, ui_button_counter
+from models.sql import joke_get, jokes_count
 
 # global
 number_of_jokes = 1
@@ -27,17 +29,22 @@ class SubmitJoke(Feedback, title="Submit joke"):
     )
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
+        # main
         username = self.username.value
         joke_text = self.joke_text.value
-
         text = f"username: \"{username}\"\n" \
                f"joke: \"{joke_text}\"\n"
         text_writer(text, dir_jokes)
 
+        # logger
         log_txt = f"[ joke -> button 'submit joke' ] New joke was posted by {username}"
         logger(log_file, "INFO", log_txt)
+
+        # metrics
         ui_modals_counter.labels("joke", "submit")
         ui_modals_counter.labels("joke", "submit").inc()
+
+        # answer
         await interaction.response.send_message("Thanks for your joke!", ephemeral=True)
 
 
@@ -47,26 +54,28 @@ class JokesView(discord.ui.View):
 
     @discord.ui.button(label="Another joke", style=discord.ButtonStyle.blurple, emoji="😜")
     async def _another_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # main
         random_joke_number = random.randint(1, number_of_jokes)
         joke_id = random_joke_number
-        db = sqlite3.connect(db_jokes)
-        cur = db.cursor()
-        sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
-        cur.execute(sql_joke, [random_joke_number])
-        joke_text = cur.fetchone()[0]
-        db.close()
+        secure = (joke_id,)
+        joke_text = select_sql(db_jokes, joke_get, secure)
 
-        result = generate_joke_output(joke_id, joke_text)
-
+        # metrics
         ui_button_counter.labels("joke", "another")
         ui_button_counter.labels("joke", "another").inc()
+
+        # answer
+        result = generate_joke_output(joke_id, joke_text)
         await interaction.response.edit_message(content=result)
 
     @discord.ui.button(label="Submit joke", style=discord.ButtonStyle.blurple, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = SubmitJoke()
+        # metrics
         ui_button_counter.labels("joke", "submit")
         ui_button_counter.labels("joke", "submit").inc()
+
+        # answer
+        modal = SubmitJoke()
         await interaction.response.send_modal(modal)
 
 
@@ -82,20 +91,16 @@ class Jokes(commands.Cog):
 
     @tasks.loop(hours=1)
     async def _update_jokes(self):
+        # main
         global number_of_jokes
-        sql = "SELECT COUNT(joke_id) FROM jokes;"
-        try:
-            db = sqlite3.connect(db_jokes)
-            cur = db.cursor()
-            cur.execute(sql)
-            number_of_jokes = cur.fetchone()[0]
-            db.close()
-            # Logger
-            log_txt = "Jokes number updated, current number: " + str(number_of_jokes)
-            logger(log_file, "INFO", log_txt)
-        except sqlite3.OperationalError:
-            log_txt = f"Failed to load database file - {db_jokes}"
-            logger(log_file, "ERROR", log_txt)
+        secure = ()
+        number_of_jokes = select_sql(db_jokes, jokes_count, secure)
+
+        # logger
+        log_txt = "Jokes number updated, current number: " + str(number_of_jokes)
+        logger(log_file, "INFO", log_txt)
+
+        # answer
         return number_of_jokes
 
     @_update_jokes.before_loop
@@ -107,24 +112,21 @@ class Jokes(commands.Cog):
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _joke(self, ctx: commands.Context) -> None:
+        # main
         random_joke_number = random.randint(1, number_of_jokes)
         joke_id = random_joke_number
-        db = sqlite3.connect(db_jokes)
-        cur = db.cursor()
-        sql_joke = "SELECT joke_text FROM jokes WHERE joke_id=?;"
-        cur.execute(sql_joke, [random_joke_number])
-        joke_text = cur.fetchone()[0]
-        db.close()
+        secure = (joke_id,)
+        joke_text = select_sql(db_jokes, joke_get, secure)
 
-        result = generate_joke_output(joke_id, joke_text)
-
-        view = JokesView()
-        view.add_item(discord.ui.Button(label="Rate jokes", style=discord.ButtonStyle.link,
-                                        url="https://discord.gg/TuXxE57kqy", emoji="🤩"))
-
+        # metrics
         commands_counter.labels("joke")
         commands_counter.labels("joke").inc()
 
+        # answer
+        view = JokesView()
+        view.add_item(discord.ui.Button(label="Rate jokes", style=discord.ButtonStyle.link,
+                                        url="https://discord.gg/TuXxE57kqy", emoji="🤩"))
+        result = generate_joke_output(joke_id, joke_text)
         await ctx.defer(ephemeral=True)
         await ctx.send(result, view=view)
 

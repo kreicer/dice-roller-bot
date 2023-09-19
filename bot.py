@@ -1,33 +1,23 @@
-import sqlite3
 import discord
 from discord.ext import commands
+
+from functions.sql import select_sql, apply_sql
 from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
+from models.sql import prefix_get, shortcut_delete, prefix_delete, source_delete, source_update
 
 
 # define prefix or mention
 async def get_prefix(bot, message):
-    # TODO: mb allow few prefixes for each guild
     prefix_list = []
     try:
-        db = sqlite3.connect(db_admin)
-        cur = db.cursor()
-        try:
-            discord_id = str(message.guild.id)
-        except AttributeError:
-            discord_id = str(message.channel.id)
-        prefix_sql = "SELECT prefix FROM prefix WHERE discord_id = ?;"
-        cur.execute(prefix_sql, [discord_id])
-        guild_prefix = cur.fetchone()
-        if guild_prefix is not None:
-            guild_prefix = guild_prefix[0]
-        else:
-            guild_prefix = bot_prefix
-        db.close()
-    except sqlite3.OperationalError:
-        log_txt = f"Failed to load database file - {db_admin}"
-        logger(log_file, "ERROR", log_txt)
+        discord_id = str(message.guild.id)
+    except AttributeError:
+        discord_id = str(message.channel.id)
+    secure = (discord_id,)
+    guild_prefix = select_sql(db_admin, prefix_get, secure)
+    if guild_prefix == "":
         guild_prefix = bot_prefix
     prefix_list.append(guild_prefix)
     return commands.when_mentioned_or(*prefix_list)(bot, message)
@@ -81,24 +71,16 @@ async def on_ready():
 # remove prefix from Admin DB when bot was kicked from server
 @roller.event
 async def on_guild_remove(guild):
-    discord_id = guild.id
-    secure_args = (discord_id,)
-    prefix_sql = "DELETE FROM prefix WHERE discord_id=?;"
-    shortcut_sql = "DELETE FROM shortcut WHERE discord_id=?;"
-    source_sql = "DELETE FROM source WHERE discord_id=?;"
-    try:
-        db = sqlite3.connect(db_admin)
-        cur = db.cursor()
-        cur.execute(prefix_sql, secure_args)
-        cur.execute(shortcut_sql, secure_args)
-        cur.execute(source_sql, secure_args)
-        db.commit()
-        db.close()
-        log_txt = f"Dice Roller was kicked from guild with id: {discord_id}"
-        logger(log_file, "INFO", log_txt)
-    except sqlite3.OperationalError:
-        log_txt = f"Failed to load database file - {db_admin}"
-        logger(log_file, "ERROR", log_txt)
+    # main
+    discord_id = str(guild.id)
+    secure = (discord_id,)
+    execute_list = [(shortcut_delete, secure), (prefix_delete, secure), (source_delete, secure)]
+    apply_sql(db_admin, execute_list)
+
+    # logger
+    log_txt = f"Dice Roller was kicked from guild with id: {discord_id}"
+    logger(log_file, "INFO", log_txt)
+
     # metrics
     guilds_counter.labels("kicked")
     guilds_counter.labels("kicked").inc()
@@ -106,21 +88,17 @@ async def on_guild_remove(guild):
 
 @roller.event
 async def on_guild_join(guild):
+    # main
     discord_id = str(guild.id)
     source_type = 1
-    source_args = tuple((discord_id, source_type))
-    source_sql = "INSERT OR REPLACE INTO source (discord_id, type) VALUES (?,?);"
-    try:
-        db = sqlite3.connect(db_admin)
-        cur = db.cursor()
-        cur.execute(source_sql, source_args)
-        db.commit()
-        db.close()
-        log_txt = f"Dice Roller was added on guild with id: {discord_id}"
-        logger(log_file, "INFO", log_txt)
-    except sqlite3.OperationalError:
-        log_txt = f"Failed to load database file - {db_admin}"
-        logger(log_file, "ERROR", log_txt)
+    secure = (discord_id, source_type)
+    execute_list = [(source_update, secure)]
+    apply_sql(db_admin, execute_list)
+
+    # logger
+    log_txt = f"Dice Roller was added on guild with id: {discord_id}"
+    logger(log_file, "INFO", log_txt)
+
     # metrics
     guilds_counter.labels("joined")
     guilds_counter.labels("joined").inc()
