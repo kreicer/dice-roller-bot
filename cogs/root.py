@@ -1,8 +1,13 @@
 import os
 from discord.ext import commands
+
+from functions.colorizer import Colorizer
+from lang.EN.errors import bot_missing_permissions
 # from models.commands import generate_aliases as ga
 from models.commands import extension as ext, extension_load as ext_load, extension_unload as ext_unload, \
     extension_list as ext_list
+from models.metrics import errors_counter
+
 # from functions.workhorses import generate_dicts as gen_dicts
 # from models.postfixes import postfixes as pfs_dict
 
@@ -143,10 +148,9 @@ class Root(commands.Cog):
                            f'This command is on cooldown.\n'
                            f'You can use it in {round(error.retry_after, 2)} sec.')
         if isinstance(error, commands.BotMissingPermissions):
+            text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
+            await dm.send(text)
 
     # COG LOAD ERRORS HANDLER
     @_ext_load.error
@@ -161,10 +165,9 @@ class Root(commands.Cog):
                            f'This command is on cooldown.\n'
                            f'You can use it in {round(error.retry_after, 2)} sec.')
         if isinstance(error, commands.BotMissingPermissions):
+            text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
+            await dm.send(text)
 
     # COG UNLOAD ERRORS HANDLER
     @_ext_unload.error
@@ -179,10 +182,11 @@ class Root(commands.Cog):
                            f'This command is on cooldown.\n'
                            f'You can use it in {round(error.retry_after, 2)} sec.')
         if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("extension", "BotMissingPermissions")
+            errors_counter.labels("extension", "BotMissingPermissions").inc()
+            text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
+            await dm.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:

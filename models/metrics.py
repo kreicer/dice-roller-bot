@@ -6,6 +6,9 @@ if metrics_python_ext is False:
     prometheus_client.REGISTRY.unregister(prometheus_client.GC_COLLECTOR)
     prometheus_client.REGISTRY.unregister(prometheus_client.PLATFORM_COLLECTOR)
 
+# metrics for buckets
+buckets_counter = Counter("buckets_counter", "Counter for buckets", ["number_of_buckets"])
+
 # metrics for commands
 commands_counter = Counter("commands_counter", "Counter for commands", ["command"])
 

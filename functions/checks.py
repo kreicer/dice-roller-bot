@@ -1,3 +1,7 @@
+from lang.EN.errors import wrong_dice_error, wrong_sign_error, zero_throws_error, throws_limit_error, zero_mod_error, \
+    mod_limit_error, zero_edge_error, edge_limit_error, empty_postfix_error, bad_postfix_error, value_vs_throws_error, \
+    value_vs_edge_error, edge_vs_two_error, infinity_loop_error, value_for_multiply_error, postfix_right_error, \
+    shortcut_name_error, shortcut_limit_error
 from lang.list import available_languages as lang_list
 from models.postfixes import postfixes as postfix_dict, aliases as aliases_dict
 from discord.ext import commands
@@ -18,10 +22,7 @@ def check_lang(language, for_error):
 
 def check_match(match):
     if match is None:
-        error_text = "Wrong dice or modifier.\n" \
-                     "Dice pattern is *[throws]*d*[edge]*/*[postfix]*:*[value]*.\n" \
-                     "Fate/Fudge dice pattern is *[throws]*d*F*.\n"\
-                     "Modifier should start from + or - and can be another dice or number."
+        error_text = wrong_dice_error
         raise commands.BadArgument(None, error_text)
 
 
@@ -58,7 +59,7 @@ def check_mod(mod):
     if cleared_mod == "":
         cleared_mod = "+"
     elif cleared_mod not in ["+", "-"]:
-        error_text = "Dice modifiers can be additive (+) or subtractive (-) only."
+        error_text = wrong_sign_error
         raise commands.BadArgument(None, error_text)
     return cleared_mod
 
@@ -67,46 +68,45 @@ def check_throws(throws):
     if throws == "":
         throws = 1
     elif throws == "0":
-        error_text = "Number of dice throws can not be zero."
+        error_text = zero_throws_error
         raise commands.BadArgument(None, error_text)
     else:
         throws = int(throws)
-        error_text = f"Number of throws ({throws}) is greater than the current limit of {r_limit}"
+        error_text = throws_limit_error.format(throws, r_limit)
         check_limit(throws, r_limit, error_text)
     return throws
 
 
 def check_modifier(throws):
     if throws == "0":
-        error_text = "Modifier can not be zero."
+        error_text = zero_mod_error
         raise commands.BadArgument(None, error_text)
     else:
         throws = int(throws)
-        error_text = f"Modifier ({throws}) is greater than the current limit of {m_limit}"
+        error_text = mod_limit_error.format(throws, m_limit)
         check_limit(throws, m_limit, error_text)
     return throws
 
 
 def check_edge(edge):
     if edge == "0" or edge == "":
-        error_text = "Value of dice edge can not be zero or empty."
+        error_text = zero_edge_error
         raise commands.BadArgument(None, error_text)
     elif edge.upper() == "F":
         edge = "F"
     else:
         edge = int(edge)
-        error_text = f"Dice edge value ({edge}) is greater than the current limit of {e_limit}"
+        error_text = edge_limit_error.format(edge, e_limit)
         check_limit(edge, e_limit, error_text)
     return edge
 
 
 def check_postfix(postfix, aliases):
     if postfix == "":
-        error_text = "Alias to \"Postfix\" can not be empty."
+        error_text = empty_postfix_error
         raise commands.BadArgument(None, error_text)
     elif postfix not in aliases.keys():
-        error_text = "Can not find this alias to existing \"Postfix\".\n" \
-                     "You can list all available \"Postfixes\" with: ```/postfix```"
+        error_text = bad_postfix_error
         raise commands.BadArgument(None, error_text)
     else:
         postfix = aliases[postfix]
@@ -123,45 +123,47 @@ def check_value(value, defaults):
 
 def check_value_vs_throws(throws, value):
     if value >= throws:
-        error_text = "Value can not be higher or equal to number of throws in this Postfix."
+        error_text = value_vs_throws_error
         raise commands.BadArgument(None, error_text)
 
 
 def check_value_vs_edge(edge, value):
     if value > edge:
-        error_text = "Value can not be higher than dice edge in this Postfix."
+        error_text = value_vs_edge_error
         raise commands.BadArgument(None, error_text)
 
 
 def check_edge_vs_two(edge):
     if edge < 2:
-        error_text = "Can not use this Postfix with dice edge equal to 1."
+        error_text = edge_vs_two_error
         raise commands.BadArgument(None, error_text)
 
 
-def check_value_for_explode(value):
+def check_value_for_infinity_loop(value):
     if value == 1:
-        error_text = "Exploding dice can not be rolled with value equal to 1 - protection from infinity loop"
-        raise commands.BadArgument(None, error_text)
-
-
-def check_value_for_penetrate(value):
-    if value == 1:
-        error_text = "Penetrating dice can not be rolled with value equal to 1 - protection from infinity loop"
+        error_text = infinity_loop_error
         raise commands.BadArgument(None, error_text)
 
 
 def check_value_for_multiply(throws, value):
-    if value > r_limit:
-        error_text = f"Multiplier value cannot be higher than current rolls limit {r_limit}"
-        raise commands.BadArgument(None, error_text)
-    elif throws * value > r_limit:
-        error_text = f"Multiplied throws number cannot be higher than current roll limit {r_limit}"
+    if value > r_limit or throws * value > r_limit:
+        error_text = value_for_multiply_error
         raise commands.BadArgument(None, error_text)
 
 
 def check_postfix_is_right_and_available(postfix):
     if postfix not in postfix_dict.keys():
-        error_text = "Can not find this short name to existing \"Postfix\".\n" \
-                     "You can list all available \"Postfixes\" with: ```/postfix```"
+        error_text = postfix_right_error
         raise commands.BadArgument(None, error_text)
+
+
+def check_shortcut_name(shortcut_name):
+    if not shortcut_name.isalnum():
+        error_text = shortcut_name_error
+        raise commands.BadArgument(None, error_text)
+
+
+def check_shortcut_limit(shortcut_amount, shortcut_limit, shortcut_exist):
+    if int(shortcut_amount) >= shortcut_limit and not shortcut_exist:
+        error_text = shortcut_limit_error
+        raise commands.TooManyArguments(None, error_text)

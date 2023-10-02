@@ -1,11 +1,34 @@
 from models.metrics import postfix_counter
 from functions.workhorses import dice_roll
-from functions.checks import (check_value_vs_throws as check_v_v_t,
+from functions.checks import (check_value_vs_throws,
                               check_edge_vs_two as check_e_v_t,
-                              check_value_for_explode as check_v_exp,
-                              check_value_for_penetrate as check_v_pen,
                               check_value_vs_edge as check_v_v_e,
-                              check_value_for_multiply as check_v_f_mul)
+                              check_value_for_multiply as check_v_f_mul, check_value_for_infinity_loop)
+
+
+def postfix_check(dice_parts):
+    throws = dice_parts["throws"]
+    edge = dice_parts["edge"]
+    postfix = dice_parts["postfix"]
+    value = dice_parts["value"]
+    match postfix:
+        # drop lowest | drop highest | keep lowest | keep highest
+        case "dl" | "dh" | "kl" | "kh":
+            check_value_vs_throws(throws, value)
+        # reroll
+        case "rr":
+            check_v_v_e(edge, value)
+        # exploding dice | penetrating dice
+        case "exp" | "pen":
+            check_e_v_t(edge)
+            if value != "" or value < edge:
+                check_value_for_infinity_loop(value)
+        # multiplier
+        case "x":
+            check_v_f_mul(throws, value)
+        # do nothing
+        case _:
+            pass
 
 
 def postfix_magick(throws_result_list, dice_parts):
@@ -16,7 +39,6 @@ def postfix_magick(throws_result_list, dice_parts):
     match postfix:
         # drop lowest
         case "dl":
-            check_v_v_t(throws, value)
             counter = 0
             while counter < value:
                 throws_result_list.remove(min(throws_result_list))
@@ -27,7 +49,6 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # drop highest
         case "dh":
-            check_v_v_t(throws, value)
             counter = 0
             while counter < value:
                 throws_result_list.remove(max(throws_result_list))
@@ -38,7 +59,6 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # reroll
         case "rr":
-            check_v_v_e(edge, value)
             new_throws_result_list = []
             for throws_result in throws_result_list:
                 if throws_result <= value:
@@ -52,11 +72,8 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # exploding dice
         case "exp":
-            check_e_v_t(edge)
             if value == "" or value > edge:
                 value = edge
-            else:
-                check_v_exp(value)
             new_throws_result_list = []
 
             for throw_result in throws_result_list:
@@ -72,11 +89,8 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # penetrating dice
         case "pen":
-            check_e_v_t(edge)
             if value == "" or value > edge:
                 value = edge
-            else:
-                check_v_pen(value)
             new_throws_result_list = []
 
             for throw_result in throws_result_list:
@@ -94,7 +108,6 @@ def postfix_magick(throws_result_list, dice_parts):
         # keep lowest
         case "kl":
             new_throws_result_list = []
-            check_v_v_t(throws, value)
             counter = 0
             while counter < value:
                 new_throws_result_list.append(min(throws_result_list))
@@ -107,7 +120,6 @@ def postfix_magick(throws_result_list, dice_parts):
         # keep highest
         case "kh":
             new_throws_result_list = []
-            check_v_v_t(throws, value)
             counter = 0
             while counter < value:
                 new_throws_result_list.append(max(throws_result_list))
@@ -118,7 +130,6 @@ def postfix_magick(throws_result_list, dice_parts):
             return new_throws_result_list
 
         case "x":
-            check_v_f_mul(throws, value)
             counter = (throws * value) - throws
             while counter:
                 additional_roll = dice_roll(1, edge)

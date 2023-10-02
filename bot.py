@@ -5,7 +5,7 @@ from functions.sql import select_sql, apply_sql
 from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
-from models.sql import prefix_get, shortcut_delete, prefix_delete, source_delete, source_update
+from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update
 
 
 # define prefix or mention
@@ -74,7 +74,7 @@ async def on_guild_remove(guild):
     # main
     discord_id = str(guild.id)
     secure = (discord_id,)
-    execute_list = [(shortcut_delete, secure), (prefix_delete, secure), (source_delete, secure)]
+    execute_list = [(shortcut_delete_all, secure), (prefix_delete, secure), (source_delete, secure)]
     apply_sql(db_admin, execute_list)
 
     # logger

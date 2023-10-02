@@ -3,7 +3,7 @@ cogs = {
     "Community": ["hlp", "hello", "about"],
     "Jokes": ["joke"],
     "Roll": ["roll", "postfix"],
-    "Server": ["prefix"]
+    "Server": ["prefix", "shortcut"]
 }
 
 cmds = {
@@ -71,7 +71,7 @@ cmds = {
         "help": "Manage prefix for the bot commands (admin only)"
     },
     "shortcut": {
-        "enabled": False,
+        "enabled": True,
         "name": "shortcut",
         "usage": "",
         "aliases": ["srt"],

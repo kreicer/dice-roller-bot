@@ -1,13 +1,14 @@
-import asyncio
+import asyncio, time
 
-import discord
-from discord.ext import commands  # , tasks
+from discord.ext import commands
+from functions.colorizer import Colorizer
+from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
+    missing_required_argument
+from lang.EN.texts import command_roll_parameter
 from models.commands import cmds
-from models.postfixes import postfixes
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
-from models.metrics import commands_counter, errors_counter, ui_selects_counter
-# from functions.workhorses import generate_dicts as gen_dicts
+from models.metrics import commands_counter, errors_counter, buckets_counter
 from functions.workhorses import (
     split_on_dice,
     split_on_parts,
@@ -16,10 +17,10 @@ from functions.workhorses import (
     calc_result,
     fate_result,
     add_mod_result,
-    sub_mod_result,
-    generate_postfix_short_output, generate_postfix_help
+    sub_mod_result, check_if_shortcut
 )
-from functions.postfixes import postfix_magick
+from functions.generators import generate_postfix_short_output
+from functions.postfixes import postfix_magick, postfix_check
 from functions.checks import check_limit
 from functions.visualizers import (
     make_subzero,
@@ -29,34 +30,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-
-
-# POSTFIX UI
-class PostfixSelector(discord.ui.View):
-    def __init__(self, *, timeout=None):
-        super().__init__(timeout=timeout)
-
-    postfixes_list = []
-    for item in postfixes.keys():
-        if postfixes[item]["enabled"]:
-            postfixes_list.append(item)
-    options_list = []
-    for item in postfixes_list:
-        opt = discord.SelectOption(label=postfixes[item]["name"], value=item)
-        options_list.append(opt)
-    all = discord.SelectOption(label="List postfixes", value="all")
-    options_list.insert(0, all)
-
-    @discord.ui.select(placeholder="Select the postfix...", min_values=1, max_values=1, options=options_list)
-    async def _postfix_selector(self, interaction: discord.Interaction, select: discord.ui.Select):
-        postfix = select.values[0]
-        if postfix == "all":
-            result = generate_postfix_short_output()
-        else:
-            result = generate_postfix_help(postfix.lower())
-        ui_selects_counter.labels("postfix", postfix)
-        ui_selects_counter.labels("postfix", postfix).inc()
-        await interaction.response.edit_message(content=result)
+from ui.roll import PostfixSelector
 
 
 # ROLL COG
@@ -75,16 +49,23 @@ class Roll(commands.Cog):
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
     async def _roll(self, ctx: commands.Context, *,
-                    rolls: str = commands.parameter(description="Place dice here, split with whitespace")) -> None:
+                    rolls: str = commands.parameter(description=command_roll_parameter)) -> None:
         overall = ""
         args = rolls.split()
         args_len = len(args)
-        error_text = f"Number of throw groups ({args_len}) is greater than the current limit of {g_limit}"
+        error_text = throws_groups_error_text.format(args_len, g_limit)
         check_limit(args_len, g_limit, error_text)
+        # metrics
+        buckets_counter.labels(args_len)
+        buckets_counter.labels(args_len).inc()
         for bucket in args:
             result_sum = 0
             visual_list = []
             visual_bucket = ""
+            start = time.time()
+            bucket = check_if_shortcut(str(ctx.guild.id), bucket)
+            end = time.time() - start
+            print(bucket, end)
             list_of_dice = split_on_dice(bucket)
             for dice in list_of_dice:
                 # dice split
@@ -93,6 +74,7 @@ class Roll(commands.Cog):
                 if dice_parts["type"] == 0:
                     throws_result_list = [dice_parts["throws"]]
                     sub_sum = dice_parts["throws"]
+
                 elif dice_parts["type"] == 1:
                     throws_result_list = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     sub_sum = calc_result(throws_result_list)
@@ -101,6 +83,7 @@ class Roll(commands.Cog):
                     sub_sum = fate_result(throws_result_list)
                 else:
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
+                    postfix_check(dice_parts)
                     throws_result_list = postfix_magick(throws_result_list_before_postfix, dice_parts)
                     sub_sum = calc_result(throws_result_list)
 
@@ -162,31 +145,29 @@ class Roll(commands.Cog):
         if isinstance(error, commands.BotMissingPermissions):
             errors_counter.labels("roll", "BotMissingPermissions")
             errors_counter.labels("roll", "BotMissingPermissions").inc()
+            text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
+            await dm.send(text)
         if isinstance(error, commands.MissingRequiredArgument):
             errors_counter.labels("roll", "MissingRequiredArgument")
             errors_counter.labels("roll", "MissingRequiredArgument").inc()
+            text = Colorizer(missing_required_argument.format(prefix)).colorize()
             await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Missing Required Argument**\n'
-                           f'You should to specify one valid dice at least.'
-                           f'Try something like: ```{prefix}roll 4d20/dl:1+3```')
+            await ctx.send(text)
         if isinstance(error, commands.BadArgument):
             errors_counter.labels("roll", "BadArgument")
             errors_counter.labels("roll", "BadArgument").inc()
             error_text = error.args[0]
+            text = Colorizer(bad_argument.format(error_text)).colorize()
             await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Bad Argument**\n'
-                           f'{error_text}')
+            await ctx.send(text)
         if isinstance(error, commands.ArgumentParsingError):
             errors_counter.labels("roll", "ArgumentParsingError")
             errors_counter.labels("roll", "ArgumentParsingError").inc()
             error_text = error.args[0]
+            text = Colorizer(argument_parsing_error.format(error_text)).colorize()
             await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Argument Parsing Error**\n'
-                           f'{error_text}')
+            await ctx.send(text)
 
     # POSTFIX ERRORS HANDLER
     @_postfix.error
@@ -194,17 +175,9 @@ class Roll(commands.Cog):
         if isinstance(error, commands.BotMissingPermissions):
             errors_counter.labels("postfix", "BotMissingPermissions")
             errors_counter.labels("postfix", "BotMissingPermissions").inc()
+            text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
-            await dm.send(f'**Bot Missing Permissions**\n'
-                          f'Dice Roller have missing permissions to answer you in this channel.\n'
-                          f'You can solve it by adding rights in channel or server management section.')
-        if isinstance(error, commands.BadArgument):
-            errors_counter.labels("postfix", "BadArgument")
-            errors_counter.labels("postfix", "BadArgument").inc()
-            error_text = error.args[0]
-            await ctx.defer(ephemeral=True)
-            await ctx.send(f'**Bad Argument**\n'
-                           f'{error_text}')
+            await dm.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:
