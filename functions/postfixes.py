@@ -1,5 +1,5 @@
 from models.metrics import postfix_counter
-from functions.workhorses import dice_roll
+from functions.workhorses import dice_roll, calc_result
 from functions.checks import (check_value_vs_throws,
                               check_edge_vs_two as check_e_v_t,
                               check_value_vs_edge as check_v_v_e,
@@ -15,7 +15,7 @@ def postfix_check(dice_parts):
         # drop lowest | drop highest | keep lowest | keep highest
         case "dl" | "dh" | "kl" | "kh":
             check_value_vs_throws(throws, value)
-        # reroll
+        # reroll | minimum
         case "rr" | "min":
             check_v_v_e(edge, value)
         # exploding dice | penetrating dice
@@ -43,9 +43,10 @@ def postfix_magick(throws_result_list, dice_parts):
             while counter < value:
                 throws_result_list.remove(min(throws_result_list))
                 counter += 1
+            sub_sum = calc_result(throws_result_list)
             postfix_counter.labels("drop_lowest")
             postfix_counter.labels("drop_lowest").inc()
-            return throws_result_list
+            return throws_result_list, sub_sum
 
         # drop highest
         case "dh":
@@ -53,9 +54,10 @@ def postfix_magick(throws_result_list, dice_parts):
             while counter < value:
                 throws_result_list.remove(max(throws_result_list))
                 counter += 1
+            sub_sum = calc_result(throws_result_list)
             postfix_counter.labels("drop_highest")
             postfix_counter.labels("drop_highest").inc()
-            return throws_result_list
+            return throws_result_list, sub_sum
 
         # reroll
         case "rr":
@@ -66,9 +68,10 @@ def postfix_magick(throws_result_list, dice_parts):
                     new_throws_result_list += additional_roll
                 else:
                     new_throws_result_list.append(throws_result)
+            sub_sum = calc_result(new_throws_result_list)
             postfix_counter.labels("reroll")
             postfix_counter.labels("reroll").inc()
-            return new_throws_result_list
+            return new_throws_result_list, sub_sum
 
         # exploding dice
         case "exp":
@@ -83,9 +86,10 @@ def postfix_magick(throws_result_list, dice_parts):
                     additional_roll = dice_roll(1, edge)
                     new_throws_result_list += additional_roll
                     check = additional_roll[0]
+            sub_sum = calc_result(new_throws_result_list)
             postfix_counter.labels("explode")
             postfix_counter.labels("explode").inc()
-            return new_throws_result_list
+            return new_throws_result_list, sub_sum
 
         # penetrating dice
         case "pen":
@@ -101,9 +105,10 @@ def postfix_magick(throws_result_list, dice_parts):
                     penetrating_result = additional_roll[0] - 1
                     new_throws_result_list.append(penetrating_result)
                     check = additional_roll[0]
+            sub_sum = calc_result(new_throws_result_list)
             postfix_counter.labels("penetrate")
             postfix_counter.labels("penetrate").inc()
-            return new_throws_result_list
+            return new_throws_result_list, sub_sum
 
         # keep lowest
         case "kl":
@@ -113,9 +118,10 @@ def postfix_magick(throws_result_list, dice_parts):
                 new_throws_result_list.append(min(throws_result_list))
                 throws_result_list.remove(min(throws_result_list))
                 counter += 1
+            sub_sum = calc_result(new_throws_result_list)
             postfix_counter.labels("keep_lowest")
             postfix_counter.labels("keep_lowest").inc()
-            return new_throws_result_list
+            return new_throws_result_list, sub_sum
 
         # keep highest
         case "kh":
@@ -125,9 +131,10 @@ def postfix_magick(throws_result_list, dice_parts):
                 new_throws_result_list.append(max(throws_result_list))
                 throws_result_list.remove(max(throws_result_list))
                 counter += 1
+            sub_sum = calc_result(new_throws_result_list)
             postfix_counter.labels("keep_highest")
             postfix_counter.labels("keep_highest").inc()
-            return new_throws_result_list
+            return new_throws_result_list, sub_sum
 
         case "x":
             counter = (throws * value) - throws
@@ -135,9 +142,10 @@ def postfix_magick(throws_result_list, dice_parts):
                 additional_roll = dice_roll(1, edge)
                 throws_result_list += additional_roll
                 counter -= 1
+            sub_sum = calc_result(throws_result_list)
             postfix_counter.labels("multiplier")
             postfix_counter.labels("multiplier").inc()
-            return throws_result_list
+            return throws_result_list, sub_sum
         # minimum
         case "min":
             new_throws_result_list = []
@@ -147,10 +155,32 @@ def postfix_magick(throws_result_list, dice_parts):
                     new_throws_result_list.append(new_throws_result)
                 else:
                     new_throws_result_list.append(throws_result)
+            sub_sum = calc_result(new_throws_result_list)
             postfix_counter.labels("minimum")
             postfix_counter.labels("minimum").inc()
-            return new_throws_result_list
+            return new_throws_result_list, sub_sum
+        # counter
+        case "c":
+            if value == "" or value > edge:
+                value = edge
+            counter = 0
+            for throws_result in throws_result_list:
+                if throws_result >= value:
+                    counter += 1
+            return throws_result_list, counter
+        # success
+        case "suc":
+            if value == "" or value > edge:
+                value = edge
+            counter = 0
+            for throws_result in throws_result_list:
+                if throws_result >= value:
+                    counter += 1
+                if throws_result == 1:
+                    counter -= 1
+            return throws_result_list, counter
 
         # do nothing
         case _:
-            return throws_result_list
+            sub_sum = calc_result(throws_result_list)
+            return throws_result_list, sub_sum

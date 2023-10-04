@@ -1,4 +1,4 @@
-import asyncio, time
+import asyncio
 
 from discord.ext import commands
 from functions.colorizer import Colorizer
@@ -81,8 +81,7 @@ class Roll(commands.Cog):
                 else:
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     postfix_check(dice_parts)
-                    throws_result_list = postfix_magick(throws_result_list_before_postfix, dice_parts)
-                    sub_sum = calc_result(throws_result_list)
+                    throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
 
                 # dice summarize
                 if dice_parts["mod"] == "-":

@@ -25,7 +25,7 @@ postfixes = {
         "default_value": 1,
         "description": "Roll additional part of dice if no maximum on first roll.",
         "shorty": "modify dice to become stress dice",
-        "example": "roll 4d6/s",
+        "example": "roll 4d6/sts",
         "enabled": False
     },
     "dl": {
@@ -76,7 +76,7 @@ postfixes = {
     "x": {
         "name": "Multiplier",
         "aliases": ["multiplier", "x"],
-        "default_value": 2,
+        "default_value": 1,
         "description": "Multiply the number of dice rolls by the value",
         "shorty": "multiply dice amount",
         "example": "roll 2d20/x:3",
@@ -89,6 +89,24 @@ postfixes = {
         "description": "Set minimum value for dice roll result",
         "shorty": "minimum dice roll result",
         "example": "roll 6d20/min:10",
+        "enabled": True
+    },
+    "c": {
+        "name": "Counter",
+        "aliases": ["counter", "c"],
+        "default_value": "",
+        "description": "Count roll results with value or higher",
+        "shorty": "count dice roll results",
+        "example": "roll 10d8/c:7",
+        "enabled": True
+    },
+    "suc": {
+        "name": "Success",
+        "aliases": ["success", "suc"],
+        "default_value": "",
+        "description": "Count roll results with value of higher as +1 (success) and 1 as -1 (fail)",
+        "shorty": "count success and fail",
+        "example": "roll 7d12/suc:10",
         "enabled": True
     }
 }
@@ -115,5 +133,9 @@ aliases = {
     "x": "x",
     "multiplier": "x",
     "min": "min",
-    "minimum": "min"
+    "minimum": "min",
+    "c": "c",
+    "counter": "c",
+    "suc": "suc",
+    "success": "suc"
 }
