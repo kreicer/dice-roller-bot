@@ -20,6 +20,8 @@ def postfix_check(dice_parts):
             check_v_v_e(edge, value)
         # exploding dice | penetrating dice
         case "exp" | "pen":
+            if value == "" or value > edge:
+                value = edge
             check_e_v_t(edge)
             if value != "" or value < edge:
                 check_value_for_infinity_loop(value)
