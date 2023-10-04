@@ -62,10 +62,7 @@ class Roll(commands.Cog):
             result_sum = 0
             visual_list = []
             visual_bucket = ""
-            start = time.time()
             bucket = check_if_shortcut(str(ctx.guild.id), bucket)
-            end = time.time() - start
-            print(bucket, end)
             list_of_dice = split_on_dice(bucket)
             for dice in list_of_dice:
                 # dice split

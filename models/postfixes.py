@@ -81,6 +81,15 @@ postfixes = {
         "shorty": "multiply dice amount",
         "example": "roll 2d20/x:3",
         "enabled": True
+    },
+    "min": {
+        "name": "Minimum",
+        "aliases": ["minimum", "min"],
+        "default_value": 1,
+        "description": "Set minimum value for dice roll result",
+        "shorty": "minimum dice roll result",
+        "example": "roll 6d20/min:10",
+        "enabled": True
     }
 }
 
@@ -104,5 +113,7 @@ aliases = {
     "rr": "rr",
     "reroll": "rr",
     "x": "x",
-    "multiplier": "x"
+    "multiplier": "x",
+    "min": "min",
+    "minimum": "min"
 }

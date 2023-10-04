@@ -16,7 +16,7 @@ def postfix_check(dice_parts):
         case "dl" | "dh" | "kl" | "kh":
             check_value_vs_throws(throws, value)
         # reroll
-        case "rr":
+        case "rr" | "min":
             check_v_v_e(edge, value)
         # exploding dice | penetrating dice
         case "exp" | "pen":
@@ -138,6 +138,18 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("multiplier")
             postfix_counter.labels("multiplier").inc()
             return throws_result_list
+        # minimum
+        case "min":
+            new_throws_result_list = []
+            for throws_result in throws_result_list:
+                if throws_result < value:
+                    new_throws_result = value
+                    new_throws_result_list.append(new_throws_result)
+                else:
+                    new_throws_result_list.append(throws_result)
+            postfix_counter.labels("minimum")
+            postfix_counter.labels("minimum").inc()
+            return new_throws_result_list
 
         # do nothing
         case _:
