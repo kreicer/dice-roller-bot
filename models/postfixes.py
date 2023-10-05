@@ -108,6 +108,15 @@ postfixes = {
         "shorty": "count success and fail",
         "example": "roll 7d12/suc:10",
         "enabled": True
+    },
+    "div": {
+        "name": "Divisor",
+        "aliases": ["divisor", "div"],
+        "default_value": 1,
+        "description": "Divides the roll result by the value and rounds down.",
+        "shorty": "divides the roll result",
+        "example": "roll 4d8/div:2",
+        "enabled": True
     }
 }
 
@@ -137,5 +146,7 @@ aliases = {
     "c": "c",
     "counter": "c",
     "suc": "suc",
-    "success": "suc"
+    "success": "suc",
+    "div": "div",
+    "divisor": "div"
 }

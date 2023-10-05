@@ -62,7 +62,11 @@ class Roll(commands.Cog):
             result_sum = 0
             visual_list = []
             visual_bucket = ""
-            bucket = check_if_shortcut(str(ctx.guild.id), bucket)
+            try:
+                discord_id = str(ctx.guild.id)
+            except AttributeError:
+                discord_id = str(ctx.channel.id)
+            bucket = check_if_shortcut(discord_id, bucket)
             list_of_dice = split_on_dice(bucket)
             for dice in list_of_dice:
                 # dice split
