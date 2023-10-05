@@ -20,7 +20,7 @@ from functions.workhorses import (
     sub_mod_result, check_if_shortcut
 )
 from functions.generators import generate_postfix_short_output
-from functions.postfixes import postfix_magick, postfix_check
+from functions.postfixes import postfix_magick, postfix_check, multiplier
 from functions.checks import check_limit
 from functions.visualizers import (
     make_subzero,
@@ -71,7 +71,6 @@ class Roll(commands.Cog):
                 if dice_parts["type"] == 0:
                     throws_result_list = [dice_parts["throws"]]
                     sub_sum = dice_parts["throws"]
-
                 elif dice_parts["type"] == 1:
                     throws_result_list = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     sub_sum = calc_result(throws_result_list)
@@ -79,6 +78,9 @@ class Roll(commands.Cog):
                     throws_result_list = fate_roll(dice_parts["throws"])
                     sub_sum = fate_result(throws_result_list)
                 else:
+                    if dice_parts["postfix"] == "x":
+                        args = multiplier(args, dice_parts)
+                        args_len = len(args)
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     postfix_check(dice_parts)
                     throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
@@ -114,9 +116,8 @@ class Roll(commands.Cog):
 
         commands_counter.labels("roll")
         commands_counter.labels("roll").inc()
-        # await ctx.defer(ephemeral=True)
         await ctx.defer()
-        if args_len > 5:
+        if args_len > 6:
             await asyncio.sleep(5)
         await ctx.send(overall)
 

@@ -3,7 +3,7 @@ from functions.workhorses import dice_roll, calc_result
 from functions.checks import (check_value_vs_throws,
                               check_edge_vs_two as check_e_v_t,
                               check_value_vs_edge as check_v_v_e,
-                              check_value_for_multiply as check_v_f_mul, check_value_for_infinity_loop)
+                              check_value_for_infinity_loop, check_multiply)
 
 
 def postfix_check(dice_parts):
@@ -25,16 +25,12 @@ def postfix_check(dice_parts):
             check_e_v_t(edge)
             if value != "" or value < edge:
                 check_value_for_infinity_loop(value)
-        # multiplier
-        case "x":
-            check_v_f_mul(throws, value)
-        # do nothing
         case _:
             pass
 
 
 def postfix_magick(throws_result_list, dice_parts):
-    throws = dice_parts["throws"]
+    # throws = dice_parts["throws"]
     edge = dice_parts["edge"]
     postfix = dice_parts["postfix"]
     value = dice_parts["value"]
@@ -138,16 +134,6 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("keep_highest").inc()
             return new_throws_result_list, sub_sum
 
-        case "x":
-            counter = (throws * value) - throws
-            while counter:
-                additional_roll = dice_roll(1, edge)
-                throws_result_list += additional_roll
-                counter -= 1
-            sub_sum = calc_result(throws_result_list)
-            postfix_counter.labels("multiplier")
-            postfix_counter.labels("multiplier").inc()
-            return throws_result_list, sub_sum
         # minimum
         case "min":
             new_throws_result_list = []
@@ -186,3 +172,17 @@ def postfix_magick(throws_result_list, dice_parts):
         case _:
             sub_sum = calc_result(throws_result_list)
             return throws_result_list, sub_sum
+
+
+def multiplier(args, dice_parts):
+    throws = dice_parts["throws"]
+    edge = dice_parts["edge"]
+    value = dice_parts["value"]
+    future_len = len(args) + value - 1
+    check_multiply(future_len)
+    counter = 1
+    additional_bucket = str(throws) + "d" + str(edge)
+    while counter < value:
+        args.append(additional_bucket)
+        counter += 1
+    return args

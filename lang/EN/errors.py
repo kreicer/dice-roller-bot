@@ -25,7 +25,7 @@ value_vs_throws_error = "Value can not be higher or equal to number of throws in
 value_vs_edge_error = "Value can not be higher than dice edge in this postfix."
 edge_vs_two_error = "Can not use this postfix with dice edge equal to 1."
 infinity_loop_error = "This dice can not be rolled with value equal to 1 - protection from infinity loop."
-value_for_multiply_error = "Multiplier value or throws cannot be higher than current rolls limit <blue>{0}<end>."
+value_for_multiply_error = "Multiplier value (with other dice) cannot be higher than group limit <blue>{0}<end>."
 postfix_right_error = "Can not find this short name to existing postfix. " \
                       "You can list all available postfixes with:\n<blue>/postfix<end>"
 shortcut_name_error = "Shortcut name can contain only letters and numbers."

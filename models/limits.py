@@ -1,6 +1,6 @@
 # limits for numbers in dice
 dice_limit = 5
-group_limit = 20
+group_limit = 12
 edge_limit = 1000000
 prefix_limit = 3
 roll_limit = 50

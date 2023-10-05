@@ -6,7 +6,7 @@ from lang.list import available_languages as lang_list
 from models.postfixes import postfixes as postfix_dict, aliases as aliases_dict
 from discord.ext import commands
 from pathlib import Path
-from models.limits import edge_limit as e_limit, roll_limit as r_limit, modifier_limit as m_limit
+from models.limits import edge_limit as e_limit, roll_limit as r_limit, modifier_limit as m_limit, group_limit
 
 
 # check limits
@@ -145,9 +145,9 @@ def check_value_for_infinity_loop(value):
         raise commands.BadArgument(None, error_text)
 
 
-def check_value_for_multiply(throws, value):
-    if value > r_limit or throws * value > r_limit:
-        error_text = value_for_multiply_error
+def check_multiply(args_len):
+    if args_len > group_limit:
+        error_text = value_for_multiply_error.format(group_limit)
         raise commands.BadArgument(None, error_text)
 
 
