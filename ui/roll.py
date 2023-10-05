@@ -2,7 +2,7 @@ import discord
 
 from functions.generators import generate_postfix_short_output, generate_postfix_help
 from lang.EN.ui import roll_selector_all, roll_selector_placeholder
-from models.metrics import ui_selects_counter
+from models.metrics import ui_counter
 from models.postfixes import postfixes
 
 
@@ -29,6 +29,6 @@ class PostfixSelector(discord.ui.View):
             result = generate_postfix_short_output()
         else:
             result = generate_postfix_help(postfix.lower())
-        ui_selects_counter.labels("postfix", postfix)
-        ui_selects_counter.labels("postfix", postfix).inc()
+        ui_counter.labels("selector", "postfix")
+        ui_counter.labels("selector", "postfix").inc()
         await interaction.response.edit_message(content=result)

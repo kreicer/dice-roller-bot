@@ -12,7 +12,7 @@ from lang.EN.buttons import joke_joke_another, joke_joke_submit
 from lang.EN.errors import bad_argument
 from lang.EN.ui import joke_modal_submit_joke, joke_modal_text_user, joke_modal_text_user_placeholder, \
     joke_modal_text_joke, joke_modal_text_joke_placeholder, joke_modal_submit_message
-from models.metrics import ui_modals_counter, ui_button_counter, errors_counter
+from models.metrics import ui_counter, ui_errors_counter
 from models.sql import joke_get
 
 
@@ -31,8 +31,8 @@ class JokesView(discord.ui.View):
         joke_text = select_sql(db_jokes, joke_get, secure)
 
         # metrics
-        ui_button_counter.labels("joke", "another")
-        ui_button_counter.labels("joke", "another").inc()
+        ui_counter.labels("button", "joke")
+        ui_counter.labels("button", "joke").inc()
 
         # answer
         result = generate_joke_output(joke_id, joke_text)
@@ -41,8 +41,8 @@ class JokesView(discord.ui.View):
     @discord.ui.button(label=joke_joke_submit, style=discord.ButtonStyle.blurple, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_button_counter.labels("joke", "submit")
-        ui_button_counter.labels("joke", "submit").inc()
+        ui_counter.labels("button", "joke")
+        ui_counter.labels("button", "joke").inc()
 
         # answer
         modal = SubmitJoke()
@@ -83,16 +83,16 @@ class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
         logger(log_file, "INFO", log_txt)
 
         # metrics
-        ui_modals_counter.labels("joke", "submit")
-        ui_modals_counter.labels("joke", "submit").inc()
+        ui_counter.labels("modal", "joke")
+        ui_counter.labels("modal", "joke").inc()
 
         # answer
         await interaction.response.send_message(joke_modal_submit_message, ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
-            errors_counter.labels("joke", "BadArgument")
-            errors_counter.labels("joke", "BadArgument").inc()
+            ui_errors_counter.labels("modal", "joke", "BadArgument")
+            ui_errors_counter.labels("modal", "joke", "BadArgument").inc()
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)

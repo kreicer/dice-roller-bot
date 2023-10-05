@@ -18,7 +18,7 @@ from lang.EN.ui import server_modal_set_prefix, server_modal_text_new_prefix, se
     server_modal_shortcut, server_modal_text_shortcut, server_modal_text_shortcut_placeholder, server_modal_text_dice, \
     server_modal_text_dice_placeholder, server_selector_placeholder, server_selector_none
 from models.limits import shortcuts_limit
-from models.metrics import ui_button_counter, ui_modals_counter, errors_counter
+from models.metrics import ui_counter, ui_errors_counter
 from models.regexp import parsing_regexp
 from models.sql import prefix_delete, source_update, prefix_update, shortcut_get_all, shortcut_count, shortcut_get_dice, \
     shortcut_update, shortcut_delete_single
@@ -41,8 +41,8 @@ class PrefixView(discord.ui.View):
     @discord.ui.button(label=server_prefix_set, style=discord.ButtonStyle.gray, emoji="📥")
     async def _set_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_button_counter.labels("prefix", "set")
-        ui_button_counter.labels("prefix", "set").inc()
+        ui_counter.labels("button", "prefix")
+        ui_counter.labels("button", "prefix").inc()
 
         # answer
         modal = SetPrefix()
@@ -61,8 +61,8 @@ class PrefixView(discord.ui.View):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_modals_counter.labels("prefix", "restore")
-            ui_modals_counter.labels("prefix", "restore").inc()
+            ui_counter.labels("button", "prefix")
+            ui_counter.labels("button", "prefix").inc()
 
             # answer
             result = generate_prefix_output(bot_prefix, command_prefix_output_default)
@@ -103,8 +103,8 @@ class SetPrefix(discord.ui.Modal, title=server_modal_set_prefix):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_modals_counter.labels("prefix", "set")
-            ui_modals_counter.labels("prefix", "set").inc()
+            ui_counter.labels("modal", "prefix")
+            ui_counter.labels("modal", "prefix").inc()
 
             # answer
             result = generate_prefix_output(new_prefix, command_prefix_output_new)
@@ -119,8 +119,8 @@ class SetPrefix(discord.ui.Modal, title=server_modal_set_prefix):
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, sqlite3.OperationalError):
-            errors_counter.labels("prefix", "SQLOperationalError")
-            errors_counter.labels("prefix", "SQLOperationalError").inc()
+            ui_errors_counter.labels("modal", "prefix", "SQLOperationalError")
+            ui_errors_counter.labels("modal", "prefix", "SQLOperationalError").inc()
             text = Colorizer(sql_operational_error.format(dev_link)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
 
@@ -144,8 +144,8 @@ class ShortcutView(discord.ui.View):
     @discord.ui.button(label=server_add_shortcut, style=discord.ButtonStyle.gray, emoji="🔖", row=2)
     async def _add_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_button_counter.labels("shortcut", "add")
-        ui_button_counter.labels("shortcut", "add").inc()
+        ui_counter.labels("button", "shortcut")
+        ui_counter.labels("button", "shortcut").inc()
 
         # answer
         modal = AddShortcut()
@@ -207,8 +207,8 @@ class AddShortcut(discord.ui.Modal, title=server_modal_shortcut):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_modals_counter.labels("shortcut", "add")
-            ui_modals_counter.labels("shortcut", "add").inc()
+            ui_counter.labels("modal", "shortcut")
+            ui_counter.labels("modal", "shortcut").inc()
 
             # answer
             result = generate_shortcut_output(shortcuts, shortcut_number, shortcuts_limit)
@@ -224,20 +224,20 @@ class AddShortcut(discord.ui.Modal, title=server_modal_shortcut):
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
-            errors_counter.labels("shortcut", "BadArgument")
-            errors_counter.labels("shortcut", "BadArgument").inc()
+            ui_errors_counter.labels("modal", "shortcut", "BadArgument")
+            ui_errors_counter.labels("modal", "shortcut", "BadArgument").inc()
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
         if isinstance(error, commands.ArgumentParsingError):
-            errors_counter.labels("shortcut", "ArgumentParsingError")
-            errors_counter.labels("shortcut", "ArgumentParsingError").inc()
+            ui_errors_counter.labels("modal", "shortcut", "ArgumentParsingError")
+            ui_errors_counter.labels("modal", "shortcut", "ArgumentParsingError").inc()
             error_text = error.args[0]
             text = Colorizer(argument_parsing_error.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
         if isinstance(error, commands.TooManyArguments):
-            errors_counter.labels("shortcut", "TooManyArguments")
-            errors_counter.labels("shortcut", "TooManyArguments").inc()
+            ui_errors_counter.labels("modal", "shortcut", "TooManyArguments")
+            ui_errors_counter.labels("modal", "shortcut", "TooManyArguments").inc()
             error_text = error.args[0]
             text = Colorizer(shortcut_many_arguments.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
@@ -279,8 +279,8 @@ class DeleteShortcut(discord.ui.Select):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_modals_counter.labels("shortcut", "delete")
-            ui_modals_counter.labels("shortcut", "delete").inc()
+            ui_counter.labels("selector", "shortcut")
+            ui_counter.labels("selector", "shortcut").inc()
 
             # answer
             if shortcut_number > 0:

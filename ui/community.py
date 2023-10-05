@@ -11,7 +11,7 @@ from lang.EN.ui import community_selector_all, community_selector_placeholder, c
     community_modal_text_user, community_modal_text_user_placeholder, community_modal_text_feedback, \
     community_modal_text_feedback_placeholder, community_modal_submit_message
 from models.commands import cmds, cogs
-from models.metrics import ui_modals_counter, errors_counter, ui_selects_counter, ui_button_counter
+from models.metrics import ui_counter, ui_errors_counter
 
 
 # ABOUT UI
@@ -43,15 +43,15 @@ class HelpView(discord.ui.View):
             result = generate_help_short_output(cogs)
         else:
             result = generate_commands_help(command)
-        ui_selects_counter.labels("command", command)
-        ui_selects_counter.labels("command", command).inc()
+        ui_counter.labels("selector", "help")
+        ui_counter.labels("selector", "help").inc()
         await interaction.response.edit_message(content=result)
 
     @discord.ui.button(label=community_help_feedback, style=discord.ButtonStyle.blurple, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = SubmitFeedback()
-        ui_button_counter.labels("feedback", "submit")
-        ui_button_counter.labels("feedback", "submit").inc()
+        ui_counter.labels("button", "help")
+        ui_counter.labels("button", "help").inc()
         await interaction.response.send_modal(modal)
 
 
@@ -86,14 +86,14 @@ class SubmitFeedback(discord.ui.Modal, title=community_modal_submit_feedback):
 
         log_txt = f"[ feedback -> button 'submit feedback' ] New feedback was posted by {username}"
         logger(log_file, "INFO", log_txt)
-        ui_modals_counter.labels("feedback", "submit")
-        ui_modals_counter.labels("feedback", "submit").inc()
+        ui_counter.labels("modal", "help")
+        ui_counter.labels("nodal", "help").inc()
         await interaction.response.send_message(community_modal_submit_message, ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
-            errors_counter.labels("feedback", "BadArgument")
-            errors_counter.labels("feedback", "BadArgument").inc()
+            ui_errors_counter.labels("modal", "help", "BadArgument")
+            ui_errors_counter.labels("nodal", "help", "BadArgument").inc()
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)

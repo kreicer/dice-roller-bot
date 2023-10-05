@@ -25,14 +25,6 @@ dice_edge_counter = Counter("dice_edge_counter", "Counter for dice", ["edge"])
 # errors
 errors_counter = Counter("errors_counter", "Counter for errors of all type", ["command", "error"])
 
-# ui buttons
-ui_button_counter = Counter("ui_button_click_counter", "Counter for buttons", ["cmd", "button"])
-
-# ui modals
-ui_modals_counter = Counter("ui_modals_submit_counter", "Counter for modals", ["cmd", "modal"])
-
-# ui select
-ui_selects_counter = Counter("ui_selects_counter", "Counter for selects", ["cmd", "select"])
-
-# ui errors
-ui_errors_counter = Counter("ui_errors_counter", "Counter for errors in ui", ["cmd", "ui", "error"])
+# ui
+ui_counter = Counter("ui_counter", "Counter for UI", ["ui_type", "command"])
+ui_errors_counter = Counter("ui_errors_counter", "Counter for errors in UI", ["ui_type", "command", "error"])
