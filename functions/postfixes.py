@@ -6,6 +6,7 @@ from functions.checks import (check_value_vs_throws,
                               check_value_for_infinity_loop, check_multiply)
 
 
+# TODO: add checks for upper limit for exp, pen and new one
 def postfix_check(dice_parts):
     throws = dice_parts["throws"]
     edge = dice_parts["edge"]
@@ -15,36 +16,43 @@ def postfix_check(dice_parts):
         # drop lowest | drop highest | keep lowest | keep highest
         case "dl" | "dh" | "kl" | "kh":
             check_value_vs_throws(throws, value)
-        # reroll | minimum
+        # reroll | minimum | divisor
         case "rr" | "min" | "div":
             check_v_v_e(edge, value)
+        # counter | success
+        case "c" | "suc":
+            if value != "":
+                check_v_v_e(edge, value)
         # exploding dice | penetrating dice
         case "exp" | "pen":
-            if value == "" or value > edge:
-                value = edge
             check_e_v_t(edge)
-            if value != "" or value < edge:
+            if value != "":
+                check_v_v_e(edge, value)
                 check_value_for_infinity_loop(value)
+        # all other
         case _:
             pass
 
 
 def postfix_magick(throws_result_list, dice_parts):
-    # throws = dice_parts["throws"]
     edge = dice_parts["edge"]
     postfix = dice_parts["postfix"]
     value = dice_parts["value"]
+    new_list = []
     match postfix:
+
         # drop lowest
         case "dl":
             counter = 0
             while counter < value:
                 throws_result_list.remove(min(throws_result_list))
                 counter += 1
-            sub_sum = calc_result(throws_result_list)
+            new_list = throws_result_list
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("drop_lowest")
             postfix_counter.labels("drop_lowest").inc()
-            return throws_result_list, sub_sum
 
         # drop highest
         case "dh":
@@ -52,139 +60,149 @@ def postfix_magick(throws_result_list, dice_parts):
             while counter < value:
                 throws_result_list.remove(max(throws_result_list))
                 counter += 1
-            sub_sum = calc_result(throws_result_list)
+            new_list = throws_result_list
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("drop_highest")
             postfix_counter.labels("drop_highest").inc()
-            return throws_result_list, sub_sum
 
         # reroll
         case "rr":
-            new_throws_result_list = []
             for throws_result in throws_result_list:
                 if throws_result <= value:
                     additional_roll = dice_roll(1, edge)
-                    new_throws_result_list += additional_roll
+                    new_list += additional_roll
                 else:
-                    new_throws_result_list.append(throws_result)
-            sub_sum = calc_result(new_throws_result_list)
+                    new_list.append(throws_result)
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("reroll")
             postfix_counter.labels("reroll").inc()
-            return new_throws_result_list, sub_sum
 
         # exploding dice
         case "exp":
-            if value == "" or value > edge:
+            if value == "":
                 value = edge
-            new_throws_result_list = []
-
             for throw_result in throws_result_list:
                 check = throw_result
-                new_throws_result_list.append(throw_result)
+                new_list.append(throw_result)
                 while check >= value:
                     additional_roll = dice_roll(1, edge)
-                    new_throws_result_list += additional_roll
+                    new_list += additional_roll
                     check = additional_roll[0]
-            sub_sum = calc_result(new_throws_result_list)
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("explode")
             postfix_counter.labels("explode").inc()
-            return new_throws_result_list, sub_sum
 
         # penetrating dice
         case "pen":
-            if value == "" or value > edge:
+            if value == "":
                 value = edge
-            new_throws_result_list = []
-
             for throw_result in throws_result_list:
                 check = throw_result
-                new_throws_result_list.append(throw_result)
+                new_list.append(throw_result)
                 while check >= value:
                     additional_roll = dice_roll(1, edge)
                     penetrating_result = additional_roll[0] - 1
-                    new_throws_result_list.append(penetrating_result)
+                    new_list.append(penetrating_result)
                     check = additional_roll[0]
-            sub_sum = calc_result(new_throws_result_list)
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("penetrate")
             postfix_counter.labels("penetrate").inc()
-            return new_throws_result_list, sub_sum
 
         # keep lowest
         case "kl":
-            new_throws_result_list = []
             counter = 0
             while counter < value:
-                new_throws_result_list.append(min(throws_result_list))
+                new_list.append(min(throws_result_list))
                 throws_result_list.remove(min(throws_result_list))
                 counter += 1
-            sub_sum = calc_result(new_throws_result_list)
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("keep_lowest")
             postfix_counter.labels("keep_lowest").inc()
-            return new_throws_result_list, sub_sum
 
         # keep highest
         case "kh":
-            new_throws_result_list = []
             counter = 0
             while counter < value:
-                new_throws_result_list.append(max(throws_result_list))
+                new_list.append(max(throws_result_list))
                 throws_result_list.remove(max(throws_result_list))
                 counter += 1
-            sub_sum = calc_result(new_throws_result_list)
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("keep_highest")
             postfix_counter.labels("keep_highest").inc()
-            return new_throws_result_list, sub_sum
 
         # minimum
         case "min":
-            new_throws_result_list = []
             for throws_result in throws_result_list:
                 if throws_result < value:
                     new_throws_result = value
-                    new_throws_result_list.append(new_throws_result)
+                    new_list.append(new_throws_result)
                 else:
-                    new_throws_result_list.append(throws_result)
-            sub_sum = calc_result(new_throws_result_list)
+                    new_list.append(throws_result)
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("minimum")
             postfix_counter.labels("minimum").inc()
-            return new_throws_result_list, sub_sum
+
         # counter
         case "c":
-            if value == "" or value > edge:
+            if value == "":
                 value = edge
             counter = 0
-            for throws_result in throws_result_list:
-                if throws_result >= value:
+            new_list = throws_result_list
+            for result in new_list:
+                if result >= value:
                     counter += 1
+            sub_sum = counter
+
+            # metrics
             postfix_counter.labels("counter")
             postfix_counter.labels("counter").inc()
-            return throws_result_list, counter
+
         # success
         case "suc":
-            if value == "" or value > edge:
+            if value == "":
                 value = edge
             counter = 0
-            for throws_result in throws_result_list:
-                if throws_result >= value:
+            new_list = throws_result_list
+            for result in new_list:
+                if result >= value:
                     counter += 1
-                if throws_result == 1:
+                if result == 1:
                     counter -= 1
+            sub_sum = counter
+
+            # metrics
             postfix_counter.labels("success")
             postfix_counter.labels("success").inc()
-            return throws_result_list, counter
+
         # divisor
         case "div":
-            new_throws_result_list = []
             for throws_result in throws_result_list:
-                new_throws_result_list.append(int(throws_result / value))
-            sub_sum = calc_result(new_throws_result_list)
+                new_list.append(int(throws_result / value))
+            sub_sum = calc_result(new_list)
+
+            # metrics
             postfix_counter.labels("divisor")
             postfix_counter.labels("divisor").inc()
-            return new_throws_result_list, sub_sum
 
         # do nothing
         case _:
-            sub_sum = calc_result(throws_result_list)
-            return throws_result_list, sub_sum
+            new_list = throws_result_list
+            sub_sum = calc_result(new_list)
+    return new_list, sub_sum
 
 
 def multiplier(args, dice_parts):
@@ -198,4 +216,8 @@ def multiplier(args, dice_parts):
     while counter < value:
         args.append(additional_bucket)
         counter += 1
+
+    # metrics
+    postfix_counter.labels("multiplier")
+    postfix_counter.labels("multiplier").inc()
     return args

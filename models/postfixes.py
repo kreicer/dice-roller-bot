@@ -30,7 +30,7 @@ postfixes = {
     },
     "dl": {
         "name": "Drop Lowest",
-        "aliases": ["droplowest", "dl", "dlow"],
+        "aliases": ["droplowest", "dl"],
         "default_value": 1,
         "description": "Drop specified number of dice with lowest number",
         "shorty": "drop dice with lowest result",
@@ -39,7 +39,7 @@ postfixes = {
     },
     "dh": {
         "name": "Drop Highest",
-        "aliases": ["drophighest", "dh", "dhigh"],
+        "aliases": ["drophighest", "dh"],
         "default_value": 1,
         "description": "Drop specified number of dice with highest number",
         "shorty": "drop dice with highest result",
@@ -48,7 +48,7 @@ postfixes = {
     },
     "kl": {
         "name": "Keep Lowest",
-        "aliases": ["keeplowest", "kl", "klow"],
+        "aliases": ["keeplowest", "kl"],
         "default_value": 1,
         "description": "Keep specified number of dice with lowest number",
         "shorty": "keep dice with lowest result",
@@ -57,7 +57,7 @@ postfixes = {
     },
     "kh": {
         "name": "Keep Highest",
-        "aliases": ["keephighest", "kh", "khigh"],
+        "aliases": ["keephighest", "kh"],
         "default_value": 1,
         "description": "Keep specified number of dice with highest number",
         "shorty": "keep dice with highest result",
@@ -122,16 +122,12 @@ postfixes = {
 
 aliases = {
     "dl": "dl",
-    "dlow": "dl",
     "droplowest": "dl",
     "dh": "dh",
-    "dhigh": "dh",
     "drophighest": "dh",
     "kl": "kl",
-    "klow": "kl",
     "keeplowest": "kl",
     "kh": "kh",
-    "khigh": "kh",
     "keephighest": "kh",
     "exp": "exp",
     "explode": "exp",
