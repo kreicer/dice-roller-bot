@@ -6,8 +6,8 @@ joke_joke_rate = "Rate jokes"
 joke_joke_another = "Another joke"
 joke_joke_submit = "Submit joke"
 
-server_prefix_set = "Set prefix"
-server_prefix_restore = "Restore prefix"
+server_prefix_set = "Set"
+server_prefix_restore = "Restore"
 server_add_shortcut = "Add shortcut"
 
 roll_roll_add_label = "Add label"

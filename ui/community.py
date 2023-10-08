@@ -47,7 +47,7 @@ class HelpView(discord.ui.View):
         ui_counter.labels("selector", "help").inc()
         await interaction.response.edit_message(content=result)
 
-    @discord.ui.button(label=community_help_feedback, style=discord.ButtonStyle.blurple, emoji="📝")
+    @discord.ui.button(label=community_help_feedback, style=discord.ButtonStyle.gray, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = SubmitFeedback()
         ui_counter.labels("button", "help")

@@ -1,5 +1,5 @@
 import typing
-
+import clipboard
 import discord
 from discord.ext import commands
 
@@ -56,8 +56,8 @@ class RollView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label=roll_roll_add_label, style=discord.ButtonStyle.blurple, emoji="🏷️")
-    async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label=roll_roll_add_label, style=discord.ButtonStyle.gray, emoji="🏷️")
+    async def _add_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = AddLabel(self.result)
 
         # metrics

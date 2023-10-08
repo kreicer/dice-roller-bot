@@ -22,7 +22,7 @@ class JokesView(discord.ui.View):
         self.number_of_jokes = number_of_jokes
         super().__init__(timeout=timeout)
 
-    @discord.ui.button(label=joke_joke_another, style=discord.ButtonStyle.blurple, emoji="😜")
+    @discord.ui.button(label=joke_joke_another, style=discord.ButtonStyle.gray, emoji="😜")
     async def _another_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # main
         random_joke_number = random.randint(1, self.number_of_jokes)
@@ -38,7 +38,7 @@ class JokesView(discord.ui.View):
         result = generate_joke_output(joke_id, joke_text)
         await interaction.response.edit_message(content=result)
 
-    @discord.ui.button(label=joke_joke_submit, style=discord.ButtonStyle.blurple, emoji="📝")
+    @discord.ui.button(label=joke_joke_submit, style=discord.ButtonStyle.gray, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
         ui_counter.labels("button", "joke")
