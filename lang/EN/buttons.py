@@ -9,3 +9,5 @@ joke_joke_submit = "Submit joke"
 server_prefix_set = "Set prefix"
 server_prefix_restore = "Restore prefix"
 server_add_shortcut = "Add shortcut"
+
+roll_roll_add_label = "Add label"

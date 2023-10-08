@@ -28,3 +28,7 @@ server_modal_text_dice_placeholder = "Write valid dice here..."
 
 server_selector_none = "None"
 server_selector_placeholder = "Select shortcut to delete"
+
+roll_modal_add_label = "Add label to roll"
+roll_modal_text_label = "Label"
+roll_modal_text_label_placeholder = "Write your label here..."

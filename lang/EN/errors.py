@@ -1,5 +1,7 @@
 missing_permissions = f"<red>Missing Permissions<end>\n" \
                       f"Sorry, but you need administrator permissions to manage options for this server."
+missing_permissions_spec = f"<pink>Not Your Dice<end>\n" \
+                           f"Sorry, but you can add a label only for your own dice."
 bot_missing_permissions = f"<red>Bot Missing Permissions<end>\n" \
                           f"Dice Roller have missing permissions to answer you in this channel. " \
                           f"You can solve it by adding rights in channel or server management section."

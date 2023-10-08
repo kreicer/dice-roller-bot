@@ -6,7 +6,6 @@ from functions.checks import (check_value_vs_throws,
                               check_value_for_infinity_loop, check_multiply)
 
 
-# TODO: add checks for upper limit for exp, pen and new one
 def postfix_check(dice_parts):
     throws = dice_parts["throws"]
     edge = dice_parts["edge"]

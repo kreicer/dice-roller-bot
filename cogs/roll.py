@@ -30,7 +30,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from ui.roll import PostfixSelector
+from ui.roll import PostfixSelector, RollView
 
 
 # ROLL COG
@@ -123,7 +123,8 @@ class Roll(commands.Cog):
         await ctx.defer()
         if args_len > 6:
             await asyncio.sleep(5)
-        await ctx.send(overall)
+        view = RollView(overall, ctx.author)
+        await ctx.send(overall, view=view)
 
     # POSTFIX COMMAND
     @commands.hybrid_command(name=cmds["postfix"]["name"], brief=cmds["postfix"]["brief"],
