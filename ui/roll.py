@@ -1,5 +1,4 @@
 import typing
-import clipboard
 import discord
 from discord.ext import commands
 
