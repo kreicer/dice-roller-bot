@@ -9,6 +9,8 @@ shortcut_many_arguments = "<red>Shortcuts Limit Reached<end>\n" \
                           "{0}"
 bad_argument = "<red>Bad Argument<end>\n" \
                "{0}"
+bad_argument_spec = "<red>Bad Argument<end>\n" \
+                    "Multiplier value (with other dice) cannot be higher than group limit <blue>{0}<end>."
 wrong_dice_error = "Wrong dice or modifier.\n" \
                    "Dice pattern is <blue>[throws]d[edge]/[postfix]:[value]<end>.\n" \
                    "Fate/Fudge dice pattern is <blue>[throws]dF<end>.\n"\
@@ -35,6 +37,8 @@ shortcut_name_error = "Shortcut name can contain only letters and numbers."
 argument_parsing_error = "<red>Argument Parsing Error<end>\n" \
                          "{0}"
 throws_groups_error_text = "Number of throw groups <blue>{0}<end> is greater than the current limit of <blue>{1}<end>."
+throws_groups_error_spec = "<red>Argument Parsing Error<end>\n" \
+                            "Number of throw groups <blue>{0}<end> is greater than the current limit of <blue>{1}<end>."
 bucket_error = "Number of elements of the dice <blue>{0}<end> is greater than the current limit of <blue>{1}<end>."
 
 missing_required_argument = "<red>Missing Required Argument<end>\n" \

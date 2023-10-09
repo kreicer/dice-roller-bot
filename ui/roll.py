@@ -46,6 +46,7 @@ class RollView(discord.ui.View):
         self.result = result
         self.author = author
         super().__init__(timeout=timeout)
+        self.add_item(TagSomeone(result))
 
     # check user click vs user spawn
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -55,7 +56,7 @@ class RollView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label=roll_roll_add_label, style=discord.ButtonStyle.gray, emoji="🏷️")
+    @discord.ui.button(label=roll_roll_add_label, style=discord.ButtonStyle.gray, emoji="🏷️", row=2)
     async def _add_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = AddLabel(self.result)
 
@@ -63,6 +64,17 @@ class RollView(discord.ui.View):
         ui_counter.labels("button", "roll")
         ui_counter.labels("button", "roll").inc()
         await interaction.response.send_modal(modal)
+
+    # @discord.ui.button(label="Roll again", style=discord.ButtonStyle.gray, emoji="🔄")
+    # async def _roll_again_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # await self.ctx.invoke(self.comm)
+        # await self.ctx.interaction.followup.invoke(self.comm)
+        # ctx = await commands.Context.from_interaction(interaction)
+    #    await self.ctx.reinvoke()
+
+        # metrics
+    #    ui_counter.labels("button", "roll")
+    #    ui_counter.labels("button", "roll").inc()
 
 
 class AddLabel(discord.ui.Modal):
@@ -98,3 +110,22 @@ class AddLabel(discord.ui.Modal):
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
+
+
+class TagSomeone(discord.ui.MentionableSelect):
+    def __init__(self, result: str):
+        # main
+        self.result = result
+        super().__init__(placeholder="Select someone to tag", min_values=0, max_values=3, row=1)
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        tagged = ""
+        users = self.values
+        for user in users:
+            tagged += user.mention + " "
+        txt = tagged + self.result
+        if self.values:
+            await interaction.response.edit_message(content=txt)
+        else:
+            await interaction.response.edit_message(content=self.result)
+
