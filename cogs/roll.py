@@ -124,8 +124,8 @@ class Roll(commands.Cog):
                 sub_overall = f"```{table}```"
                 overall += sub_overall
 
-            commands_counter.labels("roll")
-            commands_counter.labels("roll").inc()
+            commands_counter.labels("ttr")
+            commands_counter.labels("ttr").inc()
             await interaction.response.defer()
             if dice_amount > 6:
                 await asyncio.sleep(5)

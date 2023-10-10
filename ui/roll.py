@@ -65,16 +65,12 @@ class RollView(discord.ui.View):
         ui_counter.labels("button", "roll").inc()
         await interaction.response.send_modal(modal)
 
-    # @discord.ui.button(label="Roll again", style=discord.ButtonStyle.gray, emoji="🔄")
-    # async def _roll_again_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # await self.ctx.invoke(self.comm)
-        # await self.ctx.interaction.followup.invoke(self.comm)
-        # ctx = await commands.Context.from_interaction(interaction)
-    #    await self.ctx.reinvoke()
-
+    @discord.ui.button(label="Lock", style=discord.ButtonStyle.gray, emoji="🔒", row=2)
+    async def _lock_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-    #    ui_counter.labels("button", "roll")
-    #    ui_counter.labels("button", "roll").inc()
+        ui_counter.labels("button", "roll")
+        ui_counter.labels("button", "roll").inc()
+        await interaction.response.edit_message(view=None)
 
 
 class AddLabel(discord.ui.Modal):
