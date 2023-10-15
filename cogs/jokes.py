@@ -69,7 +69,7 @@ class Jokes(commands.Cog):
                                         url="https://discord.gg/TuXxE57kqy", emoji="🤩"))
         result = generate_joke_output(joke_id, joke_text)
         await ctx.defer(ephemeral=True)
-        await ctx.send(result, view=view)
+        view.message = await ctx.send(result, view=view)
 
     # JOKE ERRORS HANDLER
     @_joke.error

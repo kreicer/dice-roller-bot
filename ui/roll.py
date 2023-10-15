@@ -14,8 +14,12 @@ from models.postfixes import postfixes
 
 # POSTFIX UI
 class PostfixSelector(discord.ui.View):
-    def __init__(self, *, timeout=None):
+    def __init__(self, timeout=300):
         super().__init__(timeout=timeout)
+        self.message = None
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
 
     postfixes_list = []
     for item in postfixes.keys():
@@ -42,11 +46,15 @@ class PostfixSelector(discord.ui.View):
 
 # ROLL UI
 class RollView(discord.ui.View):
-    def __init__(self, result: str, author: typing.Union[discord.Member, discord.User], timeout=None):
+    def __init__(self, result: str, author: typing.Union[discord.Member, discord.User], timeout=300):
+        self.message = None
         self.result = result
         self.author = author
         super().__init__(timeout=timeout)
         self.add_item(TagSomeone(result))
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
 
     # check user click vs user spawn
     async def interaction_check(self, interaction: discord.Interaction) -> bool:

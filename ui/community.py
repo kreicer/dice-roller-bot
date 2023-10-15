@@ -22,8 +22,12 @@ class AboutView(discord.ui.View):
 
 # HELP UI
 class HelpView(discord.ui.View):
-    def __init__(self, *, timeout=None):
+    def __init__(self, timeout=300):
         super().__init__(timeout=timeout)
+        self.message = None
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
 
     cmd_list = []
     for item in cmds.keys():

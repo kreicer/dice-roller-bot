@@ -18,9 +18,13 @@ from models.sql import joke_get
 
 # JOKE UI
 class JokesView(discord.ui.View):
-    def __init__(self, number_of_jokes: int, timeout=None):
+    def __init__(self, number_of_jokes: int, timeout=300):
+        self.message = None
         self.number_of_jokes = number_of_jokes
         super().__init__(timeout=timeout)
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
 
     @discord.ui.button(label=joke_joke_another, style=discord.ButtonStyle.gray, emoji="😜")
     async def _another_button(self, interaction: discord.Interaction, button: discord.ui.Button):

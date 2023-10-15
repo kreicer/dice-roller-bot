@@ -213,7 +213,7 @@ class Roll(commands.Cog):
         if args_len > 6:
             await asyncio.sleep(5)
         view = RollView(overall, ctx.author)
-        await ctx.send(overall, view=view)
+        view.message = await ctx.send(overall, view=view)
 
     # POSTFIX COMMAND
     @commands.hybrid_command(name=cmds["postfix"]["name"], brief=cmds["postfix"]["brief"],
@@ -227,7 +227,7 @@ class Roll(commands.Cog):
 
         view = PostfixSelector()
         await ctx.defer(ephemeral=True)
-        await ctx.send(result, view=view)
+        view.message = await ctx.send(result, view=view)
 
     # ROLL ERRORS HANDLER
     @_roll.error

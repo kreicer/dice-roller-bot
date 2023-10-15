@@ -41,7 +41,7 @@ class Server(commands.Cog):
         view = PrefixView(author=ctx.author)
         result = generate_prefix_output(guild_prefix, command_prefix_output_cur)
         await ctx.defer(ephemeral=True)
-        await ctx.send(result, view=view)
+        view.message = await ctx.send(result, view=view)
 
     # SHORTCUT COMMANDS GROUP
     @commands.hybrid_command(name=cmds["shortcut"]["name"], brief=cmds["shortcut"]["brief"],
@@ -60,7 +60,7 @@ class Server(commands.Cog):
         else:
             result = generate_shortcut_empty_output()
         await ctx.defer(ephemeral=True)
-        await ctx.send(result, view=view)
+        view.message = await ctx.send(result, view=view)
 
     # PREFIX ERRORS HANDLER
     @_prefix.error

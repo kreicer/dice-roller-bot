@@ -26,9 +26,13 @@ from models.sql import prefix_delete, source_update, prefix_update, shortcut_get
 
 # PREFIX UI
 class PrefixView(discord.ui.View):
-    def __init__(self, author: typing.Union[discord.Member, discord.User], timeout=None):
+    def __init__(self, author: typing.Union[discord.Member, discord.User], timeout=300):
+        self.message = None
         self.author = author
         super().__init__(timeout=timeout)
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
 
     # check user click vs user spawn
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -127,11 +131,15 @@ class SetPrefix(discord.ui.Modal, title=server_modal_set_prefix):
 
 # SHORTCUT UI
 class ShortcutView(discord.ui.View):
-    def __init__(self, author: typing.Union[discord.Member, discord.User], discord_id: str, timeout=None):
+    def __init__(self, author: typing.Union[discord.Member, discord.User], discord_id: str, timeout=300):
+        self.message = None
         self.author = author
         self.discord_id = discord_id
         super().__init__(timeout=timeout)
         self.add_item(DeleteShortcut(discord_id))
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
 
     # check user click vs user spawn
     async def interaction_check(self, interaction: discord.Interaction) -> bool:

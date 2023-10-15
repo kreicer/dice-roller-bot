@@ -51,7 +51,7 @@ class Community(commands.Cog):
         commands_counter.labels("help").inc()
 
         await ctx.defer(ephemeral=True)
-        await ctx.send(result, view=view)
+        view.message = await ctx.send(result, view=view)
 
     # ABOUT COMMAND
     @commands.hybrid_command(name=cmds["about"]["name"], brief=cmds["about"]["brief"], aliases=cmds["about"]["aliases"],
