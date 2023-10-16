@@ -104,13 +104,13 @@ class AddLabel(discord.ui.Modal):
 
         # metrics
         ui_counter.labels("modal", "roll")
-        ui_counter.labels("nodal", "roll").inc()
+        ui_counter.labels("modal", "roll").inc()
         await interaction.response.edit_message(content=labeled_result)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
             ui_errors_counter.labels("modal", "help", "BadArgument")
-            ui_errors_counter.labels("nodal", "help", "BadArgument").inc()
+            ui_errors_counter.labels("modal", "help", "BadArgument").inc()
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)

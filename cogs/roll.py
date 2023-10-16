@@ -259,7 +259,7 @@ class Roll(commands.Cog):
             text = Colorizer(argument_parsing_error.format(error_text)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
-        traceback.print_exception(type(error), error, error.__traceback__)
+        # traceback.print_exception(type(error), error, error.__traceback__)
 
     # POSTFIX ERRORS HANDLER
     @_postfix.error

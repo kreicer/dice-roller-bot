@@ -61,17 +61,22 @@ def generate_help_short_output(cogs_dict):
         for cmd in value:
             output += f"  <green>{cmds[cmd]['name']: <10}<end>{cmds[cmd]['brief']}\n"
         output += f"\n"
-    output += "\n"
     output += f"<gray>For detailed info about each command use selector below<end>"
     output = Colorizer(output).colorize()
     return output
 
 
 def generate_commands_help(command):
-    output = f"<green>{cmds[command]['name'].upper()}<end>\n\n"
-    output += f"{cmds[command]['help']}\n\n"
-    output += f"Aliases: <blue>{cmds[command]['aliases']}<end>\n"
-    output += f"Usage: <blue>/{cmds[command]['name']} {cmds[command]['usage']}<end>"
+    if cmds[command]['name'] == "T2R":
+        output = f"<green>TEXT TO ROLL<end>\n\n"
+        output += f"{cmds[command]['help']}\n\n"
+        output += f"Aliases: <blue>{cmds[command]['aliases']}<end>\n"
+        output += f"Usage: <blue>{cmds[command]['usage']}<end>"
+    else:
+        output = f"<green>{cmds[command]['name'].upper()}<end>\n\n"
+        output += f"{cmds[command]['help']}\n\n"
+        output += f"Aliases: <blue>{cmds[command]['aliases']}<end>\n"
+        output += f"Usage: <blue>/{cmds[command]['name']} {cmds[command]['usage']}<end>"
     output = Colorizer(output).colorize()
     return output
 

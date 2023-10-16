@@ -91,13 +91,13 @@ class SubmitFeedback(discord.ui.Modal, title=community_modal_submit_feedback):
         log_txt = f"[ feedback -> button 'submit feedback' ] New feedback was posted by {username}"
         logger(log_file, "INFO", log_txt)
         ui_counter.labels("modal", "help")
-        ui_counter.labels("nodal", "help").inc()
+        ui_counter.labels("modal", "help").inc()
         await interaction.response.send_message(community_modal_submit_message, ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
         if isinstance(error, commands.BadArgument):
             ui_errors_counter.labels("modal", "help", "BadArgument")
-            ui_errors_counter.labels("nodal", "help", "BadArgument").inc()
+            ui_errors_counter.labels("modal", "help", "BadArgument").inc()
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
