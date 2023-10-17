@@ -1,3 +1,34 @@
+## Version 2.1.0
+New
+- New mechanic "Shortcut" (server) - allow every server have up to 10 shortcuts for dice and roll it by shortcut name
+- New command "shortcut" - allow server admins manage shortcuts on their servers: list, add, reassign and delete
+- New context menu command "Text to Roll" - allow scan message on server for valid dice and roll it, if it does not break current limits
+- New user Interface - from old good command line in all commands to button, modals, dropdowns and more
+- New postfixes - minimum, counter, success, divisor
+
+Improved
+- almost all command got new interactive UI, was reworked a little or combined few into one
+- "help" command got completely new answer
+- "hello" command got new text format and colors
+- "about" command now contain all info and links about the bot
+- "joke" command become single point to all about jokes: get joke, tell joke, rate jokes
+- "prefix" command become single point to all about prefix: get prefix, change prefix, restore prefix
+- "postfix" command got completely new answer
+- "roll" command got some new functions, it allow add label to roll result OR tag up to 3 members and lock it
+- rework "multiplier" postfix - instead of add rolls to dice, it is allow you roll same dice x times with separate output for each time
+
+Fixed
+- many typos in text
+- modifier limit bug (thx to community)
+- bug with checks in pen and exp postfixes
+- many code improvements
+- metrics
+
+Known Issues
+- "roll" command only label or tags can be applied at same time
+- old UI elements stop working after bot restart
+- all another promised features will be added with next patch versions
+
 ## Version 2.0.4
 New
 - new postfixes - keep lowest, keep highest, multiplier

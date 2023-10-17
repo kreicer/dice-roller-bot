@@ -113,7 +113,7 @@ postfixes = {
         "name": "Divisor",
         "aliases": ["divisor", "div"],
         "default_value": 1,
-        "description": "Divides the roll result by the value and rounds down.",
+        "description": "Divides the roll result by the value and rounds down",
         "shorty": "divides the roll result",
         "example": "roll 4d8/div:2",
         "enabled": True
