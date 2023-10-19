@@ -1,5 +1,5 @@
 import asyncio
-import traceback
+# import traceback
 
 import discord
 from discord import app_commands
@@ -144,9 +144,7 @@ class Roll(commands.Cog):
         args_len = len(args)
         error_text = throws_groups_error_text.format(args_len, g_limit)
         check_limit(args_len, g_limit, error_text)
-        # metrics
-        buckets_counter.labels(args_len)
-        buckets_counter.labels(args_len).inc()
+
         for bucket in args:
             result_sum = 0
             visual_list = []
@@ -207,6 +205,9 @@ class Roll(commands.Cog):
             sub_overall = f"```{table}```"
             overall += sub_overall
 
+        # metrics
+        buckets_counter.labels(args_len)
+        buckets_counter.labels(args_len).inc()
         commands_counter.labels("roll")
         commands_counter.labels("roll").inc()
         await ctx.defer()

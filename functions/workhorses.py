@@ -89,6 +89,7 @@ def dice_roll(throws, edge):
     if edge in edge_valid:
         dice_edge_counter.labels(edge)
         dice_edge_counter.labels(edge).inc(throws)
+    dice_edge_counter.labels("all")
     dice_edge_counter.labels("all").inc(throws)
     return dice_roll_result
 

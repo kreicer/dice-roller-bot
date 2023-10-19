@@ -32,14 +32,14 @@ class Server(commands.Cog):
         guild_prefix = select_sql(db_admin, prefix_get, secure)
         if guild_prefix == "":
             guild_prefix = bot_prefix
+        view = PrefixView(author=ctx.author)
+        result = generate_prefix_output(guild_prefix, command_prefix_output_cur)
 
         # metrics
         commands_counter.labels("prefix")
         commands_counter.labels("prefix").inc()
 
         # answer
-        view = PrefixView(author=ctx.author)
-        result = generate_prefix_output(guild_prefix, command_prefix_output_cur)
         await ctx.defer(ephemeral=True)
         view.message = await ctx.send(result, view=view)
 
@@ -59,6 +59,12 @@ class Server(commands.Cog):
             result = generate_shortcut_output(shortcuts, shortcut_number, shortcuts_limit)
         else:
             result = generate_shortcut_empty_output()
+
+        # metrics
+        commands_counter.labels("shortcut")
+        commands_counter.labels("shortcut").inc()
+
+        # answer
         await ctx.defer(ephemeral=True)
         view.message = await ctx.send(result, view=view)
 
