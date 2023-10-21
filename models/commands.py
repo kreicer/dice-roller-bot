@@ -84,8 +84,8 @@ cmds = {
         "name": "T2R",
         "usage": "Apps -> Text to Roll",
         "aliases": "No aliases",
-        "brief": "find dice in message and roll it",
-        "help": "Scanning text for valid dice and roll it"
+        "brief": "Find dice in chat message and roll it",
+        "help": "Scanning text of message for valid dice and roll it"
     }
 }
 # =================
