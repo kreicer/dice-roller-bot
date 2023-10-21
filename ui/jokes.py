@@ -35,8 +35,8 @@ class JokesView(discord.ui.View):
         joke_text = select_sql(db_jokes, joke_get, secure)
 
         # metrics
-        ui_counter.labels("button", "joke")
-        ui_counter.labels("button", "joke").inc()
+        ui_counter.labels("button", "joke", "another")
+        ui_counter.labels("button", "joke", "another").inc()
 
         # answer
         result = generate_joke_output(joke_id, joke_text)
@@ -45,8 +45,8 @@ class JokesView(discord.ui.View):
     @discord.ui.button(label=joke_joke_submit, style=discord.ButtonStyle.gray, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_counter.labels("button", "joke")
-        ui_counter.labels("button", "joke").inc()
+        ui_counter.labels("button", "joke", "submit")
+        ui_counter.labels("button", "joke", "submit").inc()
 
         # answer
         modal = SubmitJoke()
@@ -87,8 +87,8 @@ class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
         logger(log_file, "INFO", log_txt)
 
         # metrics
-        ui_counter.labels("modal", "joke")
-        ui_counter.labels("modal", "joke").inc()
+        ui_counter.labels("modal", "joke", "submit")
+        ui_counter.labels("modal", "joke", "submit").inc()
 
         # answer
         await interaction.response.send_message(joke_modal_submit_message, ephemeral=True)

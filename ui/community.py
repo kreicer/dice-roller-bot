@@ -47,15 +47,15 @@ class HelpView(discord.ui.View):
             result = generate_help_short_output(cogs)
         else:
             result = generate_commands_help(command)
-        ui_counter.labels("selector", "help")
-        ui_counter.labels("selector", "help").inc()
+        ui_counter.labels("selector", "help", "details")
+        ui_counter.labels("selector", "help", "details").inc()
         await interaction.response.edit_message(content=result)
 
     @discord.ui.button(label=community_help_feedback, style=discord.ButtonStyle.gray, emoji="📝")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = SubmitFeedback()
-        ui_counter.labels("button", "help")
-        ui_counter.labels("button", "help").inc()
+        ui_counter.labels("button", "help", "feedback")
+        ui_counter.labels("button", "help", "feedback").inc()
         await interaction.response.send_modal(modal)
 
 
@@ -90,8 +90,8 @@ class SubmitFeedback(discord.ui.Modal, title=community_modal_submit_feedback):
 
         log_txt = f"[ feedback -> button 'submit feedback' ] New feedback was posted by {username}"
         logger(log_file, "INFO", log_txt)
-        ui_counter.labels("modal", "help")
-        ui_counter.labels("modal", "help").inc()
+        ui_counter.labels("modal", "help", "feedback")
+        ui_counter.labels("modal", "help", "feedback").inc()
         await interaction.response.send_message(community_modal_submit_message, ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:

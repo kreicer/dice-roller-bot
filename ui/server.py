@@ -45,8 +45,8 @@ class PrefixView(discord.ui.View):
     @discord.ui.button(label=server_prefix_set, style=discord.ButtonStyle.gray, emoji="📥")
     async def _set_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_counter.labels("button", "prefix")
-        ui_counter.labels("button", "prefix").inc()
+        ui_counter.labels("button", "prefix", "set")
+        ui_counter.labels("button", "prefix", "set").inc()
 
         # answer
         modal = SetPrefix()
@@ -65,8 +65,8 @@ class PrefixView(discord.ui.View):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_counter.labels("button", "prefix")
-            ui_counter.labels("button", "prefix").inc()
+            ui_counter.labels("button", "prefix", "restore")
+            ui_counter.labels("button", "prefix", "restore").inc()
 
             # answer
             result = generate_prefix_output(bot_prefix, command_prefix_output_default)
@@ -107,8 +107,8 @@ class SetPrefix(discord.ui.Modal, title=server_modal_set_prefix):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_counter.labels("modal", "prefix")
-            ui_counter.labels("modal", "prefix").inc()
+            ui_counter.labels("modal", "prefix", "set")
+            ui_counter.labels("modal", "prefix", "set").inc()
 
             # answer
             result = generate_prefix_output(new_prefix, command_prefix_output_new)
@@ -152,8 +152,8 @@ class ShortcutView(discord.ui.View):
     @discord.ui.button(label=server_add_shortcut, style=discord.ButtonStyle.gray, emoji="🔖", row=2)
     async def _add_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_counter.labels("button", "shortcut")
-        ui_counter.labels("button", "shortcut").inc()
+        ui_counter.labels("button", "shortcut", "add")
+        ui_counter.labels("button", "shortcut", "add").inc()
 
         # answer
         modal = AddShortcut()
@@ -215,8 +215,8 @@ class AddShortcut(discord.ui.Modal, title=server_modal_shortcut):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_counter.labels("modal", "shortcut")
-            ui_counter.labels("modal", "shortcut").inc()
+            ui_counter.labels("modal", "shortcut", "add")
+            ui_counter.labels("modal", "shortcut", "add").inc()
 
             # answer
             result = generate_shortcut_output(shortcuts, shortcut_number, shortcuts_limit)
@@ -287,8 +287,8 @@ class DeleteShortcut(discord.ui.Select):
             logger(log_file, "INFO", log_txt)
 
             # metrics
-            ui_counter.labels("selector", "shortcut")
-            ui_counter.labels("selector", "shortcut").inc()
+            ui_counter.labels("selector", "shortcut", "remove")
+            ui_counter.labels("selector", "shortcut", "remove").inc()
 
             # answer
             if shortcut_number > 0:

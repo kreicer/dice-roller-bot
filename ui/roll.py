@@ -39,8 +39,8 @@ class PostfixSelector(discord.ui.View):
             result = generate_postfix_short_output()
         else:
             result = generate_postfix_help(postfix.lower())
-        ui_counter.labels("selector", "postfix")
-        ui_counter.labels("selector", "postfix").inc()
+        ui_counter.labels("selector", "postfix", "details")
+        ui_counter.labels("selector", "postfix", "details").inc()
         await interaction.response.edit_message(content=result)
 
 
@@ -69,15 +69,15 @@ class RollView(discord.ui.View):
         modal = AddLabel(self.result)
 
         # metrics
-        ui_counter.labels("button", "roll")
-        ui_counter.labels("button", "roll").inc()
+        ui_counter.labels("button", "roll", "label")
+        ui_counter.labels("button", "roll", "label").inc()
         await interaction.response.send_modal(modal)
 
     @discord.ui.button(label="Lock", style=discord.ButtonStyle.gray, emoji="🔒", row=2)
     async def _lock_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
-        ui_counter.labels("button", "roll")
-        ui_counter.labels("button", "roll").inc()
+        ui_counter.labels("button", "roll", "lock")
+        ui_counter.labels("button", "roll", "lock").inc()
         await interaction.response.edit_message(view=None)
 
 
@@ -103,8 +103,8 @@ class AddLabel(discord.ui.Modal):
         labeled_result = color_label + self.result
 
         # metrics
-        ui_counter.labels("modal", "roll")
-        ui_counter.labels("modal", "roll").inc()
+        ui_counter.labels("modal", "roll", "label")
+        ui_counter.labels("modal", "roll", "label").inc()
         await interaction.response.edit_message(content=labeled_result)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:

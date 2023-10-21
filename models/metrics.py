@@ -26,5 +26,5 @@ dice_edge_counter = Counter("dice_edge_counter", "Counter for dice", ["edge"])
 errors_counter = Counter("errors_counter", "Counter for errors of all type", ["command", "error"])
 
 # ui
-ui_counter = Counter("ui_counter", "Counter for UI", ["ui_type", "command"])
+ui_counter = Counter("ui_counter", "Counter for UI", ["ui_type", "command", "label"])
 ui_errors_counter = Counter("ui_errors_counter", "Counter for errors in UI", ["ui_type", "command", "error"])
