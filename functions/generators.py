@@ -26,7 +26,6 @@ def generate_postfix_help(postfix):
         default = "max"
     output = f"<green>{postfixes[postfix]['name'].upper()}<end>\n\n"
     output += f"{postfixes[postfix]['description']}\n\n"
-    output += f"Aliases: <blue>{postfixes[postfix]['aliases']}<end>\n"
     output += f"Example: <blue>/{postfixes[postfix]['example']}<end>\n"
     output += f"Default value: <blue>{default}<end>"
     output = Colorizer(output).colorize()

@@ -3,7 +3,7 @@ from functions.workhorses import dice_roll, calc_result
 from functions.checks import (check_value_vs_throws,
                               check_edge_vs_two as check_e_v_t,
                               check_value_vs_edge as check_v_v_e,
-                              check_value_for_infinity_loop, check_multiply)
+                              check_value_for_infinity_loop)
 
 
 def postfix_check(dice_parts):

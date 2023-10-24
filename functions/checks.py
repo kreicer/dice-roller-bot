@@ -4,7 +4,7 @@ from lang.EN.errors import wrong_dice_error, wrong_sign_error, zero_throws_error
     shortcut_name_error, shortcut_limit_error, action_right_error
 from lang.list import available_languages as lang_list
 from models.actions import actions
-from models.postfixes import postfixes as postfix_dict, aliases as aliases_dict
+from models.postfixes import postfixes as postfix_dict, postfixes
 from discord.ext import commands
 from pathlib import Path
 from models.limits import edge_limit as e_limit, roll_limit as r_limit, modifier_limit as m_limit, group_limit
@@ -46,7 +46,7 @@ def check_dice_dict(dice_dict):
         dice_dict["throws"] = check_modifier(dice_dict["throws"])
         dice_dict["type"] = 0
     if dice_dict["separator"] == "/":
-        dice_dict["postfix"] = check_postfix(dice_dict["postfix"], aliases_dict)
+        dice_dict["postfix"] = check_postfix(dice_dict["postfix"], postfixes.keys())
         default_value = postfix_dict[dice_dict["postfix"]]["default_value"]
         dice_dict["value"] = check_value(dice_dict["value"], default_value)
         dice_dict["type"] = 2
@@ -102,15 +102,13 @@ def check_edge(edge):
     return edge
 
 
-def check_postfix(postfix, aliases):
+def check_postfix(postfix, postfixes_keys):
     if postfix == "":
         error_text = empty_postfix_error
         raise commands.BadArgument(None, error_text)
-    elif postfix not in aliases.keys():
+    elif postfix not in postfixes_keys:
         error_text = bad_postfix_error
         raise commands.BadArgument(None, error_text)
-    else:
-        postfix = aliases[postfix]
     return postfix
 
 
