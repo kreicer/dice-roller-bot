@@ -201,5 +201,4 @@ def postfix_magick(throws_result_list, dice_parts):
         case _:
             new_list = throws_result_list
             sub_sum = calc_result(new_list)
-    print(throws_result_list, new_list)
     return new_list, sub_sum
