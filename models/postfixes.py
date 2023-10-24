@@ -96,5 +96,13 @@ postfixes = {
         "shorty": "divides with round up",
         "example": "roll 4d8/div:2",
         "enabled": True
+    },
+    "mul": {
+        "name": "Multiplier",
+        "default_value": 1,
+        "description": "Multiply the roll result by the value",
+        "shorty": "multiply result",
+        "example": "roll 5d2/mul:6",
+        "enabled": True
     }
 }

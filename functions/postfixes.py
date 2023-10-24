@@ -197,6 +197,16 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("divisor")
             postfix_counter.labels("divisor").inc()
 
+        # multiplier
+        case "mul":
+            for throws_result in throws_result_list:
+                new_list.append(throws_result * value)
+            sub_sum = calc_result(new_list)
+
+            # metrics
+            postfix_counter.labels("multiplier")
+            postfix_counter.labels("multiplier").inc()
+
         # do nothing
         case _:
             new_list = throws_result_list
