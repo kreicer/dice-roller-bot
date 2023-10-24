@@ -190,7 +190,7 @@ def postfix_magick(throws_result_list, dice_parts):
         # divisor
         case "div":
             for throws_result in throws_result_list:
-                new_list.append(int(throws_result / value))
+                new_list.append(-(-throws_result // value))
             sub_sum = calc_result(new_list)
 
             # metrics
@@ -201,22 +201,5 @@ def postfix_magick(throws_result_list, dice_parts):
         case _:
             new_list = throws_result_list
             sub_sum = calc_result(new_list)
+    print(throws_result_list, new_list)
     return new_list, sub_sum
-
-
-def multiplier(args, dice_parts):
-    throws = dice_parts["throws"]
-    edge = dice_parts["edge"]
-    value = dice_parts["value"]
-    future_len = len(args) + value - 1
-    check_multiply(future_len)
-    counter = 1
-    additional_bucket = str(throws) + "d" + str(edge)
-    while counter < value:
-        args.append(additional_bucket)
-        counter += 1
-
-    # metrics
-    postfix_counter.labels("multiplier")
-    postfix_counter.labels("multiplier").inc()
-    return args

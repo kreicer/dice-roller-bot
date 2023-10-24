@@ -8,7 +8,7 @@ from discord.ext import commands
 from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
-    missing_required_argument, throws_groups_error_spec, bad_argument_spec
+    missing_required_argument, throws_groups_error_spec
 from lang.EN.texts import command_roll_parameter
 from models.commands import cmds
 from models.regexp import parsing_regexp as regexp
@@ -25,7 +25,7 @@ from functions.workhorses import (
     sub_mod_result, check_if_shortcut, split_dice_actions
 )
 from functions.generators import generate_postfix_short_output, generate_action_short_output
-from functions.postfixes import postfix_magick, postfix_check, multiplier
+from functions.postfixes import postfix_magick, postfix_check
 from functions.checks import check_limit, check_multiply
 from functions.visualizers import (
     make_subzero,
