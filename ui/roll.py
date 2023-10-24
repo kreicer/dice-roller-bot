@@ -2,12 +2,14 @@ import typing
 import discord
 from discord.ext import commands
 
-from functions.generators import generate_postfix_short_output, generate_postfix_help
+from functions.generators import generate_postfix_short_output, generate_postfix_help, generate_action_short_output, \
+    generate_action_help
 from functions.colorizer import Colorizer
 from lang.EN.buttons import roll_roll_add_label
 from lang.EN.errors import bad_argument, missing_permissions_spec
 from lang.EN.ui import roll_selector_all, roll_selector_placeholder, roll_modal_add_label, roll_modal_text_label, \
-    roll_modal_text_label_placeholder
+    roll_modal_text_label_placeholder, action_selector_all, action_selector_placeholder
+from models.actions import actions
 from models.metrics import ui_counter, ui_errors_counter
 from models.postfixes import postfixes
 
@@ -41,6 +43,38 @@ class PostfixSelector(discord.ui.View):
             result = generate_postfix_help(postfix.lower())
         ui_counter.labels("selector", "postfix", "details")
         ui_counter.labels("selector", "postfix", "details").inc()
+        await interaction.response.edit_message(content=result)
+
+
+# ACTION UI
+class ActionsSelector(discord.ui.View):
+    def __init__(self, timeout=300):
+        super().__init__(timeout=timeout)
+        self.message = None
+
+    async def on_timeout(self) -> None:
+        await self.message.edit(view=None)
+
+    action_list = []
+    for item in actions.keys():
+        if actions[item]["enabled"]:
+            action_list.append(item)
+    options_list = []
+    for item in action_list:
+        opt = discord.SelectOption(label=item, value=item)
+        options_list.append(opt)
+    all = discord.SelectOption(label=action_selector_all, value="all")
+    options_list.insert(0, all)
+
+    @discord.ui.select(placeholder=action_selector_placeholder, min_values=1, max_values=1, options=options_list)
+    async def _postfix_selector(self, interaction: discord.Interaction, select: discord.ui.Select):
+        action = select.values[0]
+        if action == "all":
+            result = generate_action_short_output()
+        else:
+            result = generate_action_help(action.lower())
+        ui_counter.labels("selector", "action", "details")
+        ui_counter.labels("selector", "action", "details").inc()
         await interaction.response.edit_message(content=result)
 
 

@@ -17,6 +17,9 @@ joke_modal_submit_message = "Thanks for your joke!"
 roll_selector_all = "List postfixes"
 roll_selector_placeholder = "Select the postfix..."
 
+action_selector_all = "List actions"
+action_selector_placeholder = "Select the action..."
+
 server_modal_set_prefix = "Set new prefix"
 server_modal_text_new_prefix = "New prefix"
 server_modal_text_new_prefix_placeholder = "Write server new prefix here..."

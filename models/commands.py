@@ -2,7 +2,7 @@
 cogs = {
     "Community": ["hlp", "hello", "about"],
     "Jokes": ["joke"],
-    "Roll": ["roll", "postfix"],
+    "Roll": ["roll", "postfix", "action"],
     "Server": ["prefix", "shortcut"],
     "Context Menu": ["T2R"]
 }
@@ -62,6 +62,14 @@ cmds = {
         "aliases": ["px"],
         "brief": "List all available postfixes",
         "help": "Post full list of postfixes with examples"
+    },
+    "action": {
+        "enabled": True,
+        "name": "action",
+        "usage": "",
+        "aliases": ["act"],
+        "brief": "List all available actions",
+        "help": "Post full list of actions with examples"
     },
     "prefix": {
         "enabled": True,

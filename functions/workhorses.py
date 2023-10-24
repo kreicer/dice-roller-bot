@@ -55,6 +55,14 @@ def generate_dicts(dict_for_aliases):
     return aliases
 
 
+def split_dice_actions(bucket):
+    split_list = bucket.split("|")
+    cleared_bucket = split_list[0]
+    split_list.pop(0)
+    actions = split_list
+    return cleared_bucket, actions
+
+
 def split_on_parts(dice, parsing_regexp):
     match = re.fullmatch(parsing_regexp, dice)
     check_match(match)

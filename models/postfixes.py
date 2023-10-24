@@ -73,15 +73,6 @@ postfixes = {
         "example": "roll 2d20/rr:2",
         "enabled": True
     },
-    "x": {
-        "name": "Multiplier",
-        "aliases": ["multiplier", "x"],
-        "default_value": 1,
-        "description": "Multiply the number of dice rolls by the value",
-        "shorty": "multiply dice amount",
-        "example": "roll 2d20/x:3",
-        "enabled": True
-    },
     "min": {
         "name": "Minimum",
         "aliases": ["minimum", "min"],
@@ -135,8 +126,6 @@ aliases = {
     "penetrate": "pen",
     "rr": "rr",
     "reroll": "rr",
-    "x": "x",
-    "multiplier": "x",
     "min": "min",
     "minimum": "min",
     "c": "c",

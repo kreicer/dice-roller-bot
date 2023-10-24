@@ -4,6 +4,8 @@ import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
+
+from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
     missing_required_argument, throws_groups_error_spec, bad_argument_spec
@@ -20,11 +22,11 @@ from functions.workhorses import (
     calc_result,
     fate_result,
     add_mod_result,
-    sub_mod_result, check_if_shortcut
+    sub_mod_result, check_if_shortcut, split_dice_actions
 )
-from functions.generators import generate_postfix_short_output
+from functions.generators import generate_postfix_short_output, generate_action_short_output
 from functions.postfixes import postfix_magick, postfix_check, multiplier
-from functions.checks import check_limit
+from functions.checks import check_limit, check_multiply
 from functions.visualizers import (
     make_subzero,
     fate_subzero,
@@ -33,7 +35,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from ui.roll import PostfixSelector, RollView
+from ui.roll import PostfixSelector, ActionsSelector
 
 
 # ROLL COG
@@ -83,14 +85,6 @@ class Roll(commands.Cog):
                         throws_result_list = fate_roll(dice_parts["throws"])
                         sub_sum = fate_result(throws_result_list)
                     else:
-                        if dice_parts["postfix"] == "x":
-                            try:
-                                dice_for_roll = multiplier(dice_for_roll, dice_parts)
-                                dice_amount = len(dice_for_roll)
-                            except commands.BadArgument:
-                                error_text = Colorizer(bad_argument_spec.format(g_limit)).colorize()
-                                await interaction.response.send_message(error_text, ephemeral=True)
-                                return
                         throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                         postfix_check(dice_parts)
                         throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
@@ -153,7 +147,27 @@ class Roll(commands.Cog):
                 discord_id = str(ctx.guild.id)
             except AttributeError:
                 discord_id = str(ctx.channel.id)
-            bucket = check_if_shortcut(discord_id, bucket)
+            cleared_bucket, actions = split_dice_actions(bucket)
+            if actions:
+                tag = ""
+                label = ""
+                for action in actions:
+                    action_type, value = detect_action_type(action)
+                    if action_type == 1:
+                        future_len = len(args) + value - 1
+                        check_multiply(future_len)
+                        counter = 1
+                        while counter < value:
+                            args.append(cleared_bucket)
+                            counter += 1
+                        args_len = len(args)
+                    elif action_type == 2:
+                        tag += value + "\n"
+                    else:
+                        value = "<pink>" + value + "<end>"
+                        label += Colorizer(value).colorize()
+                overall += tag + label
+            bucket = check_if_shortcut(discord_id, cleared_bucket)
             list_of_dice = split_on_dice(bucket)
             for dice in list_of_dice:
                 # dice split
@@ -169,9 +183,6 @@ class Roll(commands.Cog):
                     throws_result_list = fate_roll(dice_parts["throws"])
                     sub_sum = fate_result(throws_result_list)
                 else:
-                    if dice_parts["postfix"] == "x":
-                        args = multiplier(args, dice_parts)
-                        args_len = len(args)
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     postfix_check(dice_parts)
                     throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
@@ -213,8 +224,9 @@ class Roll(commands.Cog):
         await ctx.defer()
         if args_len > 6:
             await asyncio.sleep(5)
-        view = RollView(overall, ctx.author)
-        view.message = await ctx.send(overall, view=view)
+        # view = RollView(overall, ctx.author)
+        # view.message = await ctx.send(overall, view=view)
+        await ctx.send(overall)
 
     # POSTFIX COMMAND
     @commands.hybrid_command(name=cmds["postfix"]["name"], brief=cmds["postfix"]["brief"],
@@ -227,6 +239,20 @@ class Roll(commands.Cog):
         commands_counter.labels("postfix").inc()
 
         view = PostfixSelector()
+        await ctx.defer(ephemeral=True)
+        view.message = await ctx.send(result, view=view)
+
+    # ACTION COMMAND
+    @commands.hybrid_command(name=cmds["action"]["name"], brief=cmds["action"]["brief"],
+                             aliases=cmds["action"]["aliases"], with_app_command=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def _action(self, ctx: commands.Context) -> None:
+        result = generate_action_short_output()
+
+        commands_counter.labels("action")
+        commands_counter.labels("action").inc()
+
+        view = ActionsSelector()
         await ctx.defer(ephemeral=True)
         view.message = await ctx.send(result, view=view)
 
@@ -264,6 +290,16 @@ class Roll(commands.Cog):
 
     # POSTFIX ERRORS HANDLER
     @_postfix.error
+    async def _postfix_error(self, ctx, error):
+        if isinstance(error, commands.BotMissingPermissions):
+            errors_counter.labels("postfix", "BotMissingPermissions")
+            errors_counter.labels("postfix", "BotMissingPermissions").inc()
+            text = Colorizer(bot_missing_permissions).colorize()
+            dm = await ctx.author.create_dm()
+            await dm.send(text)
+
+    # ACTION ERRORS HANDLER
+    @_action.error
     async def _postfix_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
             errors_counter.labels("postfix", "BotMissingPermissions")

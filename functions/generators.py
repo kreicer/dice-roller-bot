@@ -1,6 +1,7 @@
-from functions.checks import check_postfix_is_right_and_available
+from functions.checks import check_postfix_is_right_and_available, check_action_is_right_and_available
 from functions.colorizer import Colorizer
 from functions.config import bot_name, bot_version, dev_name, bot_shards
+from models.actions import actions
 from models.postfixes import postfixes
 from models.commands import cmds
 
@@ -28,6 +29,28 @@ def generate_postfix_help(postfix):
     output += f"Aliases: <blue>{postfixes[postfix]['aliases']}<end>\n"
     output += f"Example: <blue>/{postfixes[postfix]['example']}<end>\n"
     output += f"Default value: <blue>{default}<end>"
+    output = Colorizer(output).colorize()
+    return output
+
+
+def generate_action_short_output():
+    output = f"<green>ACTIONS<end>\n\n"
+    for action in actions:
+        if actions[action]["enabled"]:
+            output += f"  <green>{action: <14}<end>{actions[action]['shorty']}\n"
+    output += "\n"
+    output += "Action position in dice structure\n"
+    output += f"<gray><dice>|<green><action><end>\n\n"
+    output += f"<gray>For detailed info about each action use selector below"
+    output = Colorizer(output).colorize()
+    return output
+
+
+def generate_action_help(action):
+    check_action_is_right_and_available(action)
+    output = f"<green>{action.upper()}<end>\n\n"
+    output += f"{actions[action]['description']}\n\n"
+    output += f"Example: <blue>/{actions[action]['example']}<end>\n"
     output = Colorizer(output).colorize()
     return output
 

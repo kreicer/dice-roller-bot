@@ -32,6 +32,8 @@ infinity_loop_error = "This dice can not be rolled with value equal to 1 - prote
 value_for_multiply_error = "Multiplier value (with other dice) cannot be higher than group limit <blue>{0}<end>."
 postfix_right_error = "Can not find this short name to existing postfix. " \
                       "You can list all available postfixes with:\n<blue>/postfix<end>"
+action_right_error = "Can not find this action in list. " \
+                     "You can list all available actions with:\n<blue>/action<end>"
 shortcut_name_error = "Shortcut name can contain only letters and numbers."
 
 argument_parsing_error = "<red>Argument Parsing Error<end>\n" \

@@ -1,8 +1,9 @@
 from lang.EN.errors import wrong_dice_error, wrong_sign_error, zero_throws_error, throws_limit_error, zero_mod_error, \
     mod_limit_error, zero_edge_error, edge_limit_error, empty_postfix_error, bad_postfix_error, value_vs_throws_error, \
     value_vs_edge_error, edge_vs_two_error, infinity_loop_error, value_for_multiply_error, postfix_right_error, \
-    shortcut_name_error, shortcut_limit_error
+    shortcut_name_error, shortcut_limit_error, action_right_error
 from lang.list import available_languages as lang_list
+from models.actions import actions
 from models.postfixes import postfixes as postfix_dict, aliases as aliases_dict
 from discord.ext import commands
 from pathlib import Path
@@ -154,6 +155,12 @@ def check_multiply(args_len):
 def check_postfix_is_right_and_available(postfix):
     if postfix not in postfix_dict.keys():
         error_text = postfix_right_error
+        raise commands.BadArgument(None, error_text)
+
+
+def check_action_is_right_and_available(action):
+    if action not in actions.keys():
+        error_text = action_right_error
         raise commands.BadArgument(None, error_text)
 
 
