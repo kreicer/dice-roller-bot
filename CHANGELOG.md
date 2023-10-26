@@ -1,3 +1,21 @@
+## Version 2.1.1
+New
+- New mechanic "Actions" - allow you multiply, label or tag your roll (roll = dice with modifiers and postfixes, like 4d6/dl:1+1)
+- New command "actions" - list all available actions, allow get detailed info about each action with examples
+
+Improved
+- remove "annoying" UI from roll command output (move it to "Actions")
+- rework "multiplier" postfix - now it simple multiply roll results
+- rework "divisor" postfix - now it round up instead of round down
+- postfixes was simplified by remove long aliases, now it available only in short versions
+- new "hello" command text
+- additional info in "postfix", "prefix" and "shortcut" commands
+
+Fixed
+- some typos
+- SQL logic
+- metrics
+
 ## Version 2.1.0
 New
 - New mechanic "Shortcut" (server) - allow every server have up to 10 shortcuts for dice and roll it by shortcut name
