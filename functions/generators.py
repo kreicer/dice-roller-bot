@@ -8,7 +8,7 @@ from models.commands import cmds
 
 
 def generate_postfix_short_output():
-    output = f"<green>POSTFIXES<end>\n"
+    output = f"<green>POSTFIXES<end>\n\n"
     output += command_postfix_text + "\n\n"
     for postfix in postfixes:
         if postfixes[postfix]["enabled"]:
@@ -35,7 +35,7 @@ def generate_postfix_help(postfix):
 
 
 def generate_action_short_output():
-    output = f"<green>ACTIONS<end>\n"
+    output = f"<green>ACTIONS<end>\n\n"
     output += command_action_text + "\n\n"
     for action in actions:
         if actions[action]["enabled"]:
