@@ -28,6 +28,7 @@ bad_postfix_error = "Can not find this alias to existing postfix. " \
 value_vs_throws_error = "Value can not be higher or equal to number of throws in this postfix."
 value_vs_edge_error = "Value can not be higher than dice edge in this postfix."
 edge_vs_two_error = "Can not use this postfix with dice edge equal to 1."
+edge_vs_ten_error = "Can not use CoD or WoD rolls with dice edge not equal to 10."
 infinity_loop_error = "This dice can not be rolled with value equal to 1 - protection from infinity loop."
 value_for_multiply_error = "Multiplier value (with other dice) cannot be higher than group limit <blue>{0}<end>."
 postfix_right_error = "Can not find this short name to existing postfix. " \

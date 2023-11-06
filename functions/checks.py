@@ -1,7 +1,7 @@
 from lang.EN.errors import wrong_dice_error, wrong_sign_error, zero_throws_error, throws_limit_error, zero_mod_error, \
     mod_limit_error, zero_edge_error, edge_limit_error, empty_postfix_error, bad_postfix_error, value_vs_throws_error, \
     value_vs_edge_error, edge_vs_two_error, infinity_loop_error, value_for_multiply_error, postfix_right_error, \
-    shortcut_name_error, shortcut_limit_error, action_right_error
+    shortcut_name_error, shortcut_limit_error, action_right_error, edge_vs_ten_error
 from lang.list import available_languages as lang_list
 from models.actions import actions
 from models.postfixes import postfixes as postfix_dict, postfixes
@@ -135,6 +135,12 @@ def check_value_vs_edge(edge, value):
 def check_edge_vs_two(edge):
     if edge < 2:
         error_text = edge_vs_two_error
+        raise commands.BadArgument(None, error_text)
+
+
+def check_ten(edge):
+    if edge != 10:
+        error_text = edge_vs_ten_error
         raise commands.BadArgument(None, error_text)
 
 

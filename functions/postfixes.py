@@ -3,7 +3,7 @@ from functions.workhorses import dice_roll, calc_result
 from functions.checks import (check_value_vs_throws,
                               check_edge_vs_two as check_e_v_t,
                               check_value_vs_edge as check_v_v_e,
-                              check_value_for_infinity_loop)
+                              check_value_for_infinity_loop, check_ten)
 
 
 def postfix_check(dice_parts):
@@ -27,6 +27,14 @@ def postfix_check(dice_parts):
             check_e_v_t(edge)
             if value != "":
                 check_v_v_e(edge, value)
+                check_value_for_infinity_loop(value)
+        # chronicles of darkness system | world of darkness system
+        case "cod" | "wod" as cc:
+            print(cc)
+            check_ten(edge)
+            if value != "":
+                check_v_v_e(edge, value)
+            if cc == "cod":
                 check_value_for_infinity_loop(value)
         # all other
         case _:
@@ -206,6 +214,46 @@ def postfix_magick(throws_result_list, dice_parts):
             # metrics
             postfix_counter.labels("multiplier")
             postfix_counter.labels("multiplier").inc()
+
+        # chronicles of darkness
+        case "cod":
+            if value == "":
+                value = edge
+            for throw_result in throws_result_list:
+                check = throw_result
+                new_list.append(throw_result)
+                while check >= value:
+                    additional_roll = dice_roll(1, edge)
+                    new_list += additional_roll
+                    check = additional_roll[0]
+            counter = 0
+            for result in new_list:
+                if result >= 8:
+                    counter += 1
+            sub_sum = counter
+            # metrics
+            postfix_counter.labels("cod")
+            postfix_counter.labels("cod").inc()
+
+        # world of darkness
+        case "wod":
+            for throw_result in throws_result_list:
+                check = throw_result
+                new_list.append(throw_result)
+                while check == 10:
+                    additional_roll = dice_roll(1, edge)
+                    new_list += additional_roll
+                    check = additional_roll[0]
+            counter = 0
+            for result in new_list:
+                if result >= value:
+                    counter += 1
+                if result == 1:
+                    counter -= 1
+            sub_sum = counter
+            # metrics
+            postfix_counter.labels("wod")
+            postfix_counter.labels("wod").inc()
 
         # do nothing
         case _:

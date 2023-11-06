@@ -104,5 +104,21 @@ postfixes = {
         "shorty": "multiply result",
         "example": "roll 5d2/mul:6",
         "enabled": True
+    },
+    "cod": {
+        "name": "Chronicles of Darkness",
+        "default_value": "",
+        "description": "Count roll results with 8 and higher and explode on value",
+        "shorty": "chronicles of darkness roll",
+        "example": "roll 7d10/cod:9",
+        "enabled": True
+    },
+    "wod": {
+        "name": "World of Darkness",
+        "default_value": 1,
+        "description": "Count roll results with value or higher, explode on 10 and fail on 1",
+        "shorty": "world of darkness roll",
+        "example": "roll 5d10/wod:4",
+        "enabled": True
     }
 }
