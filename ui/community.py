@@ -8,8 +8,7 @@ from functions.workhorses import text_writer, logger
 from lang.EN.buttons import community_help_feedback
 from lang.EN.errors import bad_argument
 from lang.EN.ui import community_selector_all, community_selector_placeholder, community_modal_submit_feedback, \
-    community_modal_text_user, community_modal_text_user_placeholder, community_modal_text_feedback, \
-    community_modal_text_feedback_placeholder, community_modal_submit_message
+     community_modal_text_feedback, community_modal_text_feedback_placeholder, community_modal_submit_message
 from models.commands import cmds, cogs
 from models.metrics import ui_counter, ui_errors_counter
 
@@ -60,16 +59,6 @@ class HelpView(discord.ui.View):
 
 
 class SubmitFeedback(discord.ui.Modal, title=community_modal_submit_feedback):
-    username = discord.ui.TextInput(
-        label=community_modal_text_user,
-        style=discord.TextStyle.short,
-        placeholder=community_modal_text_user_placeholder,
-        required=True,
-        min_length=3,
-        max_length=30,
-        row=1
-    )
-
     feedback_text = discord.ui.TextInput(
         label=community_modal_text_feedback,
         style=discord.TextStyle.long,
@@ -81,14 +70,14 @@ class SubmitFeedback(discord.ui.Modal, title=community_modal_submit_feedback):
     )
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        username = self.username.value
+        user_id = interaction.user.id
         feedback = self.feedback_text.value
 
-        text = f"username: \"{username}\"\n" \
+        text = f"username: \"{user_id}\"\n" \
                f"feedback: \"{feedback}\"\n"
         text_writer(text, dir_feedback)
 
-        log_txt = f"[ feedback -> button 'submit feedback' ] New feedback was posted by {username}"
+        log_txt = f"[ feedback -> button 'submit feedback' ] New feedback was posted by {user_id}"
         logger(log_file, "INFO", log_txt)
         ui_counter.labels("modal", "help", "feedback")
         ui_counter.labels("modal", "help", "feedback").inc()

@@ -1,8 +1,6 @@
 community_selector_all = "List commands"
 community_selector_placeholder = "Select the command..."
 community_modal_submit_feedback = "Submit feedback"
-community_modal_text_user = "Username"
-community_modal_text_user_placeholder = "Username (your or any)"
 community_modal_text_feedback = "Feedback"
 community_modal_text_feedback_placeholder = "Write your feedback text here..."
 community_modal_submit_message = "Thanks for your feedback!"
