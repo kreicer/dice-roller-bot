@@ -6,6 +6,7 @@ from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
 from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update
+from ui.jokes import JokesView
 
 
 # define prefix or mention
@@ -64,6 +65,7 @@ async def on_ready():
     # log ready info and connected guilds number
     log_txt = "Bot ready and connected to " + str(len(roller.guilds)) + " servers"
     logger(log_file, "INFO", log_txt)
+    roller.add_view(JokesView())
     await roller.change_presence(activity=discord.Activity(name=f'v{bot_version}!',
                                                            type=discord.ActivityType.competing))
 

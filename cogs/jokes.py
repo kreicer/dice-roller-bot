@@ -64,9 +64,9 @@ class Jokes(commands.Cog):
         commands_counter.labels("joke").inc()
 
         # answer
-        view = JokesView(number_of_jokes=number_of_jokes)
+        view = JokesView()
         view.add_item(discord.ui.Button(label=joke_joke_rate, style=discord.ButtonStyle.link,
-                                        url="https://discord.gg/TuXxE57kqy", emoji="🤩"))
+                                        url="https://discord.gg/TuXxE57kqy", emoji="🤩", row=1))
         result = generate_joke_output(joke_id, joke_text)
         await ctx.defer(ephemeral=True)
         view.message = await ctx.send(result, view=view)

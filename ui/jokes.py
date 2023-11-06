@@ -1,4 +1,5 @@
 import random
+# import traceback
 
 import discord
 from discord.ext import commands
@@ -13,23 +14,26 @@ from lang.EN.errors import bad_argument
 from lang.EN.ui import joke_modal_submit_joke, \
     joke_modal_text_joke, joke_modal_text_joke_placeholder, joke_modal_submit_message
 from models.metrics import ui_counter, ui_errors_counter
-from models.sql import joke_get
+from models.sql import joke_get, jokes_count
 
 
 # JOKE UI
 class JokesView(discord.ui.View):
-    def __init__(self, number_of_jokes: int, timeout=300):
+    def __init__(self, timeout=None):
         self.message = None
-        self.number_of_jokes = number_of_jokes
         super().__init__(timeout=timeout)
 
-    async def on_timeout(self) -> None:
-        await self.message.edit(view=None)
+    # async def on_timeout(self) -> None:
+    #    await self.message.edit(view=None)
+    # async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Button) -> None:
+    #    traceback.print_exception(type(error), error, error.__traceback__)
 
-    @discord.ui.button(label=joke_joke_another, style=discord.ButtonStyle.gray, emoji="😜")
+    @discord.ui.button(label=joke_joke_another, style=discord.ButtonStyle.gray,
+                       emoji="😜", row=1, custom_id="dr_joke_button_another")
     async def _another_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # main
-        random_joke_number = random.randint(1, self.number_of_jokes)
+        number_of_jokes = select_sql(db_jokes, jokes_count, ())
+        random_joke_number = random.randint(1, number_of_jokes)
         joke_id = random_joke_number
         secure = (joke_id,)
         joke_text = select_sql(db_jokes, joke_get, secure)
@@ -42,7 +46,8 @@ class JokesView(discord.ui.View):
         result = generate_joke_output(joke_id, joke_text)
         await interaction.response.edit_message(content=result)
 
-    @discord.ui.button(label=joke_joke_submit, style=discord.ButtonStyle.gray, emoji="📝")
+    @discord.ui.button(label=joke_joke_submit, style=discord.ButtonStyle.gray,
+                       emoji="📝", row=1, custom_id="dr_joke_button_submit")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         # metrics
         ui_counter.labels("button", "joke", "submit")
@@ -54,7 +59,6 @@ class JokesView(discord.ui.View):
 
 
 class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
-
     joke_text = discord.ui.TextInput(
         label=joke_modal_text_joke,
         style=discord.TextStyle.long,
@@ -91,6 +95,3 @@ class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await interaction.response.send_message(text, ephemeral=True)
-
-
-
