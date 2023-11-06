@@ -8,6 +8,7 @@ from functions.workhorses import logger
 from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update
 from ui.community import HelpView
 from ui.jokes import JokesView
+from ui.roll import PostfixView, ActionsView
 
 
 # define prefix or mention
@@ -68,6 +69,8 @@ async def on_ready():
     logger(log_file, "INFO", log_txt)
     roller.add_view(JokesView())
     roller.add_view(HelpView())
+    roller.add_view(PostfixView())
+    roller.add_view(ActionsView())
     await roller.change_presence(activity=discord.Activity(name=f'v{bot_version}!',
                                                            type=discord.ActivityType.competing))
 

@@ -35,7 +35,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from ui.roll import PostfixSelector, ActionsSelector
+from ui.roll import PostfixView, ActionsView
 
 
 # ROLL COG
@@ -238,7 +238,7 @@ class Roll(commands.Cog):
         commands_counter.labels("postfix")
         commands_counter.labels("postfix").inc()
 
-        view = PostfixSelector()
+        view = PostfixView()
         await ctx.defer(ephemeral=True)
         view.message = await ctx.send(result, view=view)
 
@@ -252,7 +252,7 @@ class Roll(commands.Cog):
         commands_counter.labels("action")
         commands_counter.labels("action").inc()
 
-        view = ActionsSelector()
+        view = ActionsView()
         await ctx.defer(ephemeral=True)
         view.message = await ctx.send(result, view=view)
 
