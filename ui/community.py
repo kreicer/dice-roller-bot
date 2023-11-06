@@ -21,12 +21,12 @@ class AboutView(discord.ui.View):
 
 # HELP UI
 class HelpView(discord.ui.View):
-    def __init__(self, timeout=300):
+    def __init__(self, timeout=None):
         super().__init__(timeout=timeout)
         self.message = None
 
-    async def on_timeout(self) -> None:
-        await self.message.edit(view=None)
+    # async def on_timeout(self) -> None:
+    #    await self.message.edit(view=None)
 
     cmd_list = []
     for item in cmds.keys():
@@ -39,7 +39,8 @@ class HelpView(discord.ui.View):
     all = discord.SelectOption(label=community_selector_all, value="all")
     options_list.insert(0, all)
 
-    @discord.ui.select(placeholder=community_selector_placeholder, min_values=1, max_values=1, options=options_list)
+    @discord.ui.select(placeholder=community_selector_placeholder, min_values=1, max_values=1,
+                       options=options_list, row=1, custom_id="dr_help_selector_commands")
     async def _command_selector(self, interaction: discord.Interaction, select: discord.ui.Select):
         command = select.values[0]
         if command == "all":
@@ -50,7 +51,8 @@ class HelpView(discord.ui.View):
         ui_counter.labels("selector", "help", "details").inc()
         await interaction.response.edit_message(content=result)
 
-    @discord.ui.button(label=community_help_feedback, style=discord.ButtonStyle.gray, emoji="📝")
+    @discord.ui.button(label=community_help_feedback, style=discord.ButtonStyle.gray,
+                       emoji="📝", row=2, custom_id="dr_help_button_feedback")
     async def _submit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = SubmitFeedback()
         ui_counter.labels("button", "help", "feedback")

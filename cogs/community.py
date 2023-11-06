@@ -45,7 +45,7 @@ class Community(commands.Cog):
 
         view = HelpView()
         view.add_item(discord.ui.Button(label=community_help_support, style=discord.ButtonStyle.link,
-                                        url=community_support, emoji="🆘"))
+                                        url=community_support, emoji="🆘", row=2))
 
         commands_counter.labels("help")
         commands_counter.labels("help").inc()
