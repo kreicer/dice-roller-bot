@@ -8,10 +8,8 @@ community_modal_text_feedback_placeholder = "Write your feedback text here..."
 community_modal_submit_message = "Thanks for your feedback!"
 
 joke_modal_submit_joke = "Submit joke"
-joke_modal_text_user = "Username"
-joke_modal_text_user_placeholder = "Username (your or any)"
 joke_modal_text_joke = "Joke"
-joke_modal_text_joke_placeholder = "Write your joke text here..."
+joke_modal_text_joke_placeholder = "Write your roleplay joke text here..."
 joke_modal_submit_message = "Thanks for your joke!"
 
 roll_selector_all = "List postfixes"

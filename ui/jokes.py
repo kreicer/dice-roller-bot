@@ -10,7 +10,7 @@ from functions.sql import select_sql
 from functions.workhorses import text_writer, logger
 from lang.EN.buttons import joke_joke_another, joke_joke_submit
 from lang.EN.errors import bad_argument
-from lang.EN.ui import joke_modal_submit_joke, joke_modal_text_user, joke_modal_text_user_placeholder, \
+from lang.EN.ui import joke_modal_submit_joke, \
     joke_modal_text_joke, joke_modal_text_joke_placeholder, joke_modal_submit_message
 from models.metrics import ui_counter, ui_errors_counter
 from models.sql import joke_get
@@ -54,15 +54,6 @@ class JokesView(discord.ui.View):
 
 
 class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
-    username = discord.ui.TextInput(
-        label=joke_modal_text_user,
-        style=discord.TextStyle.short,
-        placeholder=joke_modal_text_user_placeholder,
-        required=True,
-        min_length=3,
-        max_length=30,
-        row=1
-    )
 
     joke_text = discord.ui.TextInput(
         label=joke_modal_text_joke,
@@ -76,14 +67,14 @@ class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         # main
-        username = self.username.value
+        user_id = interaction.user.id
         joke_text = self.joke_text.value
-        text = f"username: \"{username}\"\n" \
+        text = f"username: \"{user_id}\"\n" \
                f"joke: \"{joke_text}\"\n"
         text_writer(text, dir_jokes)
 
         # logger
-        log_txt = f"[ joke -> button 'submit joke' ] New joke was posted by {username}"
+        log_txt = f"[ joke -> button 'submit joke' ] New joke was posted by {user_id}"
         logger(log_file, "INFO", log_txt)
 
         # metrics
