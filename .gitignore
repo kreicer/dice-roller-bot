@@ -4,6 +4,7 @@ current.log
 databases/*
 jokes/*
 feedback/*
+bugs/*
 
 venv
 _*

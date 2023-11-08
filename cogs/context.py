@@ -14,6 +14,7 @@ from lang.EN.errors import throws_groups_error_spec
 from models.regexp import parsing_regexp
 from models.limits import group_limit, visual_dice_label_limit
 from models.metrics import commands_counter
+from ui.context import SubmitBug
 
 
 # CONTEXT COMMANDS COG
@@ -100,14 +101,25 @@ async def _context_roll(interaction: discord.Interaction, message: discord.Messa
         await interaction.response.send_message("No dice or bad dice in text", ephemeral=True)
 
 
+async def _report(interaction: discord.Interaction, message: discord.Message):
+    technical_info = str(interaction.data) + "\n\n\n" + "\"" + str(message.content) + "\""
+    modal = SubmitBug(technical_info)
+    await interaction.response.send_modal(modal)
+
+
 class ContextCommands(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
-        self.ctx_menu = discord.app_commands.ContextMenu(
+        self.ctx_t2r = discord.app_commands.ContextMenu(
             name="Text to Roll",
             callback=_context_roll
         )
-        self.bot.tree.add_command(self.ctx_menu)
+        self.ctx_report = discord.app_commands.ContextMenu(
+            name="Report Bug",
+            callback=_report
+        )
+        self.bot.tree.add_command(self.ctx_t2r)
+        self.bot.tree.add_command(self.ctx_report)
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -43,6 +43,7 @@ db_admin = config.get("db", "admin")
 # directories
 dir_feedback = config.get("dir", "feedback")
 dir_jokes = config.get("dir", "jokes")
+dir_bugs = config.get("dir", "bugs")
 
 # logs
 log_file = config.get("log", "file")
