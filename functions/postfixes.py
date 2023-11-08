@@ -30,7 +30,6 @@ def postfix_check(dice_parts):
                 check_value_for_infinity_loop(value)
         # chronicles of darkness system | world of darkness system
         case "cod" | "wod" as cc:
-            print(cc)
             check_ten(edge)
             if value != "":
                 check_v_v_e(edge, value)
