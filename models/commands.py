@@ -4,7 +4,7 @@ cogs = {
     "Jokes": ["joke"],
     "Roll": ["roll", "postfix", "action"],
     "Server": ["prefix", "shortcut"],
-    "Context Menu": ["T2R"]
+    "Context Menu": ["T2R", "RB"]
 }
 
 cmds = {
@@ -94,34 +94,13 @@ cmds = {
         "aliases": "No aliases",
         "brief": "Find dice in chat message and roll it",
         "help": "Scanning text of message for valid dice and roll it"
+    },
+    "RB": {
+        "enabled": True,
+        "name": "RB",
+        "usage": "Apps -> Report Bug",
+        "aliases": "No aliases",
+        "brief": "Allow to report bug",
+        "help": "Get technical info from message, add provided description and send to developer"
     }
-}
-# =================
-extension = {
-    "name": "cog",
-    "usage": "",
-    "aliases": ["cg"],
-    "brief": "Manage bot cogs (owner only)",
-    "help": "Commands for manual load and unload cogs"
-}
-extension_list = {
-    "name": "list",
-    "usage": "",
-    "aliases": ["cog_l"],
-    "brief": "List extensions",
-    "help": "Post full list of extensions (cogs)"
-}
-extension_load = {
-    "name": "load",
-    "usage": "",
-    "aliases": ["cog_ld"],
-    "brief": "Load extension by it's name",
-    "help": "Load extension by it's name"
-}
-extension_unload = {
-    "name": "unload",
-    "usage": "",
-    "aliases": ["cog_ud"],
-    "brief": "Unload extension by it's name",
-    "help": "Unload extension by it's name"
 }

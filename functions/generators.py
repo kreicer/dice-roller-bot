@@ -95,13 +95,15 @@ def generate_help_short_output(cogs_dict):
 def generate_commands_help(command):
     if cmds[command]['name'] == "T2R":
         output = f"<green>TEXT TO ROLL<end>\n\n"
-        output += f"{cmds[command]['help']}\n\n"
-        output += f"Aliases: <blue>{cmds[command]['aliases']}<end>\n"
-        output += f"Usage: <blue>{cmds[command]['usage']}<end>"
+    elif cmds[command]['name'] == "RB":
+        output = f"<green>REPORT BUG<end>\n\n"
     else:
         output = f"<green>{cmds[command]['name'].upper()}<end>\n\n"
-        output += f"{cmds[command]['help']}\n\n"
-        output += f"Aliases: <blue>{cmds[command]['aliases']}<end>\n"
+    output += f"{cmds[command]['help']}\n\n"
+    output += f"Aliases: <blue>{cmds[command]['aliases']}<end>\n"
+    if cmds[command]['name'] == "T2R" or cmds[command]['name'] == "RB":
+        output += f"Usage: <blue>{cmds[command]['usage']}<end>"
+    else:
         output += f"Usage: <blue>/{cmds[command]['name']} {cmds[command]['usage']}<end>"
     output = Colorizer(output).colorize()
     return output
