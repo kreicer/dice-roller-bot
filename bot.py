@@ -40,11 +40,12 @@ class RollerBot(commands.AutoShardedBot):
 
     async def setup_hook(self) -> None:
         await roller.load_extension("cogs.server")
+        await roller.load_extension("cogs.metrics")
+        await roller.load_extension("cogs.integrations")
         await roller.load_extension("cogs.roll")
+        await roller.load_extension("cogs.context")
         await roller.load_extension("cogs.jokes")
         await roller.load_extension("cogs.community")
-        await roller.load_extension("cogs.integrations")
-        await roller.load_extension("cogs.metrics")
         await self.tree.sync()
 
 
