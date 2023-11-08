@@ -39,7 +39,6 @@ class RollerBot(commands.AutoShardedBot):
                          intents=intents)
 
     async def setup_hook(self) -> None:
-        await roller.load_extension("cogs.root")
         await roller.load_extension("cogs.server")
         await roller.load_extension("cogs.roll")
         await roller.load_extension("cogs.jokes")
