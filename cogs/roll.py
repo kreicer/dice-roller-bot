@@ -11,7 +11,7 @@ from lang.EN.texts import command_roll_parameter
 from models.commands import cmds
 from models.regexp import parsing_regexp as regexp
 from models.limits import group_limit as g_limit, visual_dice_label_limit as label_limit
-from models.metrics import commands_counter, errors_counter, buckets_counter
+from models.metrics import commands_counter, errors_counter, buckets_counter, action_counter
 from functions.workhorses import (
     split_on_dice,
     split_on_parts,
@@ -75,11 +75,17 @@ class Roll(commands.Cog):
                             args.append(cleared_bucket)
                             counter += 1
                         args_len = len(args)
+                        action_counter.labels("multiplier")
+                        action_counter.labels("multiplier").inc()
                     elif action_type == 2:
                         tag += value + "\n"
+                        action_counter.labels("tag")
+                        action_counter.labels("tag").inc()
                     else:
                         value = "<pink>" + value + "<end>"
                         label += Colorizer(value).colorize()
+                        action_counter.labels("label")
+                        action_counter.labels("label").inc()
                 overall += tag + label
             bucket = check_if_shortcut(discord_id, cleared_bucket)
             list_of_dice = split_on_dice(bucket)

@@ -178,3 +178,4 @@ def check_shortcut_limit(shortcut_amount, shortcut_limit, shortcut_exist):
     if int(shortcut_amount) >= shortcut_limit and not shortcut_exist:
         error_text = shortcut_limit_error
         raise commands.TooManyArguments(None, error_text)
+

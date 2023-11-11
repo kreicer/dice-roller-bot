@@ -15,6 +15,9 @@ commands_counter = Counter("commands_counter", "Counter for commands", ["command
 # postfix usage
 postfix_counter = Counter("postfix_counter", "Counter for postfix usage", ["postfix"])
 
+# action usage
+action_counter = Counter("action_counter", "Counter for action usage", ["action"])
+
 # guilds join and leave
 guilds_counter = Counter("guilds_counter", "Counter for guilds", ["status"])
 
