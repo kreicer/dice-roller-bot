@@ -102,7 +102,7 @@ async def _context_roll(interaction: discord.Interaction, message: discord.Messa
 
 
 async def _report(interaction: discord.Interaction, message: discord.Message):
-    technical_info = str(interaction.data) + "\n\n\n" + "\"" + str(message.content) + "\""
+    technical_info = str(interaction.data)
     modal = SubmitBug(technical_info)
     await interaction.response.send_modal(modal)
 
