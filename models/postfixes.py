@@ -89,6 +89,22 @@ postfixes = {
         "example": "roll 7d12/suc:10",
         "enabled": True
     },
+    "add": {
+        "name": "Additive",
+        "default_value": 1,
+        "description": "Add value to each dice roll result",
+        "shorty": "add value to dice",
+        "example": "roll 2d100/add:50",
+        "enabled": True
+    },
+    "sub": {
+        "name": "Subtraction",
+        "default_value": 1,
+        "description": "Subtract value from each dice roll result",
+        "shorty": "subtract value from dice",
+        "example": "roll 5d20/sub:3",
+        "enabled": True
+    },
     "div": {
         "name": "Divisor",
         "default_value": 1,

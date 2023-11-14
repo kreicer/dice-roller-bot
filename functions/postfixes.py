@@ -1,9 +1,11 @@
+from lang.EN.errors import postfix_limit_error
+from models.limits import modifier_limit
 from models.metrics import postfix_counter
 from functions.workhorses import dice_roll, calc_result
 from functions.checks import (check_value_vs_throws,
                               check_edge_vs_two as check_e_v_t,
                               check_value_vs_edge as check_v_v_e,
-                              check_value_for_infinity_loop, check_ten)
+                              check_value_for_infinity_loop, check_ten, check_limit)
 
 
 def postfix_check(dice_parts):
@@ -18,6 +20,10 @@ def postfix_check(dice_parts):
         # reroll | minimum | divisor
         case "rr" | "min" | "div":
             check_v_v_e(edge, value)
+        # additive | subtraction
+        case "add" | "sub":
+            error_text = postfix_limit_error.format(value, modifier_limit)
+            check_limit(value, modifier_limit, error_text)
         # counter | success
         case "c" | "suc":
             if value != "":
@@ -213,6 +219,26 @@ def postfix_magick(throws_result_list, dice_parts):
             # metrics
             postfix_counter.labels("multiplier")
             postfix_counter.labels("multiplier").inc()
+
+        # additive
+        case "add":
+            for throws_result in throws_result_list:
+                new_list.append(throws_result + value)
+            sub_sum = calc_result(new_list)
+
+            # metrics
+            postfix_counter.labels("additive")
+            postfix_counter.labels("additive").inc()
+
+        # subtraction
+        case "sub":
+            for throws_result in throws_result_list:
+                new_list.append(throws_result - value)
+            sub_sum = calc_result(new_list)
+
+            # metrics
+            postfix_counter.labels("subtraction")
+            postfix_counter.labels("subtraction").inc()
 
         # chronicles of darkness
         case "cod":
