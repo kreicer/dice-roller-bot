@@ -47,6 +47,7 @@ class Roll(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def _roll(self, ctx: commands.Context, *,
                     rolls: str = commands.parameter(description=command_roll_parameter)) -> None:
+        await ctx.defer()
         overall = ""
         args = str(rolls).split()
         args_len = len(args)
@@ -133,19 +134,20 @@ class Roll(commands.Cog):
             visual_bucket = convert_dice_for_output(visual_bucket, label_limit)
             rolls_output, result_output, rolls_column, result_column = body_for_output(visual_list, result_sum)
             table = create_table(visual_bucket, rolls_output, result_output, rolls_column, result_column)
-            sub_overall = f"```{table}```"
-            overall += sub_overall
+            table = table.replace(" 1 ", " <yellow>1<end> ")
+            table = Colorizer(table).colorize()
+            # await ctx.send(table)
+            # sub_overall = f"```{table}```"
+            overall += table
 
         # metrics
         buckets_counter.labels(args_len)
         buckets_counter.labels(args_len).inc()
         commands_counter.labels("roll")
         commands_counter.labels("roll").inc()
-        await ctx.defer()
+        # await ctx.defer()
         if args_len > 6:
             await asyncio.sleep(5)
-        # view = RollView(overall, ctx.author)
-        # view.message = await ctx.send(overall, view=view)
         await ctx.send(overall)
 
     # POSTFIX COMMAND
