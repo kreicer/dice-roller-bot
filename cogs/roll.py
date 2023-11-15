@@ -134,7 +134,7 @@ class Roll(commands.Cog):
             visual_bucket = convert_dice_for_output(visual_bucket, label_limit)
             rolls_output, result_output, rolls_column, result_column = body_for_output(visual_list, result_sum)
             table = create_table(visual_bucket, rolls_output, result_output, rolls_column, result_column)
-            table = table.replace(" 1 ", " <yellow>1<end> ")
+            table = table.replace(" 1", " <yellow>1<end>")
             table = Colorizer(table).colorize()
             # await ctx.send(table)
             # sub_overall = f"```{table}```"
