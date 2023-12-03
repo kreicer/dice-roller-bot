@@ -1,3 +1,27 @@
+## Version 2.1.3
+New
+- New postfixes - add and sub
+
+Improved
+- optimize "Report Bug" context command
+
+Fixed
+- metrics
+
+## Version 2.1.2
+New
+- New postfixes - cod (chronicles of darkness), wod (world of darkness): big thanks for this idea to [novahorizon](https://github.com/novahorizon)   
+- New context menu command "Report Bug" - allow report non-expected bot behavior
+
+Improved
+- remove unnecessary elements from joke and feedback modals
+- make all UI persistent (except server commands group) - even if bot restarted old UI will continue work
+- remove root cog
+- metrics for actions
+
+Fixed
+- some typos
+
 ## Version 2.1.1
 New
 - New mechanic "Actions" - allow you multiply, label or tag your roll (roll = dice with modifiers and postfixes, like 4d6/dl:1+1)
