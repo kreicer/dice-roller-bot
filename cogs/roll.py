@@ -47,7 +47,6 @@ class Roll(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def _roll(self, ctx: commands.Context, *,
                     rolls: str = commands.parameter(description=command_roll_parameter)) -> None:
-        await ctx.defer()
         overall = ""
         args = str(rolls).split()
         args_len = len(args)
@@ -145,7 +144,7 @@ class Roll(commands.Cog):
         buckets_counter.labels(args_len).inc()
         commands_counter.labels("roll")
         commands_counter.labels("roll").inc()
-        # await ctx.defer()
+        await ctx.defer()
         if args_len > 6:
             await asyncio.sleep(5)
         await ctx.send(overall)
