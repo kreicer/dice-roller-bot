@@ -54,3 +54,5 @@ sql_operational_error = "<red>SQL Operational Error<end>\n" \
                         "Looks like Admin Database currently unavailable.\n" \
                         "Please, report to developer - {0}."
 postfix_limit_error = "Value of postfix <blue>{0}<end> is greater than the current limit of <blue>{1}<end>."
+cmd_on_cooldown = "<red>Command On Cooldown<end>\n" \
+                    "This command is on cooldown. You can use it in <blue>{0}<end> sec."

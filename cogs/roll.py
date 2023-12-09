@@ -6,7 +6,7 @@ from discord.ext import commands
 from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
-    missing_required_argument
+    missing_required_argument, cmd_on_cooldown
 from lang.EN.texts import command_roll_parameter
 from models.commands import cmds
 from models.regexp import parsing_regexp as regexp
@@ -45,6 +45,7 @@ class Roll(commands.Cog):
     @commands.hybrid_command(name=cmds["roll"]["name"], brief=cmds["roll"]["brief"], aliases=cmds["roll"]["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _roll(self, ctx: commands.Context, *,
                     rolls: str = commands.parameter(description=command_roll_parameter)) -> None:
         overall = ""
@@ -153,6 +154,7 @@ class Roll(commands.Cog):
     @commands.hybrid_command(name=cmds["postfix"]["name"], brief=cmds["postfix"]["brief"],
                              aliases=cmds["postfix"]["aliases"], with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _postfix(self, ctx: commands.Context) -> None:
         result = generate_postfix_short_output()
 
@@ -167,6 +169,7 @@ class Roll(commands.Cog):
     @commands.hybrid_command(name=cmds["action"]["name"], brief=cmds["action"]["brief"],
                              aliases=cmds["action"]["aliases"], with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _action(self, ctx: commands.Context) -> None:
         result = generate_action_short_output()
 
@@ -207,6 +210,13 @@ class Roll(commands.Cog):
             text = Colorizer(argument_parsing_error.format(error_text)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
         # traceback.print_exception(type(error), error, error.__traceback__)
 
     # POSTFIX ERRORS HANDLER
@@ -218,16 +228,30 @@ class Roll(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
     # ACTION ERRORS HANDLER
     @_action.error
-    async def _postfix_error(self, ctx, error):
+    async def _action_error(self, ctx, error):
         if isinstance(error, commands.BotMissingPermissions):
             errors_counter.labels("postfix", "BotMissingPermissions")
             errors_counter.labels("postfix", "BotMissingPermissions").inc()
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:

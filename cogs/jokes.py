@@ -7,7 +7,7 @@ from discord.ext import commands, tasks
 from functions.colorizer import Colorizer
 from functions.sql import select_sql
 from lang.EN.buttons import joke_joke_rate
-from lang.EN.errors import bot_missing_permissions
+from lang.EN.errors import bot_missing_permissions, cmd_on_cooldown
 from models.commands import cmds
 from functions.workhorses import logger
 from functions.generators import generate_joke_output
@@ -52,6 +52,7 @@ class Jokes(commands.Cog):
     @commands.hybrid_command(name=cmds["joke"]["name"], brief=cmds["joke"]["brief"], aliases=cmds["joke"]["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _joke(self, ctx: commands.Context) -> None:
         # main
         random_joke_number = random.randint(1, number_of_jokes)
@@ -80,6 +81,13 @@ class Jokes(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:

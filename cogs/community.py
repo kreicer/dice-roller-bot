@@ -6,7 +6,7 @@ from functions.workhorses import logger
 from functions.generators import generate_info_output, generate_help_short_output
 from functions.config import log_file, community_support, dev_github, topgg_link, community_policy
 from lang.EN.buttons import community_help_support, community_about_policy
-from lang.EN.errors import bot_missing_permissions
+from lang.EN.errors import bot_missing_permissions, cmd_on_cooldown
 from lang.EN.texts import command_hello_text
 from models.commands import cmds, cogs
 from models.metrics import commands_counter, errors_counter
@@ -40,6 +40,7 @@ class Community(commands.Cog):
     @commands.hybrid_command(name=cmds["hlp"]["name"], brief=cmds["hlp"]["brief"], aliases=cmds["hlp"]["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _help(self, ctx: commands.Context) -> None:
         result = generate_help_short_output(cogs)
 
@@ -57,6 +58,7 @@ class Community(commands.Cog):
     @commands.hybrid_command(name=cmds["about"]["name"], brief=cmds["about"]["brief"], aliases=cmds["about"]["aliases"],
                              with_app_command=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _about(self, ctx: commands.Context) -> None:
 
         result = generate_info_output(guilds_number)
@@ -77,8 +79,8 @@ class Community(commands.Cog):
     # HELLO COMMAND
     @commands.hybrid_command(name=cmds["hello"]["name"], brief=cmds["hello"]["brief"], aliases=cmds["hello"]["aliases"],
                              with_app_command=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _hello(self, ctx: commands.Context) -> None:
         output = Colorizer(command_hello_text).colorize()
 
@@ -97,6 +99,13 @@ class Community(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
     # HELP ERRORS HANDLER
     @_help.error
@@ -107,6 +116,13 @@ class Community(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
     # HELLO ERRORS HANDLER
     @_hello.error
@@ -117,6 +133,13 @@ class Community(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:

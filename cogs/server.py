@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from functions.colorizer import Colorizer
 from functions.sql import select_sql, select_all_sql
-from lang.EN.errors import bot_missing_permissions, missing_permissions, sql_operational_error
+from lang.EN.errors import bot_missing_permissions, missing_permissions, sql_operational_error, cmd_on_cooldown
 from lang.EN.texts import command_prefix_output_cur
 from models.limits import shortcuts_limit
 from models.commands import cmds
@@ -25,6 +25,7 @@ class Server(commands.Cog):
                              aliases=cmds["prefix"]["aliases"], with_app_command=True)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _prefix(self, ctx: commands.Context) -> None:
         # main
         discord_id = str(ctx.guild.id)
@@ -48,6 +49,7 @@ class Server(commands.Cog):
                              aliases=cmds["shortcut"]["aliases"], with_app_command=True)
     @commands.has_permissions(administrator=True)
     @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(2, 1, commands.BucketType.user)
     async def _shortcut(self, ctx: commands.Context) -> None:
         # main
         discord_id = str(ctx.guild.id)
@@ -89,6 +91,13 @@ class Server(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
     # SHORTCUT ERRORS HANDLER
     @_shortcut.error
@@ -111,6 +120,13 @@ class Server(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
+        if isinstance(error, commands.CommandOnCooldown):
+            errors_counter.labels("roll", "CommandOnCooldown")
+            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            retry = round(error.retry_after, 2)
+            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
+            await ctx.defer(ephemeral=True)
+            await ctx.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:
