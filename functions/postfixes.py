@@ -95,6 +95,7 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # exploding dice
         case "exp":
+            counter = 0
             if value == "":
                 value = edge
             for throw_result in throws_result_list:
@@ -104,6 +105,9 @@ def postfix_magick(throws_result_list, dice_parts):
                     additional_roll = dice_roll(1, edge)
                     new_list += additional_roll
                     check = additional_roll[0]
+                    counter += 1
+                    if counter > 50:
+                        break
             sub_sum = calc_result(new_list)
 
             # metrics
@@ -112,6 +116,7 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # penetrating dice
         case "pen":
+            counter = 0
             if value == "":
                 value = edge
             for throw_result in throws_result_list:
@@ -122,6 +127,9 @@ def postfix_magick(throws_result_list, dice_parts):
                     penetrating_result = additional_roll[0] - 1
                     new_list.append(penetrating_result)
                     check = additional_roll[0]
+                    counter += 1
+                    if counter > 50:
+                        break
             sub_sum = calc_result(new_list)
 
             # metrics
@@ -242,6 +250,7 @@ def postfix_magick(throws_result_list, dice_parts):
 
         # chronicles of darkness
         case "cod":
+            check_number = 0
             if value == "":
                 value = edge
             for throw_result in throws_result_list:
@@ -251,6 +260,9 @@ def postfix_magick(throws_result_list, dice_parts):
                     additional_roll = dice_roll(1, edge)
                     new_list += additional_roll
                     check = additional_roll[0]
+                    check_number += 1
+                    if check_number > 50:
+                        break
             counter = 0
             for result in new_list:
                 if result >= 8:
