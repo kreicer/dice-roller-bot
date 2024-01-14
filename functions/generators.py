@@ -81,7 +81,7 @@ def generate_info_output(guilds_number):
 
 
 def generate_help_short_output(cogs_dict):
-    output = f"<green>HELP<end>\n\n"
+    output = f"<green>COMMANDS<end>\n\n"
     for key, value in cogs_dict.items():
         output += f"{key}:\n"
         for cmd in value:

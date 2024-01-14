@@ -1,11 +1,9 @@
-import discord
 from discord.ext import commands, tasks
 
 from functions.colorizer import Colorizer
 from functions.workhorses import logger
 from functions.generators import generate_info_output, generate_help_short_output
-from functions.config import log_file, community_support, dev_github, topgg_link, community_policy
-from lang.EN.buttons import community_help_support, community_about_policy
+from functions.config import log_file
 from lang.EN.errors import bot_missing_permissions, cmd_on_cooldown
 from lang.EN.texts import command_hello_text
 from models.commands import cmds, cogs
@@ -43,10 +41,7 @@ class Community(commands.Cog):
     @commands.cooldown(2, 1, commands.BucketType.user)
     async def _help(self, ctx: commands.Context) -> None:
         result = generate_help_short_output(cogs)
-
         view = HelpView()
-        view.add_item(discord.ui.Button(label=community_help_support, style=discord.ButtonStyle.link,
-                                        url=community_support, emoji="🆘", row=2))
 
         commands_counter.labels("help")
         commands_counter.labels("help").inc()
@@ -60,16 +55,8 @@ class Community(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     @commands.cooldown(2, 1, commands.BucketType.user)
     async def _about(self, ctx: commands.Context) -> None:
-
         result = generate_info_output(guilds_number)
-
         view = AboutView()
-        view.add_item(discord.ui.Button(label="Github", style=discord.ButtonStyle.link,
-                                        url=dev_github, emoji="🧑‍💻"))
-        view.add_item(discord.ui.Button(label="Top.gg", style=discord.ButtonStyle.link,
-                                        url=topgg_link, emoji="👍"))
-        view.add_item(discord.ui.Button(label=community_about_policy, style=discord.ButtonStyle.link,
-                                        url=community_policy, emoji="🔏"))
 
         commands_counter.labels("about")
         commands_counter.labels("about").inc()

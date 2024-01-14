@@ -22,7 +22,6 @@ from functions.workhorses import (
     add_mod_result,
     sub_mod_result, check_if_shortcut, split_dice_actions
 )
-from functions.generators import generate_postfix_short_output, generate_action_short_output
 from functions.postfixes import postfix_magick, postfix_check
 from functions.checks import check_limit, check_multiply
 from functions.visualizers import (
@@ -33,7 +32,6 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from ui.roll import PostfixView, ActionsView
 
 
 # ROLL COG
@@ -150,36 +148,6 @@ class Roll(commands.Cog):
             await asyncio.sleep(5)
         await ctx.send(overall)
 
-    # POSTFIX COMMAND
-    @commands.hybrid_command(name=cmds["postfix"]["name"], brief=cmds["postfix"]["brief"],
-                             aliases=cmds["postfix"]["aliases"], with_app_command=True)
-    @commands.bot_has_permissions(send_messages=True)
-    @commands.cooldown(2, 1, commands.BucketType.user)
-    async def _postfix(self, ctx: commands.Context) -> None:
-        result = generate_postfix_short_output()
-
-        commands_counter.labels("postfix")
-        commands_counter.labels("postfix").inc()
-
-        view = PostfixView()
-        await ctx.defer(ephemeral=True)
-        view.message = await ctx.send(result, view=view)
-
-    # ACTION COMMAND
-    @commands.hybrid_command(name=cmds["action"]["name"], brief=cmds["action"]["brief"],
-                             aliases=cmds["action"]["aliases"], with_app_command=True)
-    @commands.bot_has_permissions(send_messages=True)
-    @commands.cooldown(2, 1, commands.BucketType.user)
-    async def _action(self, ctx: commands.Context) -> None:
-        result = generate_action_short_output()
-
-        commands_counter.labels("action")
-        commands_counter.labels("action").inc()
-
-        view = ActionsView()
-        await ctx.defer(ephemeral=True)
-        view.message = await ctx.send(result, view=view)
-
     # ROLL ERRORS HANDLER
     @_roll.error
     async def _roll_error(self, ctx, error):
@@ -218,40 +186,6 @@ class Roll(commands.Cog):
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
         # traceback.print_exception(type(error), error, error.__traceback__)
-
-    # POSTFIX ERRORS HANDLER
-    @_postfix.error
-    async def _postfix_error(self, ctx, error):
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("postfix", "BotMissingPermissions")
-            errors_counter.labels("postfix", "BotMissingPermissions").inc()
-            text = Colorizer(bot_missing_permissions).colorize()
-            dm = await ctx.author.create_dm()
-            await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
-            errors_counter.labels("roll", "CommandOnCooldown")
-            errors_counter.labels("roll", "CommandOnCooldown").inc()
-            retry = round(error.retry_after, 2)
-            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
-
-    # ACTION ERRORS HANDLER
-    @_action.error
-    async def _action_error(self, ctx, error):
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("postfix", "BotMissingPermissions")
-            errors_counter.labels("postfix", "BotMissingPermissions").inc()
-            text = Colorizer(bot_missing_permissions).colorize()
-            dm = await ctx.author.create_dm()
-            await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
-            errors_counter.labels("roll", "CommandOnCooldown")
-            errors_counter.labels("roll", "CommandOnCooldown").inc()
-            retry = round(error.retry_after, 2)
-            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -2,7 +2,7 @@
 cogs = {
     "Community": ["hlp", "hello", "about"],
     "Jokes": ["joke"],
-    "Roll": ["roll", "postfix", "action"],
+    "Roll": ["roll"],
     "Server": ["prefix", "shortcut"],
     "Context Menu": ["T2R", "RB"]
 }
@@ -54,22 +54,6 @@ cmds = {
                 f"  - single dice with Postfix and modifiers: 2d8/dh+2\n"
                 f"  - multiple dice with Postfix and modifiers: 3d6/exp+2 2d20/dl-1\n"
                 f"  - fate/fudge dice: 4dF d4+2dF 10df-5 (no postfixes)"
-    },
-    "postfix": {
-        "enabled": True,
-        "name": "postfix",
-        "usage": "",
-        "aliases": ["px"],
-        "brief": "List all available postfixes",
-        "help": "Post full list of postfixes with examples"
-    },
-    "action": {
-        "enabled": True,
-        "name": "action",
-        "usage": "",
-        "aliases": ["act"],
-        "brief": "List all available actions",
-        "help": "Post full list of actions with examples"
     },
     "prefix": {
         "enabled": True,

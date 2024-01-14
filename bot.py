@@ -6,9 +6,8 @@ from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
 from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update
-from ui.community import HelpView
+from ui.community import HelpView, PostfixView, ActionsView
 from ui.jokes import JokesView
-from ui.roll import PostfixView, ActionsView
 
 
 # define prefix or mention
