@@ -77,7 +77,7 @@ postfixes = {
         "name": "Counter",
         "default_value": "",
         "description": "Count roll results with value or higher",
-        "shorty": "count dice roll results",
+        "shorty": "count high dice roll results",
         "example": "roll 10d8/c:7",
         "enabled": True
     },
@@ -87,6 +87,14 @@ postfixes = {
         "description": "Count roll results with value of higher as +1 (success) and 1 as -1 (fail)",
         "shorty": "count success and fail",
         "example": "roll 7d12/suc:10",
+        "enabled": True
+    },
+    "tgt": {
+        "name": "Target",
+        "default_value": 1,
+        "description": "Count roll results with value or lower",
+        "shorty": "count low dice roll results",
+        "example": "roll 5d20/tgt:10",
         "enabled": True
     },
     "add": {

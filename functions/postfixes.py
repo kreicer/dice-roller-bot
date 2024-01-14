@@ -17,8 +17,8 @@ def postfix_check(dice_parts):
         # drop lowest | drop highest | keep lowest | keep highest
         case "dl" | "dh" | "kl" | "kh":
             check_value_vs_throws(throws, value)
-        # reroll | minimum | divisor
-        case "rr" | "min" | "div":
+        # reroll | minimum | divisor | target
+        case "rr" | "min" | "div" | "tgt":
             check_v_v_e(edge, value)
         # additive | subtraction
         case "add" | "sub":
@@ -207,6 +207,19 @@ def postfix_magick(throws_result_list, dice_parts):
             # metrics
             postfix_counter.labels("success")
             postfix_counter.labels("success").inc()
+
+        # counter
+        case "tgt":
+            counter = 0
+            new_list = throws_result_list
+            for result in new_list:
+                if result <= value:
+                    counter += 1
+            sub_sum = counter
+
+            # metrics
+            postfix_counter.labels("target")
+            postfix_counter.labels("target").inc()
 
         # divisor
         case "div":
