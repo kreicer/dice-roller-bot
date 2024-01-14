@@ -208,13 +208,15 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("success")
             postfix_counter.labels("success").inc()
 
-        # counter
+        # target
         case "tgt":
             counter = 0
             new_list = throws_result_list
             for result in new_list:
                 if result <= value:
                     counter += 1
+                if result > value:
+                    counter -= 1
             sub_sum = counter
 
             # metrics
