@@ -213,7 +213,7 @@ def postfix_magick(throws_result_list, dice_parts):
             counter = 0
             new_list = throws_result_list
             for result in new_list:
-                if result >= value:
+                if result <= value:
                     counter += 1
             sub_sum = counter
 
