@@ -1,3 +1,5 @@
+import decimal
+
 from lang.EN.errors import postfix_limit_error
 from models.limits import modifier_limit
 from models.metrics import postfix_counter
@@ -17,8 +19,8 @@ def postfix_check(dice_parts):
         # drop lowest | drop highest | keep lowest | keep highest
         case "dl" | "dh" | "kl" | "kh":
             check_value_vs_throws(throws, value)
-        # reroll | minimum | divisor | target
-        case "rr" | "min" | "div" | "tgt":
+        # reroll | minimum | divisor | target | hit-n-miss
+        case "rr" | "min" | "div" | "trg" | "hit":
             check_v_v_e(edge, value)
         # additive | subtraction
         case "add" | "sub":
@@ -208,8 +210,8 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("success")
             postfix_counter.labels("success").inc()
 
-        # target
-        case "tgt":
+        # target | hit-n-miss
+        case "trg":
             counter = 0
             new_list = throws_result_list
             for result in new_list:
@@ -220,6 +222,23 @@ def postfix_magick(throws_result_list, dice_parts):
             # metrics
             postfix_counter.labels("target")
             postfix_counter.labels("target").inc()
+
+        # hit-n-miss
+        case "hit":
+            counter = 0
+            miss = 0
+            new_list = throws_result_list
+            for result in new_list:
+                if result <= value:
+                    counter += 1
+                else:
+                    miss += result - value
+            miss = decimal.Decimal("0." + str(miss))
+            sub_sum = counter + miss
+
+            # metrics
+            postfix_counter.labels("hit-n-miss")
+            postfix_counter.labels("hit-n-miss").inc()
 
         # divisor
         case "div":

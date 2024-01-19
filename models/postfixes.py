@@ -89,12 +89,21 @@ postfixes = {
         "example": "roll 7d12/suc:10",
         "enabled": True
     },
-    "tgt": {
+    "trg": {
         "name": "Target",
         "default_value": 1,
         "description": "Count roll results with value or lower",
         "shorty": "count low dice roll results",
-        "example": "roll 5d20/tgt:10",
+        "example": "roll 5d20/trg:10",
+        "enabled": True
+    },
+    "hit": {
+        "name": "Hit-n-Miss",
+        "default_value": 1,
+        "description": "Count roll results with value or lower and sum miss values"
+                       "\n<yellow>WARNING<end>: 2-results postfixes modify only 1s result with modifiers",
+        "shorty": "count low dice roll results and sum miss",
+        "example": "roll 3d8/hit:3",
         "enabled": True
     },
     "add": {
