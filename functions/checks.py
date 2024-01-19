@@ -35,7 +35,7 @@ def check_file_exist(filename):
 
 def check_dice_dict(dice_dict):
     dice_dict["mod"] = check_mod(dice_dict["mod"])
-    if dice_dict["delimiter"] == "d":
+    if dice_dict["delimiter"].lower() == "d":
         dice_dict["throws"] = check_throws(dice_dict["throws"])
         dice_dict["edge"] = check_edge(dice_dict["edge"])
         if isinstance(dice_dict["edge"], int):
@@ -103,6 +103,7 @@ def check_edge(edge):
 
 
 def check_postfix(postfix, postfixes_keys):
+    postfix = postfix.lower()
     if postfix == "":
         error_text = empty_postfix_error
         raise commands.BadArgument(None, error_text)
