@@ -3,8 +3,8 @@ cogs = {
     "Community": ["hlp", "hello", "about"],
     "Jokes": ["joke"],
     "Roll": ["roll"],
-    "Server": ["prefix", "shortcut"],
-    "Context Menu": ["T2R", "RB"]
+    "Context Menu": ["T2R", "RB"],
+    "Server (admin only)": ["config"],
 }
 
 cmds = {
@@ -55,21 +55,13 @@ cmds = {
                 f"  - multiple dice with Postfix and modifiers: 3d6/exp+2 2d20/dl-1\n"
                 f"  - fate/fudge dice: 4dF d4+2dF 10df-5 (no postfixes)"
     },
-    "prefix": {
+    "config": {
         "enabled": True,
-        "name": "prefix",
+        "name": "config",
         "usage": "",
-        "aliases": ["p"],
-        "brief": "Manage bot prefix (server admin only)",
-        "help": "Manage prefix for the bot commands (server admin only)"
-    },
-    "shortcut": {
-        "enabled": True,
-        "name": "shortcut",
-        "usage": "",
-        "aliases": ["srt"],
-        "brief": "Manage server's shortcuts (server admin only)",
-        "help": "Manage server's shortcuts for all users on server (server admin only)"
+        "aliases": "No aliases",
+        "brief": "Allow to manage settings (/ only)",
+        "help": "Allow to manage bot settings for this server (/)"
     },
     "T2R": {
         "enabled": True,

@@ -5,9 +5,11 @@ from functions.sql import select_sql, apply_sql
 from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
-from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update
+from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update, stat_delete, \
+    custom_dice_delete_all
 from ui.community import HelpView, PostfixView, ActionsView
 from ui.jokes import JokesView
+from ui.server import StatView, PrefixView
 
 
 # define prefix or mention
@@ -70,6 +72,9 @@ async def on_ready():
     roller.add_view(HelpView())
     roller.add_view(PostfixView())
     roller.add_view(ActionsView())
+    roller.add_view(StatView())
+    roller.add_view(PrefixView())
+    # roller.add_view(ShortcutView())
     await roller.change_presence(activity=discord.Activity(name=f'v{bot_version}!',
                                                            type=discord.ActivityType.competing))
 
@@ -80,7 +85,13 @@ async def on_guild_remove(guild):
     # main
     discord_id = str(guild.id)
     secure = (discord_id,)
-    execute_list = [(shortcut_delete_all, secure), (prefix_delete, secure), (source_delete, secure)]
+    execute_list = [
+        (shortcut_delete_all, secure),
+        (custom_dice_delete_all, secure),
+        (stat_delete, secure),
+        (prefix_delete, secure),
+        (source_delete, secure)
+    ]
     apply_sql(db_admin, execute_list)
 
     # logger
@@ -96,8 +107,7 @@ async def on_guild_remove(guild):
 async def on_guild_join(guild):
     # main
     discord_id = str(guild.id)
-    source_type = 1
-    secure = (discord_id, source_type)
+    secure = (discord_id,)
     execute_list = [(source_update, secure)]
     apply_sql(db_admin, execute_list)
 

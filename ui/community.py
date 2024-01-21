@@ -113,10 +113,6 @@ class HelpView(discord.ui.View):
         self.add_item(FeedbackButton())
         self.add_item(discord.ui.Button(label=community_help_support, style=discord.ButtonStyle.link,
                                         url=community_support, emoji="🆘", row=3))
-        self.message = None
-
-    # async def on_timeout(self) -> None:
-    #    await self.message.edit(view=None)
 
     cmd_list = []
     for item in cmds.keys():

@@ -65,7 +65,7 @@ def generate_joke_output(joke_id, joke_text):
 
 
 def generate_prefix_output(prefix, text):
-    output = f"<green>PREFIX <yellow>(ADMIN ACTION)<end>\n" \
+    output = f"<green>PREFIX<end>\n" \
              f"{command_prefix_text}\n\n" \
              f"{text} - <blue>{prefix}<end>"
     output = Colorizer(output).colorize()
@@ -110,19 +110,30 @@ def generate_commands_help(command):
 
 
 def generate_shortcut_output(shortcuts, number, limit):
-    output = f"<green>SHORTCUTS {number}/{limit} <yellow>(ADMIN ACTION)<end>\n"
+    output = f"<green>SHORTCUTS {number}/{limit}<end>\n"
     output += command_shortcut_text + "\n\n"
     for shortcut, dice in shortcuts:
         output += f"  <green>{shortcut: <12}<end> <blue>{dice}<end>\n"
     output += "\n"
-    output += f"<gray>Select one or more shortcuts to unlock remove button."
+    output += f"<gray>Select one or more shortcuts to remove it."
     output = Colorizer(output).colorize()
     return output
 
 
 def generate_shortcut_empty_output():
-    output = f"<green>SHORTCUTS <yellow>(ADMIN ACTION)<end>\n"
+    output = f"<green>SHORTCUTS<end>\n"
     output += command_shortcut_text + "\n\n"
     output += f"There are no shortcuts on your server yet."
+    output = Colorizer(output).colorize()
+    return output
+
+
+def generate_stat_output(server_id, dice_stat, shortcut_count, custom_dice_count):
+    output = f"<green>STATISTICS<end>\n"
+    output += "Some numbers of your server" + "\n\n"
+    output += f"Server ID: <blue>{server_id}<end>\n\n"
+    output += f"Dice rolled: <blue>{dice_stat}<end>\n"
+    output += f"Shortcuts bound: <blue>{shortcut_count}<end>\n"
+    output += f"Custom dice bound: <blue>{custom_dice_count}<end>\n"
     output = Colorizer(output).colorize()
     return output

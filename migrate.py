@@ -1,8 +1,8 @@
 from yoyo import read_migrations
 from yoyo import get_backend
 
-backend = get_backend('sqlite:///databases/test.db')
-migrations = read_migrations('migrations')
+backend = get_backend('sqlite:///databases/server.db')
+migrations = read_migrations('migrations/server')
 
 with backend.lock():
 

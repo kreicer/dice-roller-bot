@@ -1,18 +1,18 @@
 import sqlite3
+
+import discord
+from discord import app_commands
 from discord.ext import commands
 
 from functions.colorizer import Colorizer
-from functions.sql import select_sql, select_all_sql
-from lang.EN.errors import bot_missing_permissions, missing_permissions, sql_operational_error, cmd_on_cooldown
-from lang.EN.texts import command_prefix_output_cur
-from models.limits import shortcuts_limit
+from functions.sql import select_sql
+from lang.EN.errors import missing_permissions, sql_operational_error, cmd_on_cooldown
 from models.commands import cmds
 from models.metrics import commands_counter, errors_counter
-from functions.generators import generate_prefix_output, generate_shortcut_output, \
-    generate_shortcut_empty_output
-from functions.config import db_admin, dev_link, bot_prefix
-from models.sql import prefix_get, shortcut_get_all, shortcut_count
-from ui.server import PrefixView, ShortcutView
+from functions.generators import generate_stat_output
+from functions.config import db_admin, dev_link
+from models.sql import shortcut_count, stat_get_dice, custom_dice_count
+from ui.server import StatView
 
 
 # SERVER COG
@@ -21,112 +21,53 @@ class Server(commands.Cog):
         self.bot: commands.Bot = bot
 
     # PREFIX COMMANDS GROUP
-    @commands.hybrid_command(name=cmds["prefix"]["name"], brief=cmds["prefix"]["brief"],
-                             aliases=cmds["prefix"]["aliases"], with_app_command=True)
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(send_messages=True)
-    @commands.cooldown(2, 1, commands.BucketType.user)
-    async def _prefix(self, ctx: commands.Context) -> None:
+    @app_commands.command(name=cmds["config"]["name"], description=cmds["config"]["brief"],)
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.checks.cooldown(2, 1)
+    async def _config(self, interaction: discord.Interaction) -> None:
         # main
-        discord_id = str(ctx.guild.id)
+        dice_stat, shortcut_number, custom_dice_number = "", "", ""
+        discord_id = str(interaction.guild_id)
         secure = (discord_id,)
-        guild_prefix = select_sql(db_admin, prefix_get, secure)
-        if guild_prefix == "":
-            guild_prefix = bot_prefix
-        view = PrefixView(author=ctx.author)
-        result = generate_prefix_output(guild_prefix, command_prefix_output_cur)
-
-        # metrics
-        commands_counter.labels("prefix")
-        commands_counter.labels("prefix").inc()
-
-        # answer
-        await ctx.defer(ephemeral=True)
-        view.message = await ctx.send(result, view=view)
-
-    # SHORTCUT COMMANDS GROUP
-    @commands.hybrid_command(name=cmds["shortcut"]["name"], brief=cmds["shortcut"]["brief"],
-                             aliases=cmds["shortcut"]["aliases"], with_app_command=True)
-    @commands.has_permissions(administrator=True)
-    @commands.bot_has_permissions(send_messages=True)
-    @commands.cooldown(2, 1, commands.BucketType.user)
-    async def _shortcut(self, ctx: commands.Context) -> None:
-        # main
-        discord_id = str(ctx.guild.id)
-        secure = (discord_id,)
-        shortcuts = select_all_sql(db_admin, shortcut_get_all, secure)
-        view = ShortcutView(author=ctx.author, discord_id=discord_id)
-        if shortcuts:
+        try:
+            dice_stat = select_sql(db_admin, stat_get_dice, secure)
             shortcut_number = select_sql(db_admin, shortcut_count, secure)
-            result = generate_shortcut_output(shortcuts, shortcut_number, shortcuts_limit)
-        else:
-            result = generate_shortcut_empty_output()
+            custom_dice_number = select_sql(db_admin, custom_dice_count, secure)
+        except sqlite3.OperationalError:
+            errors_counter.labels("config", "OperationalError")
+            errors_counter.labels("config", "OperationalError").inc()
+            text = Colorizer(sql_operational_error.format(dev_link)).colorize()
+            await interaction.response.send_message(content=text, ephemeral=True)
+        if dice_stat == "":
+            dice_stat = 0
+        if shortcut_number == "":
+            shortcut_number = 0
+        if custom_dice_number == "":
+            custom_dice_number = 0
+        view = StatView()
+        result = generate_stat_output(discord_id, dice_stat, shortcut_number, custom_dice_number)
 
         # metrics
-        commands_counter.labels("shortcut")
-        commands_counter.labels("shortcut").inc()
+        commands_counter.labels("config")
+        commands_counter.labels("config").inc()
 
         # answer
-        await ctx.defer(ephemeral=True)
-        view.message = await ctx.send(result, view=view)
+        await interaction.response.send_message(content=result, view=view, ephemeral=True)
 
     # PREFIX ERRORS HANDLER
-    @_prefix.error
-    async def _prefix_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            errors_counter.labels("prefix", "MissingPermissions")
-            errors_counter.labels("prefix", "MissingPermissions").inc()
+    @_config.error
+    async def on_application_command_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, app_commands.MissingPermissions):
+            errors_counter.labels("config", "MissingPermissions")
+            errors_counter.labels("config", "MissingPermissions").inc()
             text = Colorizer(missing_permissions).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
-        if isinstance(error, sqlite3.OperationalError):
-            errors_counter.labels("prefix", "OperationalError")
-            errors_counter.labels("prefix", "OperationalError").inc()
-            text = Colorizer(sql_operational_error.format(dev_link)).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("prefix", "BotMissingPermissions")
-            errors_counter.labels("prefix", "BotMissingPermissions").inc()
-            text = Colorizer(bot_missing_permissions).colorize()
-            dm = await ctx.author.create_dm()
-            await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
-            errors_counter.labels("roll", "CommandOnCooldown")
-            errors_counter.labels("roll", "CommandOnCooldown").inc()
+            await interaction.response.send_message(content=text, ephemeral=True)
+        if isinstance(error, app_commands.CommandOnCooldown):
+            errors_counter.labels("config", "CommandOnCooldown")
+            errors_counter.labels("config", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
-
-    # SHORTCUT ERRORS HANDLER
-    @_shortcut.error
-    async def _shortcut_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            errors_counter.labels("shortcut_add", "MissingPermissions")
-            errors_counter.labels("shortcut_add", "MissingPermissions").inc()
-            text = Colorizer(missing_permissions).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
-        if isinstance(error, sqlite3.OperationalError):
-            errors_counter.labels("prefix", "OperationalError")
-            errors_counter.labels("prefix", "OperationalError").inc()
-            text = Colorizer(sql_operational_error.format(dev_link)).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
-        if isinstance(error, commands.BotMissingPermissions):
-            errors_counter.labels("shortcut", "BotMissingPermissions")
-            errors_counter.labels("shortcut", "BotMissingPermissions").inc()
-            text = Colorizer(bot_missing_permissions).colorize()
-            dm = await ctx.author.create_dm()
-            await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
-            errors_counter.labels("roll", "CommandOnCooldown")
-            errors_counter.labels("roll", "CommandOnCooldown").inc()
-            retry = round(error.retry_after, 2)
-            text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
-            await ctx.defer(ephemeral=True)
-            await ctx.send(text)
+            await interaction.response.send_message(content=text, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:
