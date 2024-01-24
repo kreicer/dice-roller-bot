@@ -57,6 +57,7 @@ class Roll(commands.Cog):
         check_limit(args_len, g_limit, error_text)
 
         for bucket in args:
+            bucket = bucket.lower()
             result_sum = 0
             visual_list = []
             visual_bucket = ""
