@@ -9,7 +9,7 @@ from models.sql import prefix_get, shortcut_delete_all, prefix_delete, source_de
     custom_dice_delete_all
 from ui.community import HelpView, PostfixView, ActionsView
 from ui.jokes import JokesView
-from ui.server import StatView, PrefixView
+from ui.server import StatView, PrefixView, ConfirmView, SuccessView
 
 
 # define prefix or mention
@@ -74,6 +74,8 @@ async def on_ready():
     roller.add_view(ActionsView())
     roller.add_view(StatView())
     roller.add_view(PrefixView())
+    roller.add_view(ConfirmView())
+    roller.add_view(SuccessView())
     # roller.add_view(ShortcutView())
     await roller.change_presence(activity=discord.Activity(name=f'v{bot_version}!',
                                                            type=discord.ActivityType.competing))

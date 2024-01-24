@@ -1,10 +1,13 @@
 import asyncio
+import sqlite3
 # import traceback
 
 from discord.ext import commands
 
 from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
+from functions.config import db_admin
+from functions.sql import apply_sql
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
     missing_required_argument, cmd_on_cooldown
 from lang.EN.texts import command_roll_parameter
@@ -32,6 +35,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
+from models.sql import stat_insert, stat_update
 
 
 # ROLL COG
@@ -58,8 +62,10 @@ class Roll(commands.Cog):
             visual_bucket = ""
             try:
                 discord_id = str(ctx.guild.id)
+                guild = True
             except AttributeError:
                 discord_id = str(ctx.channel.id)
+                guild = False
             cleared_bucket, actions = split_dice_actions(bucket)
             if actions:
                 tag = ""
@@ -105,6 +111,15 @@ class Roll(commands.Cog):
                     throws_result_list_before_postfix = dice_roll(dice_parts["throws"], dice_parts["edge"])
                     postfix_check(dice_parts)
                     throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
+
+                if guild:
+                    try:
+                        secure = (discord_id,)
+                        secure_update = (dice_parts["throws"], discord_id)
+                        execute_list = [(stat_insert, secure), (stat_update, secure_update)]
+                        apply_sql(db_admin, execute_list)
+                    except sqlite3.OperationalError:
+                        pass
 
                 # dice summarize
                 if dice_parts["mod"] == "-":

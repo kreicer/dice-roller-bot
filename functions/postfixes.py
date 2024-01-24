@@ -210,7 +210,7 @@ def postfix_magick(throws_result_list, dice_parts):
             postfix_counter.labels("success")
             postfix_counter.labels("success").inc()
 
-        # target | hit-n-miss
+        # target
         case "trg":
             counter = 0
             new_list = throws_result_list

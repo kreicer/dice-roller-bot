@@ -47,14 +47,6 @@ def logger(filename, log_level, text):
     file.close()
 
 
-def generate_dicts(dict_for_aliases):
-    aliases = {}
-    for key in dict_for_aliases.keys():
-        for alias in dict_for_aliases[key]["aliases"]:
-            aliases[alias] = key
-    return aliases
-
-
 def split_dice_actions(bucket):
     split_list = bucket.split("|")
     cleared_bucket = split_list[0]
