@@ -113,10 +113,10 @@ class Roll(commands.Cog):
                     postfix_check(dice_parts)
                     throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
 
-                if guild:
+                if guild and dice_parts["type"] != 0:
                     try:
                         secure = (discord_id,)
-                        secure_update = (dice_parts["throws"], discord_id)
+                        secure_update = (len(throws_result_list), discord_id)
                         execute_list = [(stat_insert, secure), (stat_update, secure_update)]
                         apply_sql(db_admin, execute_list)
                     except sqlite3.OperationalError:
