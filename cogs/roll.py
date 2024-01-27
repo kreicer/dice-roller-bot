@@ -1,5 +1,9 @@
 import asyncio
 import sqlite3
+from typing import List
+
+import discord
+from discord import app_commands
 # import traceback
 
 from discord.ext import commands
@@ -163,6 +167,15 @@ class Roll(commands.Cog):
         if args_len > 6:
             await asyncio.sleep(5)
         await ctx.send(overall)
+
+    @_roll.autocomplete(name="rolls")
+    async def _roll_autocomplete(self, interaction: discord.Interaction, current: str) \
+            -> List[app_commands.Choice[str]]:
+        dice = ["d20", "2d20/dl:1", "4d6/dl:1", "dF", "1d8+1d4", "3d6/exp:5"]
+        return [
+            app_commands.Choice(name=rolls, value=rolls)
+            for rolls in dice if current.lower() in rolls.lower()
+        ]
 
     # ROLL ERRORS HANDLER
     @_roll.error
