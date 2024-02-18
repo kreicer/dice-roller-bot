@@ -22,8 +22,9 @@ class Integrations(commands.Cog):
         logger(log_file, "INFO", log_txt)
 
     @commands.Cog.listener()
-    async def on_autopost_error(self):
+    async def on_autopost_error(self, error):
         log_txt = f"Could not post stats on Top.gg"
+        log_txt = error
         logger(log_file, "ERROR", log_txt)
         errors_counter.labels("integration", "Exception")
         errors_counter.labels("integration", "Exception").inc()
