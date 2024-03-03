@@ -66,7 +66,7 @@ class Roll(commands.Cog):
         except AttributeError:
             discord_id = str(ctx.channel.id)
             guild = False
-
+        bucket_id = 1
         for bucket in args:
             result_sum = 0
             visual_list = []
@@ -83,18 +83,19 @@ class Roll(commands.Cog):
                         check_multiply(future_len)
                         counter = 1
                         while counter < value:
-                            args.append(cleared_bucket)
+                            args.insert(bucket_id, cleared_bucket)
                             counter += 1
                         args_len = len(args)
                         action_counter.labels("multiplier")
                         action_counter.labels("multiplier").inc()
                     elif action_type == 2:
-                        tag += value + "\n"
+                        # TODO: member intents and find mechanism
+                        tag += "<" + value + ">" + "\n"
                         action_counter.labels("tag")
                         action_counter.labels("tag").inc()
                     else:
-                        value = "<pink>" + value + "<end>"
-                        label += Colorizer(value).colorize()
+                        label = "<pink>" + value + "<end>" + "\n"
+                        # label += Colorizer(value).colorize()
                         action_counter.labels("label")
                         action_counter.labels("label").inc()
                 overall += tag + label
@@ -166,14 +167,18 @@ class Roll(commands.Cog):
             # table = Colorizer(table).colorize()
             # await ctx.send(table)
             # sub_overall = f"```{table}```"
-            overall += f"```{table}```"
+            overall += f"{table}" + "\n"
+            bucket_id += 1
+
+        await ctx.defer()
 
         # metrics
         buckets_counter.labels(args_len)
         buckets_counter.labels(args_len).inc()
         commands_counter.labels("roll")
         commands_counter.labels("roll").inc()
-        await ctx.defer()
+
+        overall = Colorizer(overall).colorize()
         if args_len > 6:
             await asyncio.sleep(5)
         await ctx.send(overall)
