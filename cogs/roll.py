@@ -68,7 +68,6 @@ class Roll(commands.Cog):
             guild = False
 
         for bucket in args:
-            bucket = bucket.lower()
             result_sum = 0
             visual_list = []
             visual_bucket = ""
@@ -100,6 +99,7 @@ class Roll(commands.Cog):
                         action_counter.labels("label").inc()
                 overall += tag + label
             bucket = check_if_shortcut(discord_id, user_id, cleared_bucket)
+            bucket = bucket.lower()
             list_of_dice = split_on_dice(bucket)
             for dice in list_of_dice:
                 # dice split
