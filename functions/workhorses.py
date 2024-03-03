@@ -15,7 +15,7 @@ from lang.EN.errors import bucket_error
 
 from models.limits import dice_limit
 from models.metrics import dice_edge_counter, edge_valid
-from models.sql.server import shortcut_get_dice
+from models.sql.common import shortcut_get_dice
 from functions.config import db_admin, db_user
 
 

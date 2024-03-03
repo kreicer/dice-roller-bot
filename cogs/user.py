@@ -11,7 +11,7 @@ from models.commands import cmds
 from models.metrics import commands_counter, errors_counter
 from functions.generators import generate_me_output
 from functions.config import dev_link, db_user
-from models.sql.user import stat_get_dice, shortcut_count, custom_dice_count
+from models.sql.common import stat_get_dice, shortcut_count, custom_dice_count
 from ui.user import StatView
 
 

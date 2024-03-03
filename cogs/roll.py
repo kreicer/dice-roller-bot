@@ -39,8 +39,7 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from models.sql.server import stat_insert, stat_update
-from models.sql.user import stat_insert as user_st_insert, stat_update as user_st_update
+from models.sql.common import stat_insert, stat_update
 
 
 # ROLL COG
@@ -132,7 +131,7 @@ class Roll(commands.Cog):
                     try:
                         secure = (user_id,)
                         secure_update = (len(throws_result_list), user_id)
-                        execute_list = [(user_st_insert, secure), (user_st_update, secure_update)]
+                        execute_list = [(stat_insert, secure), (stat_update, secure_update)]
                         apply_sql(db_user, execute_list)
                     except sqlite3.OperationalError:
                         pass

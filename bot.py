@@ -5,8 +5,8 @@ from functions.sql import select_sql, apply_sql
 from models.metrics import guilds_counter
 from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
 from functions.workhorses import logger
-from models.sql.server import (prefix_get, shortcut_delete_all, prefix_delete, source_delete, source_update,
-                               stat_delete, custom_dice_delete_all)
+from models.sql.common import shortcut_delete_all, stat_delete, custom_dice_delete_all
+from models.sql.server import source_update, source_delete, prefix_get, prefix_delete
 from ui.community import HelpView, PostfixView, ActionsView
 from ui.jokes import JokesView
 from ui.server import StatView, PrefixView, ConfirmView, SuccessView

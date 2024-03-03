@@ -23,9 +23,10 @@ from lang.EN.ui import (server_modal_set_prefix, server_modal_text_new_prefix,
 from models.limits import shortcuts_limit
 from models.metrics import ui_counter, ui_errors_counter
 from models.regexp import parsing_regexp
-from models.sql.server import (prefix_delete, source_update, prefix_update, shortcut_get_all, shortcut_count,
-                        shortcut_get_dice, shortcut_update, shortcut_delete_single, prefix_get, stat_get_dice,
-                        custom_dice_count, stat_delete, shortcut_delete_all, custom_dice_delete_all)
+from models.sql.common import (shortcut_get_all, shortcut_count, shortcut_get_dice, shortcut_update,
+                               shortcut_delete_single, stat_get_dice, custom_dice_count, stat_delete,
+                               shortcut_delete_all, custom_dice_delete_all)
+from models.sql.server import source_update, prefix_get, prefix_update, prefix_delete
 
 
 # BUTTONS

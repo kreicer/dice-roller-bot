@@ -21,9 +21,9 @@ from lang.EN.ui import (server_modal_shortcut, server_modal_text_shortcut,
 from models.limits import shortcuts_limit
 from models.metrics import ui_counter, ui_errors_counter
 from models.regexp import parsing_regexp
-from models.sql.user import (shortcut_get_all, shortcut_count, shortcut_get_dice, shortcut_update,
-                             shortcut_delete_single, stat_get_dice, custom_dice_count, stat_delete,
-                             shortcut_delete_all, custom_dice_delete_all)
+from models.sql.common import (shortcut_get_all, shortcut_count, shortcut_get_dice, shortcut_update,
+                               shortcut_delete_single, stat_get_dice, custom_dice_count, stat_delete,
+                               shortcut_delete_all, custom_dice_delete_all)
 
 
 # BUTTONS
