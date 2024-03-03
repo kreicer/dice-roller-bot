@@ -4,6 +4,7 @@ cogs = {
     "Jokes": ["joke"],
     "Roll": ["roll"],
     "Context Menu": ["T2R", "RB"],
+    "User": ["me"],
     "Server (admin only)": ["config"],
 }
 
@@ -62,6 +63,14 @@ cmds = {
         "aliases": "No aliases",
         "brief": "Allow to manage settings (/ only)",
         "help": "Allow to manage bot settings for this server (/)"
+    },
+    "me": {
+        "enabled": True,
+        "name": "me",
+        "usage": "",
+        "aliases": "No aliases",
+        "brief": "Allow to manage user settings (/ only)",
+        "help": "Allow to manage bot settings for you (/)"
     },
     "T2R": {
         "enabled": True,

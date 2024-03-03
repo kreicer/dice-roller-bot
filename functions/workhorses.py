@@ -10,13 +10,13 @@ from functions.checks import (
     check_file_exist,
     check_limit
 )
-from functions.config import db_admin
 from functions.sql import select_sql
 from lang.EN.errors import bucket_error
 
 from models.limits import dice_limit
 from models.metrics import dice_edge_counter, edge_valid
-from models.sql import shortcut_get_dice
+from models.sql.server import shortcut_get_dice
+from functions.config import db_admin, db_user
 
 
 def json_writer(new_data, filename):
@@ -127,12 +127,15 @@ def sub_mod_result(total_result, mod_amount):
     return total_mod_result
 
 
-def check_if_shortcut(discord_id, bucket):
+def check_if_shortcut(discord_id, user_id, bucket):
     try:
-        result = select_sql(db_admin, shortcut_get_dice, (discord_id, bucket))
+        result_user = select_sql(db_user, shortcut_get_dice, (user_id, bucket))
+        result_admin = select_sql(db_admin, shortcut_get_dice, (discord_id, bucket))
     except sqlite3.OperationalError:
         return bucket
-    if result:
-        return result
+    if (result_user and result_admin) or (result_admin and not result_user):
+        return result_admin
+    elif result_user and not result_admin:
+        return result_user
     else:
         return bucket

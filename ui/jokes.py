@@ -14,7 +14,7 @@ from lang.EN.errors import bad_argument
 from lang.EN.ui import joke_modal_submit_joke, \
     joke_modal_text_joke, joke_modal_text_joke_placeholder, joke_modal_submit_message
 from models.metrics import ui_counter, ui_errors_counter
-from models.sql import joke_get, jokes_count
+from models.sql.jokes import joke_get, jokes_count
 
 
 # JOKE UI

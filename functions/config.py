@@ -39,6 +39,7 @@ metrics_python_ext = config.getboolean("metrics", "python_ext")
 # databases section
 db_jokes = config.get("db", "jokes")
 db_admin = config.get("db", "admin")
+db_user = config.get("db", "user")
 
 # directories
 dir_feedback = config.get("dir", "feedback")

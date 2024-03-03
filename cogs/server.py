@@ -11,7 +11,7 @@ from models.commands import cmds
 from models.metrics import commands_counter, errors_counter
 from functions.generators import generate_stat_output
 from functions.config import db_admin, dev_link
-from models.sql import shortcut_count, stat_get_dice, custom_dice_count
+from models.sql.server import shortcut_count, stat_get_dice, custom_dice_count
 from ui.server import StatView
 
 
@@ -20,7 +20,7 @@ class Server(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
 
-    # PREFIX COMMANDS GROUP
+    # CONFIG COMMAND
     @app_commands.command(name=cmds["config"]["name"], description=cmds["config"]["brief"],)
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.checks.cooldown(2, 1)

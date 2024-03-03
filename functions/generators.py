@@ -123,7 +123,7 @@ def generate_shortcut_output(shortcuts, number, limit):
 def generate_shortcut_empty_output():
     output = f"<green>SHORTCUTS<end>\n"
     output += command_shortcut_text + "\n\n"
-    output += f"There are no shortcuts on your server yet."
+    output += f"There are no shortcuts yet."
     output = Colorizer(output).colorize()
     return output
 
@@ -132,6 +132,17 @@ def generate_stat_output(server_id, dice_stat, shortcut_count, custom_dice_count
     output = f"<green>STATISTICS<end>\n"
     output += "Some numbers of your server" + "\n\n"
     output += f"Server ID: <blue>{server_id}<end>\n\n"
+    output += f"Dice rolled: <blue>{dice_stat}<end>\n"
+    output += f"Shortcuts bound: <blue>{shortcut_count}<end>\n"
+    output += f"Custom dice bound: <blue>{custom_dice_count}<end>\n"
+    output = Colorizer(output).colorize()
+    return output
+
+
+def generate_me_output(server_id, dice_stat, shortcut_count, custom_dice_count):
+    output = f"<green>STATISTICS<end>\n"
+    output += "Some your numbers" + "\n\n"
+    output += f"User ID: <blue>{server_id}<end>\n\n"
     output += f"Dice rolled: <blue>{dice_stat}<end>\n"
     output += f"Shortcuts bound: <blue>{shortcut_count}<end>\n"
     output += f"Custom dice bound: <blue>{custom_dice_count}<end>\n"

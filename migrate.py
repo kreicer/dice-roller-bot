@@ -1,10 +1,14 @@
 from yoyo import read_migrations
 from yoyo import get_backend
 
-backend = get_backend('sqlite:///databases/server.db')
-migrations = read_migrations('migrations/server')
+backend_server = get_backend('sqlite:///databases/server.db')
+migrations_server = read_migrations('migrations/server')
 
-with backend.lock():
+with backend_server.lock():
+    backend_server.apply_migrations(backend_server.to_apply(migrations_server))
 
-    # Apply any outstanding migrations
-    backend.apply_migrations(backend.to_apply(migrations))
+backend_user = get_backend('sqlite:///databases/user.db')
+migrations_user = read_migrations('migrations/user')
+
+with backend_user.lock():
+    backend_user.apply_migrations(backend_user.to_apply(migrations_user))

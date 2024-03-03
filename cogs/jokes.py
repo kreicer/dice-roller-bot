@@ -13,7 +13,7 @@ from functions.workhorses import logger
 from functions.generators import generate_joke_output
 from functions.config import db_jokes, log_file
 from models.metrics import commands_counter, errors_counter
-from models.sql import joke_get, jokes_count
+from models.sql.jokes import joke_get, jokes_count
 from ui.jokes import JokesView
 
 # global

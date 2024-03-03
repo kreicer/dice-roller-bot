@@ -10,7 +10,7 @@ from discord.ext import commands
 
 from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
-from functions.config import db_admin
+from functions.config import db_admin, db_user
 from functions.sql import apply_sql
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
     missing_required_argument, cmd_on_cooldown
@@ -39,7 +39,8 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from models.sql import stat_insert, stat_update
+from models.sql.server import stat_insert, stat_update
+from models.sql.user import stat_insert as user_st_insert, stat_update as user_st_update
 
 
 # ROLL COG
@@ -59,18 +60,20 @@ class Roll(commands.Cog):
         args_len = len(args)
         error_text = throws_groups_error_text.format(args_len, g_limit)
         check_limit(args_len, g_limit, error_text)
+        user_id = str(ctx.message.author.id)
+        try:
+            discord_id = str(ctx.guild.id)
+            guild = True
+        except AttributeError:
+            discord_id = str(ctx.channel.id)
+            guild = False
 
         for bucket in args:
             bucket = bucket.lower()
             result_sum = 0
             visual_list = []
             visual_bucket = ""
-            try:
-                discord_id = str(ctx.guild.id)
-                guild = True
-            except AttributeError:
-                discord_id = str(ctx.channel.id)
-                guild = False
+
             cleared_bucket, actions = split_dice_actions(bucket)
             if actions:
                 tag = ""
@@ -97,7 +100,7 @@ class Roll(commands.Cog):
                         action_counter.labels("label")
                         action_counter.labels("label").inc()
                 overall += tag + label
-            bucket = check_if_shortcut(discord_id, cleared_bucket)
+            bucket = check_if_shortcut(discord_id, user_id, cleared_bucket)
             list_of_dice = split_on_dice(bucket)
             for dice in list_of_dice:
                 # dice split
@@ -123,6 +126,14 @@ class Roll(commands.Cog):
                         secure_update = (len(throws_result_list), discord_id)
                         execute_list = [(stat_insert, secure), (stat_update, secure_update)]
                         apply_sql(db_admin, execute_list)
+                    except sqlite3.OperationalError:
+                        pass
+                if dice_parts["type"] != 0:
+                    try:
+                        secure = (user_id,)
+                        secure_update = (len(throws_result_list), user_id)
+                        execute_list = [(user_st_insert, secure), (user_st_update, secure_update)]
+                        apply_sql(db_user, execute_list)
                     except sqlite3.OperationalError:
                         pass
 
@@ -171,7 +182,7 @@ class Roll(commands.Cog):
     @_roll.autocomplete(name="rolls")
     async def _roll_autocomplete(self, interaction: discord.Interaction, current: str) \
             -> List[app_commands.Choice[str]]:
-        dice = ["d20", "2d20/dl:1", "4d6/dl:1", "dF", "1d8+1d4", "3d6/exp:5"]
+        dice = ["d20", "2d20/dl:1+4", "4d6/dl:1", "dF", "1d8+1d4", "3d6/exp:5"]
         return [
             app_commands.Choice(name=rolls, value=rolls)
             for rolls in dice if current.lower() in rolls.lower()
