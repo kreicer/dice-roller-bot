@@ -28,6 +28,7 @@ community_support = config.get("community", "support")
 
 # topgg section
 topgg_enable = config.getboolean("topgg", "enable")
+topgg_timer = config.getint("topgg", "timer")
 topgg_link = config.get("topgg", "link")
 topgg_token = config.get("topgg", "token")
 
