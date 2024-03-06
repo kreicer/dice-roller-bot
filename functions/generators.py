@@ -139,12 +139,15 @@ def generate_stat_output(server_id, dice_stat, shortcut_count, custom_dice_count
     return output
 
 
-def generate_me_output(server_id, dice_stat, shortcut_count, custom_dice_count):
+def generate_me_output(server_id, dice_stat, shortcut_count, custom_dice_count, auto):
+    print("1")
     output = f"<green>STATISTICS<end>\n"
     output += "Some your numbers" + "\n\n"
     output += f"User ID: <blue>{server_id}<end>\n\n"
     output += f"Dice rolled: <blue>{dice_stat}<end>\n"
     output += f"Shortcuts bound: <blue>{shortcut_count}<end>\n"
     output += f"Custom dice bound: <blue>{custom_dice_count}<end>\n"
+    output += f"Autocomplete options: <blue>{auto}<end>\n"
     output = Colorizer(output).colorize()
+    print("2")
     return output

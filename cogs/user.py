@@ -5,13 +5,14 @@ from discord import app_commands
 from discord.ext import commands
 
 from functions.colorizer import Colorizer
-from functions.sql import select_sql
+from functions.sql import select_sql, select_all_sql
 from lang.EN.errors import sql_operational_error, cmd_on_cooldown
 from models.commands import cmds
 from models.metrics import commands_counter, errors_counter
 from functions.generators import generate_me_output
 from functions.config import dev_link, db_user
 from models.sql.common import stat_get_dice, shortcut_count, custom_dice_count
+from models.sql.user import autocomplete_get_all
 from ui.user import StatView
 
 
@@ -43,8 +44,13 @@ class My(commands.Cog):
             shortcut_number = 0
         if custom_dice_number == "":
             custom_dice_number = 0
+        raw_auto = select_all_sql(db_user, autocomplete_get_all, secure)
+        if raw_auto:
+            auto = [d[0] for d in raw_auto]
+        else:
+            auto = []
         view = StatView()
-        result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number)
+        result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number, auto)
 
         # metrics
         commands_counter.labels("me")

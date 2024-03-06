@@ -24,6 +24,7 @@ from models.regexp import parsing_regexp
 from models.sql.common import (shortcut_get_all, shortcut_count, shortcut_get_dice, shortcut_update,
                                shortcut_delete_single, stat_get_dice, custom_dice_count, stat_delete,
                                shortcut_delete_all, custom_dice_delete_all)
+from models.sql.user import autocomplete_get_all, autocomplete_delete_all
 
 
 # BUTTONS
@@ -35,10 +36,10 @@ class ResetStatisticsButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction) -> None:
         discord_id = str(interaction.user.id)
-        secure_src = (discord_id,)
-        execute_list = [(stat_delete, secure_src)]
+        secure = (discord_id,)
+        execute_list = [(stat_delete, secure), (autocomplete_delete_all, secure)]
         apply_sql(db_user, execute_list)
-        result = "<green>Statistics data was deleted successfully<end>"
+        result = "<green>Statistics and autocomplete data was deleted successfully<end>"
         result = Colorizer(result).colorize()
         ui_counter.labels("button", "user", "statistics_reset")
         ui_counter.labels("button", "user", "statistics_reset").inc()
@@ -55,7 +56,8 @@ class DeleteAllButton(discord.ui.Button):
         result = ("<red>This action will delete all data:\n"
                   "- statistics\n"
                   "- shortcuts\n"
-                  "- custom dice<end>")
+                  "- custom dice\n"
+                  "- autocomplete options<end>")
         result = Colorizer(result).colorize()
         ui_counter.labels("button", "user", "all_delete")
         ui_counter.labels("button", "user", "all_delete").inc()
@@ -80,7 +82,12 @@ class BackButton(discord.ui.Button):
         custom_dice_number = select_sql(db_user, custom_dice_count, secure)
         if custom_dice_number == "":
             custom_dice_number = 0
-        result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number)
+        raw_auto = select_all_sql(db_user, autocomplete_get_all, secure)
+        if raw_auto:
+            auto = [d[0] for d in raw_auto]
+        else:
+            auto = []
+        result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number, auto)
         new_view = StatView()
         ui_counter.labels("button", "user", "back")
         ui_counter.labels("button", "user", "back").inc()
@@ -98,7 +105,8 @@ class ConfirmButton(discord.ui.Button):
         secure = (discord_id,)
         execute_list = [(shortcut_delete_all, secure),
                         (custom_dice_delete_all, secure),
-                        (stat_delete, secure)]
+                        (stat_delete, secure),
+                        (autocomplete_delete_all, secure)]
         apply_sql(db_user, execute_list)
         dice_stat = select_sql(db_user, stat_get_dice, secure)
         if dice_stat == "":
@@ -109,7 +117,12 @@ class ConfirmButton(discord.ui.Button):
         custom_dice_number = select_sql(db_user, custom_dice_count, secure)
         if custom_dice_number == "":
             custom_dice_number = 0
-        result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number)
+        raw_auto = select_all_sql(db_user, autocomplete_get_all, secure)
+        if raw_auto:
+            auto = [d[0] for d in raw_auto]
+        else:
+            auto = []
+        result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number, auto)
         new_view = StatView()
         ui_counter.labels("button", "user", "back")
         ui_counter.labels("button", "user", "back").inc()
@@ -161,7 +174,16 @@ class FolderSelector(discord.ui.Select):
             custom_dice_number = select_sql(db_user, custom_dice_count, secure)
             if custom_dice_number == "":
                 custom_dice_number = 0
-            result = generate_me_output(discord_id, dice_stat, shortcut_number, custom_dice_number)
+            raw_auto = select_all_sql(db_user, autocomplete_get_all, secure)
+            if raw_auto:
+                auto = [d[0] for d in raw_auto]
+            else:
+                auto = []
+            result = generate_me_output(discord_id,
+                                        dice_stat,
+                                        shortcut_number,
+                                        custom_dice_number,
+                                        auto)
             new_view = StatView()
 
         ui_counter.labels("selector", "user", "folders")
