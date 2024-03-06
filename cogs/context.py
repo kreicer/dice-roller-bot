@@ -26,10 +26,12 @@ async def _context_roll(interaction: discord.Interaction, message: discord.Messa
     for word in words:
         try:
             dice_dict = {}
+            types_sum = 0
             list_of_dice = split_on_dice(word)
             for dice in list_of_dice:
                 dice_dict = split_on_parts(dice, parsing_regexp)
-            if dice_dict["type"] != 0:
+                types_sum += dice_dict["type"]
+            if types_sum > 0:
                 dice_for_roll.append(word)
         except Exception as e:
             # traceback.print_exception(type(e), e, e.__traceback__)
