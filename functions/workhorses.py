@@ -10,13 +10,14 @@ from functions.checks import (
     check_file_exist,
     check_limit
 )
-from functions.sql import select_sql
+from functions.sql import select_sql, select_all_sql, apply_sql
 from lang.EN.errors import bucket_error
 
 from models.limits import dice_limit
 from models.metrics import dice_edge_counter, edge_valid
-from models.sql.common import shortcut_get_dice
+from models.sql.common import shortcut_get_dice, stat_insert, stat_update
 from functions.config import db_admin, db_user
+from models.sql.user import autocomplete_get_all, autocomplete_count, autocomplete_update, autocomplete_delete
 
 
 def json_writer(new_data, filename):
@@ -139,3 +140,45 @@ def check_if_shortcut(discord_id, user_id, bucket):
         return result_user
     else:
         return bucket
+
+
+def get_autocomplete(user_id):
+    default_dice = ["d20", "2d20/dl:1+4", "4d6/dl:1", "dF", "1d8+1d4"]
+    try:
+        secure = (str(user_id),)
+        raw_dice = select_all_sql(db_user, autocomplete_get_all, secure)
+    except sqlite3.OperationalError:
+        return default_dice
+    if raw_dice:
+        dice = [d[0] for d in raw_dice]
+        return dice
+    else:
+        return default_dice
+
+
+def update_stat(discord_id, dice_number, db_type):
+    if db_type == 0:
+        db = db_admin
+    else:
+        db = db_user
+    try:
+        secure = (discord_id,)
+        secure_update = (dice_number, discord_id)
+        execute_list = [(stat_insert, secure), (stat_update, secure_update)]
+        apply_sql(db, execute_list)
+    except sqlite3.OperationalError:
+        pass
+
+
+def update_autocomplete(user_id, dice):
+    try:
+        secure = (user_id,)
+        secure_update = (user_id, dice)
+        execute_list = [(autocomplete_update, secure_update)]
+        apply_sql(db_user, execute_list)
+        autocomplete_number = select_sql(db_user, autocomplete_count, secure)
+        if autocomplete_number >= 10:
+            execute_list = [(autocomplete_delete, secure)]
+            apply_sql(db_user, execute_list)
+    except sqlite3.OperationalError:
+        pass

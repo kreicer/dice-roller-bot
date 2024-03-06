@@ -1,5 +1,4 @@
 import asyncio
-import sqlite3
 from typing import List
 
 import discord
@@ -10,8 +9,6 @@ from discord.ext import commands
 
 from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
-from functions.config import db_admin, db_user
-from functions.sql import apply_sql
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
     missing_required_argument, cmd_on_cooldown
 from lang.EN.texts import command_roll_parameter
@@ -27,7 +24,7 @@ from functions.workhorses import (
     calc_result,
     fate_result,
     add_mod_result,
-    sub_mod_result, check_if_shortcut, split_dice_actions
+    sub_mod_result, check_if_shortcut, split_dice_actions, get_autocomplete, update_stat, update_autocomplete
 )
 from functions.postfixes import postfix_magick, postfix_check
 from functions.checks import check_limit, check_multiply
@@ -39,7 +36,6 @@ from functions.visualizers import (
     body_for_output,
     create_table
 )
-from models.sql.common import stat_insert, stat_update
 
 
 # ROLL COG
@@ -121,21 +117,11 @@ class Roll(commands.Cog):
                     throws_result_list, sub_sum = postfix_magick(throws_result_list_before_postfix, dice_parts)
 
                 if guild and dice_parts["type"] != 0:
-                    try:
-                        secure = (discord_id,)
-                        secure_update = (len(throws_result_list), discord_id)
-                        execute_list = [(stat_insert, secure), (stat_update, secure_update)]
-                        apply_sql(db_admin, execute_list)
-                    except sqlite3.OperationalError:
-                        pass
+                    dice_number = len(throws_result_list)
+                    update_stat(discord_id, dice_number, 0)
                 if dice_parts["type"] != 0:
-                    try:
-                        secure = (user_id,)
-                        secure_update = (len(throws_result_list), user_id)
-                        execute_list = [(stat_insert, secure), (stat_update, secure_update)]
-                        apply_sql(db_user, execute_list)
-                    except sqlite3.OperationalError:
-                        pass
+                    dice_number = len(throws_result_list)
+                    update_stat(user_id, dice_number, 1)
 
                 # dice summarize
                 if dice_parts["mod"] == "-":
@@ -169,6 +155,7 @@ class Roll(commands.Cog):
             # sub_overall = f"```{table}```"
             overall += f"{table}" + "\n"
             bucket_id += 1
+            update_autocomplete(user_id, bucket)
 
         await ctx.defer()
 
@@ -186,7 +173,8 @@ class Roll(commands.Cog):
     @_roll.autocomplete(name="rolls")
     async def _roll_autocomplete(self, interaction: discord.Interaction, current: str) \
             -> List[app_commands.Choice[str]]:
-        dice = ["d20", "2d20/dl:1+4", "4d6/dl:1", "dF", "1d8+1d4", "3d6/exp:5"]
+        user_id = interaction.user.id
+        dice = get_autocomplete(user_id)
         return [
             app_commands.Choice(name=rolls, value=rolls)
             for rolls in dice if current.lower() in rolls.lower()
