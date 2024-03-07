@@ -19,8 +19,8 @@ def postfix_check(dice_parts):
         # drop lowest | drop highest | keep lowest | keep highest
         case "dl" | "dh" | "kl" | "kh":
             check_value_vs_throws(throws, value)
-        # reroll | minimum | divisor | target | hit-n-miss
-        case "rr" | "min" | "div" | "trg" | "hit":
+        # re-roll | minimum | divisor | target | hit-n-miss | lucky | cursed
+        case "rr" | "min" | "div" | "trg" | "hit" | "luc" | "cur":
             check_v_v_e(edge, value)
         # additive | subtraction
         case "add" | "sub":
@@ -323,6 +323,34 @@ def postfix_magick(throws_result_list, dice_parts):
             # metrics
             postfix_counter.labels("wod")
             postfix_counter.labels("wod").inc()
+
+        # lucky
+        case "luc":
+            for throws_result in throws_result_list:
+                if throws_result <= value:
+                    new_throws_result = edge
+                    new_list.append(new_throws_result)
+                else:
+                    new_list.append(throws_result)
+            sub_sum = calc_result(new_list)
+
+            # metrics
+            postfix_counter.labels("lucky")
+            postfix_counter.labels("lucky").inc()
+
+        # cursed
+        case "cur":
+            for throws_result in throws_result_list:
+                if throws_result > edge - value:
+                    new_throws_result = 1
+                    new_list.append(new_throws_result)
+                else:
+                    new_list.append(throws_result)
+            sub_sum = calc_result(new_list)
+
+            # metrics
+            postfix_counter.labels("lucky")
+            postfix_counter.labels("lucky").inc()
 
         # do nothing
         case _:

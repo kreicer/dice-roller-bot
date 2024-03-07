@@ -3,7 +3,7 @@ postfixes = {
     "exp": {
         "name": "Explode",
         "default_value": "",
-        "description": "Modifying dice to become exploding dice: roll again when equal or higher than value.",
+        "description": "Modifying dice to become exploding dice: roll again when equal or higher than value",
         "shorty": "modify dice to become explode dice",
         "example": "roll 2d20/exp",
         "enabled": True
@@ -11,16 +11,32 @@ postfixes = {
     "pen": {
         "name": "Penetrate",
         "default_value": "",
-        "description": "Modifying dice to become penetrating dice: roll again when equal or higher than value. "
+        "description": "Modifying dice to become penetrating dice: roll again when equal or higher than value"
                        "But 1 will be subtracted from the result of that additional roll.",
         "shorty": "modify dice to become penetration dice",
         "example": "roll 2d20/pen",
         "enabled": True
     },
+    "luc": {
+        "name": "Lucky Dice",
+        "default_value": 1,
+        "description": "Modifying dice to become lucky dice: more max sides and no lowest sides",
+        "shorty": "modify dice to become lucky dice",
+        "example": "roll 2d20/luc:3",
+        "enabled": True
+    },
+    "cur": {
+        "name": "Cursed Dice",
+        "default_value": 1,
+        "description": "Modifying dice to become cursed dice: more lowest sides and no max sides",
+        "shorty": "modify dice to become cursed dice",
+        "example": "roll 3d10/cur:2",
+        "enabled": True
+    },
     "sts": {
         "name": "Stress",
         "default_value": 1,
-        "description": "Roll additional part of dice if no maximum on first roll.",
+        "description": "Roll additional part of dice if no maximum on first roll",
         "shorty": "modify dice to become stress dice",
         "example": "roll 4d6/sts",
         "enabled": False
@@ -58,10 +74,10 @@ postfixes = {
         "enabled": True
     },
     "rr": {
-        "name": "ReRoll",
+        "name": "Re-Roll",
         "default_value": 1,
-        "description": "Reroll dice with result on value or lower",
-        "shorty": "reroll dice",
+        "description": "Re-roll dice with result on value or lower",
+        "shorty": "re-roll dice",
         "example": "roll 2d20/rr:2",
         "enabled": True
     },
