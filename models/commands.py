@@ -3,7 +3,7 @@ cogs = {
     "Community": ["hlp", "hello", "about"],
     "Jokes": ["joke"],
     "Roll": ["roll"],
-    "Context Menu": ["T2R", "RB"],
+    "Context Menu": ["T2R"],
     "User": ["me"],
     "Server (admin only)": ["config"],
 }
@@ -79,13 +79,5 @@ cmds = {
         "aliases": "No aliases",
         "brief": "Find dice in chat message and roll it",
         "help": "Scanning text of message for valid dice and roll it"
-    },
-    "RB": {
-        "enabled": True,
-        "name": "RB",
-        "usage": "Apps -> Report Bug",
-        "aliases": "No aliases",
-        "brief": "Allow to report bug",
-        "help": "Get technical info from message, add provided description and send to developer"
     }
 }
