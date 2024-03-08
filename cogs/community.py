@@ -1,9 +1,10 @@
+import traceback
+
 from discord.ext import commands, tasks
 
 from functions.colorizer import Colorizer
-from functions.workhorses import logger
+from functions.logging import log_info, log_error
 from functions.generators import generate_info_output, generate_help_short_output
-from functions.config import log_file
 from lang.EN.errors import bot_missing_permissions, cmd_on_cooldown
 from lang.EN.texts import command_hello_text
 from models.commands import cmds, cogs
@@ -28,7 +29,7 @@ class Community(commands.Cog):
         guilds_number = len(self.bot.guilds)
         # Logger
         log_txt = "Guild number updated, current number: " + str(guilds_number)
-        logger(log_file, "INFO", log_txt)
+        log_info(log_txt)
 
     @_update_servers_number.before_loop
     async def _before_update_servers_number(self):
@@ -86,13 +87,17 @@ class Community(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, commands.CommandOnCooldown):
             errors_counter.labels("roll", "CommandOnCooldown")
             errors_counter.labels("roll", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
+        else:
+            traceback.print_exception(type(error), error, error.__traceback__)
+            text = type(error) + error + error.__traceback__
+            log_error(text)
 
     # HELP ERRORS HANDLER
     @_help.error
@@ -103,13 +108,17 @@ class Community(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, commands.CommandOnCooldown):
             errors_counter.labels("roll", "CommandOnCooldown")
             errors_counter.labels("roll", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
+        else:
+            traceback.print_exception(type(error), error, error.__traceback__)
+            text = type(error) + error + error.__traceback__
+            log_error(text)
 
     # HELLO ERRORS HANDLER
     @_hello.error
@@ -120,13 +129,17 @@ class Community(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, commands.CommandOnCooldown):
             errors_counter.labels("roll", "CommandOnCooldown")
             errors_counter.labels("roll", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
+        else:
+            traceback.print_exception(type(error), error, error.__traceback__)
+            text = type(error) + error + error.__traceback__
+            log_error(text)
 
 
 async def setup(bot: commands.Bot) -> None:

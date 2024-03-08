@@ -1,17 +1,18 @@
 import sqlite3
 import random
+import traceback
 
 import discord
 from discord.ext import commands, tasks
 
 from functions.colorizer import Colorizer
+from functions.logging import log_info, log_error
 from functions.sql import select_sql
 from lang.EN.buttons import joke_joke_rate
 from lang.EN.errors import bot_missing_permissions, cmd_on_cooldown
 from models.commands import cmds
-from functions.workhorses import logger
 from functions.generators import generate_joke_output
-from functions.config import db_jokes, log_file
+from functions.config import db_jokes
 from models.metrics import commands_counter, errors_counter
 from models.sql.jokes import joke_get, jokes_count
 from ui.jokes import JokesView
@@ -39,7 +40,7 @@ class Jokes(commands.Cog):
 
         # logger
         log_txt = "Jokes number updated, current number: " + str(number_of_jokes)
-        logger(log_file, "INFO", log_txt)
+        log_info(log_txt)
 
         # answer
         return number_of_jokes
@@ -81,13 +82,17 @@ class Jokes(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, commands.CommandOnCooldown):
             errors_counter.labels("roll", "CommandOnCooldown")
             errors_counter.labels("roll", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
+        else:
+            traceback.print_exception(type(error), error, error.__traceback__)
+            text = type(error) + error + error.__traceback__
+            log_error(text)
 
 
 async def setup(bot: commands.Bot) -> None:

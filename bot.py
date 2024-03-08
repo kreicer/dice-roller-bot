@@ -1,10 +1,10 @@
 import discord
 from discord.ext import commands
 
+from functions.logging import log_info
 from functions.sql import select_sql, apply_sql
 from models.metrics import guilds_counter
-from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin, log_file
-from functions.workhorses import logger
+from functions.config import bot_version, bot_token, bot_prefix, bot_shards, db_admin
 from models.sql.common import shortcut_delete_all, stat_delete, custom_dice_delete_all
 from models.sql.server import source_update, source_delete, prefix_get, prefix_delete
 from ui.community import HelpView, PostfixView, ActionsView
@@ -61,7 +61,7 @@ roller = RollerBot()
 async def on_connect():
     # log connection info
     log_txt = "Bot connected"
-    logger(log_file, "INFO", log_txt)
+    log_info(log_txt)
 
 
 # on ready actions
@@ -69,7 +69,7 @@ async def on_connect():
 async def on_ready():
     # log ready info and connected guilds number
     log_txt = "Bot ready and connected to " + str(len(roller.guilds)) + " servers"
-    logger(log_file, "INFO", log_txt)
+    log_info(log_txt)
     roller.add_view(JokesView())
     roller.add_view(HelpView())
     roller.add_view(PostfixView())
@@ -102,7 +102,7 @@ async def on_guild_remove(guild):
 
     # logger
     log_txt = f"Dice Roller was kicked from guild with id: {discord_id}"
-    logger(log_file, "INFO", log_txt)
+    log_info(log_txt)
 
     # metrics
     guilds_counter.labels("kicked")
@@ -119,7 +119,7 @@ async def on_guild_join(guild):
 
     # logger
     log_txt = f"Dice Roller was added on guild with id: {discord_id}"
-    logger(log_file, "INFO", log_txt)
+    log_info(log_txt)
 
     # metrics
     guilds_counter.labels("joined")

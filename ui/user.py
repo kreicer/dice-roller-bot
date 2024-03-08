@@ -6,12 +6,13 @@ from discord.ext import commands
 
 from functions.checks import check_shortcut_name, check_shortcut_limit
 from functions.colorizer import Colorizer
-from functions.config import log_file, dev_link, db_user
+from functions.config import dev_link, db_user
 from functions.generators import generate_shortcut_output, generate_shortcut_empty_output, \
     generate_me_output
+from functions.logging import log_info, log_error
 from functions.postfixes import postfix_check
 from functions.sql import apply_sql, select_all_sql, select_sql
-from functions.workhorses import logger, split_on_dice, split_on_parts
+from functions.workhorses import split_on_dice, split_on_parts
 from lang.EN.buttons import server_add_shortcut
 from lang.EN.errors import sql_operational_error, bad_argument, argument_parsing_error, \
     shortcut_many_arguments
@@ -243,7 +244,7 @@ class AddShortcut(discord.ui.Modal, title=server_modal_shortcut):
 
             # logger
             log_txt = f"[ shortcut -> button 'add shortcut' ] New shortcut was added by {discord_id} user"
-            logger(log_file, "INFO", log_txt)
+            log_info(log_txt)
 
             # metrics
             ui_counter.labels("modal", "shortcut", "add")
@@ -255,7 +256,7 @@ class AddShortcut(discord.ui.Modal, title=server_modal_shortcut):
         else:
             # logger
             log_txt = f"Failed to load database file - {db_user}"
-            logger(log_file, "ERROR", log_txt)
+            log_error(log_txt)
 
             # answer
             text = Colorizer(sql_operational_error.format(dev_link)).colorize()
@@ -315,7 +316,7 @@ class DeleteShortcut(discord.ui.Select):
 
             # logger
             log_txt = f"[ shortcut -> button 'add shortcut' ] Shortcut was deleted by {discord_id} user"
-            logger(log_file, "INFO", log_txt)
+            log_info(log_txt)
 
             # metrics
             ui_counter.labels("selector", "shortcut", "remove")
@@ -330,7 +331,7 @@ class DeleteShortcut(discord.ui.Select):
         else:
             # logger
             log_txt = f"Failed to load database file - {db_user}"
-            logger(log_file, "ERROR", log_txt)
+            log_error(log_txt)
 
             # answer
             raise sqlite3.OperationalError

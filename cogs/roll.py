@@ -3,12 +3,13 @@ from typing import List
 
 import discord
 from discord import app_commands
-# import traceback
+import traceback
 
 from discord.ext import commands
 
 from functions.actions import detect_action_type
 from functions.colorizer import Colorizer
+from functions.logging import log_error
 from lang.EN.errors import bot_missing_permissions, bad_argument, argument_parsing_error, throws_groups_error_text, \
     missing_required_argument, cmd_on_cooldown
 from lang.EN.texts import command_roll_parameter
@@ -190,34 +191,37 @@ class Roll(commands.Cog):
             text = Colorizer(bot_missing_permissions).colorize()
             dm = await ctx.author.create_dm()
             await dm.send(text)
-        if isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, commands.MissingRequiredArgument):
             errors_counter.labels("roll", "MissingRequiredArgument")
             errors_counter.labels("roll", "MissingRequiredArgument").inc()
             text = Colorizer(missing_required_argument.format(prefix)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
-        if isinstance(error, commands.BadArgument):
+        elif isinstance(error, commands.BadArgument):
             errors_counter.labels("roll", "BadArgument")
             errors_counter.labels("roll", "BadArgument").inc()
             error_text = error.args[0]
             text = Colorizer(bad_argument.format(error_text)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
-        if isinstance(error, commands.ArgumentParsingError):
+        elif isinstance(error, commands.ArgumentParsingError):
             errors_counter.labels("roll", "ArgumentParsingError")
             errors_counter.labels("roll", "ArgumentParsingError").inc()
             error_text = error.args[0]
             text = Colorizer(argument_parsing_error.format(error_text)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
-        if isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, commands.CommandOnCooldown):
             errors_counter.labels("roll", "CommandOnCooldown")
             errors_counter.labels("roll", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
             await ctx.defer(ephemeral=True)
             await ctx.send(text)
-        # traceback.print_exception(type(error), error, error.__traceback__)
+        else:
+            traceback.print_exception(type(error), error, error.__traceback__)
+            text = type(error) + error + error.__traceback__
+            log_error(text)
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -42,12 +42,6 @@ def uuid_generator():
     return new_uuid
 
 
-def logger(filename, log_level, text):
-    with open(filename, 'a') as file:
-        print(datetime.datetime.now(), log_level, text, file=file)
-    file.close()
-
-
 def split_dice_actions(bucket):
     split_list = bucket.split("|")
     cleared_bucket = split_list[0]

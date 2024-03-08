@@ -5,10 +5,11 @@ import discord
 from discord.ext import commands
 
 from functions.colorizer import Colorizer
-from functions.config import dir_jokes, log_file, db_jokes
+from functions.config import dir_jokes, db_jokes
 from functions.generators import generate_joke_output
+from functions.logging import log_info
 from functions.sql import select_sql
-from functions.workhorses import text_writer, logger
+from functions.workhorses import text_writer
 from lang.EN.buttons import joke_joke_another, joke_joke_submit
 from lang.EN.errors import bad_argument
 from lang.EN.ui import joke_modal_submit_joke, \
@@ -79,7 +80,7 @@ class SubmitJoke(discord.ui.Modal, title=joke_modal_submit_joke):
 
         # logger
         log_txt = f"[ joke -> button 'submit joke' ] New joke was posted by {user_id}"
-        logger(log_file, "INFO", log_txt)
+        log_info(log_txt)
 
         # metrics
         ui_counter.labels("modal", "joke", "submit")

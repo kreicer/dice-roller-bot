@@ -1,10 +1,12 @@
 import sqlite3
+import traceback
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from functions.colorizer import Colorizer
+from functions.logging import log_error
 from functions.sql import select_sql
 from lang.EN.errors import missing_permissions, sql_operational_error, cmd_on_cooldown
 from models.commands import cmds
@@ -62,12 +64,16 @@ class Server(commands.Cog):
             errors_counter.labels("config", "MissingPermissions").inc()
             text = Colorizer(missing_permissions).colorize()
             await interaction.response.send_message(content=text, ephemeral=True)
-        if isinstance(error, app_commands.CommandOnCooldown):
+        elif isinstance(error, app_commands.CommandOnCooldown):
             errors_counter.labels("config", "CommandOnCooldown")
             errors_counter.labels("config", "CommandOnCooldown").inc()
             retry = round(error.retry_after, 2)
             text = Colorizer(cmd_on_cooldown.format(retry)).colorize()
             await interaction.response.send_message(content=text, ephemeral=True)
+        else:
+            traceback.print_exception(type(error), error, error.__traceback__)
+            text = type(error) + error + error.__traceback__
+            log_error(text)
 
 
 async def setup(bot: commands.Bot) -> None:

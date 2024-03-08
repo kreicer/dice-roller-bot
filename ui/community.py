@@ -2,10 +2,11 @@ import discord
 from discord.ext import commands
 
 from functions.colorizer import Colorizer
-from functions.config import dir_feedback, log_file, community_support, dev_github, topgg_link, community_policy
+from functions.config import dir_feedback, community_support, dev_github, topgg_link, community_policy
 from functions.generators import generate_help_short_output, generate_commands_help, generate_action_short_output, \
     generate_postfix_short_output, generate_postfix_help, generate_action_help
-from functions.workhorses import text_writer, logger
+from functions.logging import log_info
+from functions.workhorses import text_writer
 from lang.EN.buttons import community_help_feedback, community_help_support, community_about_policy
 from lang.EN.errors import bad_argument
 from lang.EN.ui import community_selector_all, community_selector_placeholder, community_modal_submit_feedback, \
@@ -66,7 +67,7 @@ class SubmitFeedback(discord.ui.Modal, title=community_modal_submit_feedback):
         text_writer(text, dir_feedback)
 
         log_txt = f"[ feedback -> button 'submit feedback' ] New feedback was posted by {user_id}"
-        logger(log_file, "INFO", log_txt)
+        log_info(log_txt)
         ui_counter.labels("modal", "help", "feedback")
         ui_counter.labels("modal", "help", "feedback").inc()
         await interaction.response.send_message(community_modal_submit_message, ephemeral=True)

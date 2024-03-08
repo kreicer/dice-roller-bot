@@ -1,7 +1,8 @@
 import topgg
 from discord.ext import commands
-from functions.workhorses import logger
-from functions.config import topgg_enable, topgg_token, log_file, topgg_timer
+
+from functions.logging import log_info, log_error
+from functions.config import topgg_enable, topgg_token, topgg_timer
 from models.metrics import errors_counter
 
 
@@ -17,13 +18,13 @@ class Integrations(commands.Cog):
     @commands.Cog.listener()
     async def on_autopost_success(self):
         log_txt = f"Posted stats on Top.gg successful"
-        logger(log_file, "INFO", log_txt)
+        log_info(log_txt)
 
     @commands.Cog.listener()
     async def on_autopost_error(self, error):
         log_txt = f"Could not post stats on Top.gg: "
         log_txt = log_txt + error
-        logger(log_file, "ERROR", log_txt)
+        log_error(log_txt)
         errors_counter.labels("integration", "Exception")
         errors_counter.labels("integration", "Exception").inc()
 
